@@ -156,128 +156,236 @@ function createFormatAssetStructure(basePath: string, format: OutputFormat, plug
     }
 }
 
+/**
+ * 渲染格式的详细设置项
+ * @param formatContainer 容器元素
+ * @param format 格式配置
+ * @param index 格式索引
+ * @param plugin 插件实例
+ */
+function renderFormatDetailSettings(formatContainer: HTMLElement, format: FormatConfig, index: number, plugin: MyPlugin): void {
+    const settings = plugin.settingList[exportFormatsSetting.name] as ExportFormatsSettings;
+    
+    // 格式名称设置
+    new Setting(formatContainer)
+        .setName('Format Name')
+        .setDesc('The name for this configuration')
+        .addText(text => text
+            .setValue(format.name)
+            .onChange(async (value) => {
+                settings.formats[index].name = value;
+                await plugin.saveData(plugin.settingList);
+            }));
+
+    // 输出路径设置
+    new Setting(formatContainer)
+        .setName('Output Path')
+        .setDesc('The output directory for exported files, support placeholders(占位符)')
+        .addText(text => {
+            text.setPlaceholder('Enter path')
+                .setValue(format.path)
+                .onChange(async (value) => {
+                    settings.formats[index].path = value;
+                    await plugin.saveData(plugin.settingList);
+                });
+            text.inputEl.style.width = '100%';
+        });
+
+    // YAML配置设置
+    new Setting(formatContainer)
+        .setName('YAML Config')
+        .setDesc('The YAML configuration for export')
+        .addTextArea(text => {
+            text.setPlaceholder('Enter YAML configuration')
+                .setValue(format.yamlConfig)
+                .onChange(async (value) => {
+                    settings.formats[index].yamlConfig = value;
+                    await plugin.saveData(plugin.settingList);
+                });
+            // Make textarea bigger
+            text.inputEl.style.width = '100%';
+            text.inputEl.style.height = '100px';
+            return text;
+        });
+
+    // 删除按钮和打开附件文件夹按钮
+    new Setting(formatContainer)
+        .setName('Format Actions')
+        .setDesc('Actions for this format configuration')
+        .addButton(button => button
+            .setButtonText('Delete')
+            .onClick(async () => {
+                // 删除对应的资源文件夹
+                const formatStylesPath = path.join(
+                    plugin.PLUGIN_ABS_PATH,
+                    'assets',
+                    'styles',
+                    format.id
+                );
+                if (fs.existsSync(formatStylesPath)) {
+                    fs.rmSync(formatStylesPath, { recursive: true, force: true });
+                }
+                
+                settings.formats.splice(index, 1);
+                await plugin.saveData(plugin.settingList);
+                // 重新渲染当前内容区域
+                const containerEl = formatContainer.parentElement;
+                if (containerEl) {
+                    containerEl.empty();
+                    addExportFormatsSettingTab(containerEl, plugin);
+                }
+            }))
+        .addButton(button => button
+            .setButtonText('Open Assets Folder')
+            .onClick(() => {
+                const formatStylesPath = path.join(
+                    plugin.PLUGIN_ABS_PATH,
+                    'assets',
+                    'styles',
+                    format.id
+                );
+                // 如果文件夹不存在，先创建它
+                if (!fs.existsSync(formatStylesPath)) {
+                    fs.mkdirSync(formatStylesPath, { recursive: true });
+                }
+                // 使用系统默认程序打开文件夹
+                const command = process.platform === 'win32'
+                    ? `explorer "${formatStylesPath}"`
+                    : process.platform === 'darwin'
+                        ? `open "${formatStylesPath}"`
+                        : `xdg-open "${formatStylesPath}"`;
+                child_process.exec(command);
+            }));
+}
+
 // 添加导出格式相关的设置项到设置面板
-export function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin): void {
+function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin): void {
     containerEl.createEl('h3', { text: 'Export Formats Settings' });
     
     const settings = plugin.settingList[exportFormatsSetting.name] as ExportFormatsSettings;
     
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        .format-settings {
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        .format-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .format-title {
+            margin: 0;
+            flex-grow: 1;
+        }
+        .format-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .format-enable-toggle {
+            margin: 0;
+        }
+        .format-enable-toggle .checkbox-container {
+            vertical-align: middle;
+        }
+        .format-toggle-icon {
+            transition: transform 0.2s ease;
+            margin-left: 4px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+        }
+        .format-toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+        .format-detail-container {
+            margin-top: 12px;
+            display: none;
+        }
+        .format-detail-container.visible {
+            display: block;
+        }
+        /* 移除setting组件的底部外边距，使界面更紧凑 */
+        .format-header .setting-item {
+            margin: 0;
+            border: none;
+            padding: 0;
+        }
+        /* 禁用状态的视觉反馈 */
+        .format-disabled h4 {
+            opacity: 0.6;
+        }
+    `;
+    containerEl.appendChild(style);
+    
     // 添加现有格式的设置
     settings.formats.forEach((format, index) => {
-        const formatContainer = containerEl.createEl('div', { cls: 'format-settings' });
+        const formatContainer = containerEl.createEl('div', { 
+            cls: `format-settings ${!format.enabled ? 'format-disabled' : ''}`
+        });
+        
+        // 创建格式标题和展开/收起控制区域
+        const headerEl = formatContainer.createEl('div', { cls: 'format-header' });
         
         // 格式标题
-        formatContainer.createEl('h4', { 
+        headerEl.createEl('h4', { 
             text: `${format.name} (${format.format || 'unknown format'})`,
             cls: 'format-title'
         });
         
+        // 创建控制区域（包含启用开关和展开/收起图标）
+        const controlsEl = headerEl.createEl('div', { cls: 'format-controls' });
+        
         // 启用开关
-        new Setting(formatContainer)
-            .setName(`Enable ${format.name}`)
-            .setDesc('Toggle this format configuration')
+        const toggleSetting = new Setting(controlsEl)
+            .setClass('format-enable-toggle')
             .addToggle(toggle => toggle
                 .setValue(format.enabled)
                 .onChange(async (value) => {
                     settings.formats[index].enabled = value;
                     await plugin.saveData(plugin.settingList);
-                    // 重新渲染当前内容区域
-                    containerEl.empty();
-                    addExportFormatsSettingTab(containerEl, plugin);
+                    // 更新禁用状态的视觉反馈
+                    formatContainer.classList.toggle('format-disabled', !value);
                 }));
-
-        if (format.enabled) {
-            // 格式名称设置
-            new Setting(formatContainer)
-                .setName('Format Name')
-                .setDesc('The name for this configuration')
-                .addText(text => text
-                    .setValue(format.name)
-                    .onChange(async (value) => {
-                        settings.formats[index].name = value;
-                        await plugin.saveData(plugin.settingList);
-                    }));
-
-            // 输出路径设置
-            new Setting(formatContainer)
-                .setName('Output Path')
-                .setDesc('The output directory for exported files, support placeholders(占位符)')
-                .addText(text => {
-                    text.setPlaceholder('Enter path')
-                        .setValue(format.path)
-                        .onChange(async (value) => {
-                            settings.formats[index].path = value;
-                            await plugin.saveData(plugin.settingList);
-                        });
-                    text.inputEl.style.width = '100%';
-                });
-
-            // YAML配置设置
-            new Setting(formatContainer)
-                .setName('YAML Config')
-                .setDesc('The YAML configuration for export')
-                .addTextArea(text => {
-                    text.setPlaceholder('Enter YAML configuration')
-                        .setValue(format.yamlConfig)
-                        .onChange(async (value) => {
-                            settings.formats[index].yamlConfig = value;
-                            await plugin.saveData(plugin.settingList);
-                        });
-                    // Make textarea bigger
-                    text.inputEl.style.width = '100%';
-                    text.inputEl.style.height = '100px';
-                    return text;
-                });
-
-            // 删除按钮和打开附件文件夹按钮
-            new Setting(formatContainer)
-                .setName('Format Actions')
-                .setDesc('Actions for this format configuration')
-                .addButton(button => button
-                    .setButtonText('Delete')
-                    .onClick(async () => {
-                        // 删除对应的资源文件夹
-                        const formatStylesPath = path.join(
-                            plugin.PLUGIN_ABS_PATH,
-                            'assets',
-                            'styles',
-                            format.id
-                        );
-                        if (fs.existsSync(formatStylesPath)) {
-                            fs.rmSync(formatStylesPath, { recursive: true, force: true });
-                        }
-                        
-                        settings.formats.splice(index, 1);
-                        await plugin.saveData(plugin.settingList);
-                        // 重新渲染当前内容区域
-                        containerEl.empty();
-                        addExportFormatsSettingTab(containerEl, plugin);
-                    }))
-                .addButton(button => button
-                    .setButtonText('Open Assets Folder')
-                    .onClick(() => {
-                        const formatStylesPath = path.join(
-                            plugin.PLUGIN_ABS_PATH,
-                            'assets',
-                            'styles',
-                            format.id
-                        );
-                        // 如果文件夹不存在，先创建它
-                        if (!fs.existsSync(formatStylesPath)) {
-                            fs.mkdirSync(formatStylesPath, { recursive: true });
-                        }
-                        // 使用系统默认程序打开文件夹
-                        const command = process.platform === 'win32'
-                            ? `explorer "${formatStylesPath}"`
-                            : process.platform === 'darwin'
-                                ? `open "${formatStylesPath}"`
-                                : `xdg-open "${formatStylesPath}"`;
-                        child_process.exec(command);
-                    }));
-        }
-
-        // 添加分隔线
-        containerEl.createEl('hr');
+        
+        // 移除Setting组件默认的名称和描述区域
+        toggleSetting.nameEl.remove();
+        toggleSetting.descEl.remove();
+        
+        // 创建展开/收起图标
+        const toggleIcon = controlsEl.createEl('span', { 
+            text: '▼', 
+            cls: 'format-toggle-icon'
+        });
+        
+        // 创建详细设置的容器
+        const detailContainer = formatContainer.createEl('div', { 
+            cls: 'format-detail-container'
+        });
+        
+        // 添加详细设置项
+        renderFormatDetailSettings(detailContainer, format, index, plugin);
+        
+        // 点击标题区域时切换详细设置的显示/隐藏
+        headerEl.addEventListener('click', (event) => {
+            // 如果点击的是toggleSwitch或其子元素，不处理展开/收起
+            if (event.target instanceof HTMLElement && 
+                (toggleSetting.controlEl.contains(event.target) || 
+                 toggleSetting.controlEl === event.target)) {
+                return;
+            }
+            
+            const isVisible = detailContainer.classList.toggle('visible');
+            toggleIcon.classList.toggle('expanded', isVisible);
+        });
     });
 
     // 添加新格式按钮

@@ -1,9 +1,10 @@
 import { AdvancedConverter, BaseConverter } from './textConverter';
 
 // 导入所有处理器
+import "./processors/paragraphProcessor";
 import './processors/InlineFormatProcessor';
 import './processors/TableProcessor';
-import './processors/CodeBlockProcessor';  
+import './processors/CodeBlockProcessor';
 import './processors/MutiColumnProcessor';
 import './processors/MathProcessor';
 import './processors/CalloutProcessor';

@@ -13,23 +13,6 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'inlineFormatProcessor',
-    formats: ['quarto', 'vuepress', 'typst'],
-    description: '处理内联格式',
-    mditRuleSetup: (converter: BaseConverter) => {
-        // 禁用列表规则
-        converter.md.disable(['list']);
-
-        // 保留html标签
-        converter.md.set({html: true});
-
-        // 段落规则
-        converter.md.renderer.rules.paragraph_open = () => "";
-        converter.md.renderer.rules.paragraph_close = () => "\n\n";
-    }
-});
-
-BaseConverter.registerProcessor({
     name: 'simpleReplace_typst',
     formats: ['typst'],
     description: '需要后处理替换<br>为#linebreak()',
@@ -134,7 +117,7 @@ BaseConverter.registerProcessor({
 
 BaseConverter.registerProcessor({
     name: 'simpleReplace_quarto',
-    formats: ['quarto'],
+    formats: ['vuepress','quarto'],
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.disable(['heading','emphasis']);//
     }

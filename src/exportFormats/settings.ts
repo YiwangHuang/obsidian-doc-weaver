@@ -4,7 +4,7 @@ import { SettingsRegistry } from '../../main';
 import * as path from 'path';
 import * as placeholders from '../lib/constant';
 import * as fs from 'fs';
-import { OutputFormat } from './textConvertTry/textConverter';
+import { OutputFormat } from './textConvert/textConverter';
 import * as child_process from 'child_process';
 import { generateHexId } from '../lib/commonUtils';
 
@@ -226,14 +226,12 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, format: Format
                     fs.rmSync(formatStylesPath, { recursive: true, force: true });
                 }
                 
+                // 从设置中移除该格式
                 settings.formats.splice(index, 1);
                 await plugin.saveData(plugin.settingList);
-                // 重新渲染当前内容区域
-                const containerEl = formatContainer.parentElement;
-                if (containerEl) {
-                    containerEl.empty();
-                    addExportFormatsSettingTab(containerEl, plugin);
-                }
+                
+                // 直接从DOM中移除当前格式的容器，而不是重新渲染整个设置区
+                formatContainer.parentElement?.remove();
             }))
         .addButton(button => button
             .setButtonText('Open Assets Folder')

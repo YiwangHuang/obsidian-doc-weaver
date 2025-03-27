@@ -4,10 +4,12 @@ import * as path from 'path';
 import * as placeholders from '../lib/constant';
 import type MyPlugin from '../../main';
 import { ExportFormatsSettings, exportFormatsSetting } from './settings';
-import { TextConverter, BaseConverter } from './textConvertTry/index';
-import { extensionNameOfFormat, OutputFormat } from './textConvertTry/textConverter';
+import { TextConverter, BaseConverter } from './textConvert/index';
+import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
 import { getNoteInfo } from '../lib/noteResloveUtils';
 import { DEBUG } from '../lib/testUtils';
+
+//TODO: 新增功能：直接通过typst的WebAssembly版本导出为pdf
 /**
  * 递归查找并复制文件，保持原有目录结构
  */

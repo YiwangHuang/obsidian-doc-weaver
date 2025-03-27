@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, DataAdapter, FileSystemAdapter, Notice, Plugin, PluginSettingTab, Setting, TFile } from 'obsidian';
+import { App, DataAdapter, FileSystemAdapter, Notice, Plugin, PluginSettingTab, TFile } from 'obsidian';
 import path from 'path';
 
 // import { 
@@ -120,8 +120,6 @@ export default class MyPlugin extends Plugin {
     public getPathAbs(pathRel: string): string {
         return path.join(this.VAULT_ABS_PATH, pathRel);
     }
-
-    
 }
 
 // 定义设置注册接口

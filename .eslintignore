@@ -1,3 +1,6 @@
 node_modules/
 
 main.js
+
+# 忽略所有编译输出目录
+**/dist/**

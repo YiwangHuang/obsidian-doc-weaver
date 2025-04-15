@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "test-module": ["../../packages/test-module/src"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

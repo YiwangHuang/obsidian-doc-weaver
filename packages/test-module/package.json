@@ -1,0 +1,19 @@
+{
+  "name": "mdit-tab",
+  "version": "1.0.0",
+  "description": "Markdown-it plugin for tab handling",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint . --ext .ts",
+    "test": "jest"
+  },
+  "keywords": ["utility", "helper"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "4.7.4",
+    "eslint": "^8.30.0"
+  }
+}

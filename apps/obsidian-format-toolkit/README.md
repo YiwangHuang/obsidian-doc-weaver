@@ -1,16 +1,39 @@
-# Obsidian Sample Plugin
+# Format Toolkit for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+A comprehensive toolkit that enhances your note-taking experience in Obsidian with powerful formatting, exporting and creation tools.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- **Note Creation**: Create notes with customizable templates and paths
+- **Export Formats**: Export your notes to various formats (webpage, html, pdf, pptx, docx, revealjs)
+- **Tag Wrapper**: Quickly wrap selected text with custom tags
+
+## Installation
+
+1. Open Obsidian Settings
+2. Go to Community Plugins and disable Safe Mode
+3. Click Browse and search for "Format Toolkit"
+4. Install and Enable the plugin
+
+## Development
+
+This plugin uses Vite for building and bundling and pnpm as package manager.
+
+### Setup for Development
+
+- Make sure your NodeJS is at least v14.18.0 (`node --version`).
+- Make sure you have pnpm installed (`pnpm -v`). If not, install it with `npm install -g pnpm`.
+- Clone this repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/format-toolkit` folder.
+- Run `pnpm install` to install dependencies.
+- Run `pnpm dev` to start compilation in watch mode.
+
+### Build Commands
+
+- `pnpm dev` - Development build with watch mode
+- `pnpm build` - Production build
+- `pnpm version` - Update version numbers in manifest.json and versions.json
+
+For more detailed information about the build system, see the [Vite构建说明.md](./Vite构建说明.md) file.
 
 ## First time developing plugins?
 

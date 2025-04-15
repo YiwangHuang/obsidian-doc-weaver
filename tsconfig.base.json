@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    // 设置基本URL为当前目录，用于解析非相对模块名
+    "baseUrl": ".",
+    // 将sourcemap作为数据嵌入到JavaScript文件中，而不是生成单独的文件
+    "inlineSourceMap": true,
+    // 将TypeScript源码内容作为嵌入内容包含在sourcemap中
+    "inlineSources": true,
+    // 指定生成的JavaScript使用的模块标准为ESNext(最新ECMAScript标准)
+    "module": "ESNext",
+    // 指定生成的JavaScript的ECMAScript目标版本为ES6
+    "target": "ES6",
+    // 允许编译JavaScript文件
+    "allowJs": true,
+    // 当表达式和声明的类型为any时报错
+    "noImplicitAny": true,
+    // 决定如何处理模块导入，node策略按照Node.js规则解析模块
+    "moduleResolution": "node",
+    // 从tslib导入辅助函数，减小生成的代码体积
+    "importHelpers": true,
+    // 确保每个文件可以单独编译，有利于编译性能和工具兼容性
+    "isolatedModules": true,
+    // 启用严格的null和undefined检查
+    "strictNullChecks": true,
+    // 指定编译过程中使用的库文件
+    "lib": [
+      "DOM",      // DOM API
+      "ES5",      // ECMAScript 5标准库
+      "ES6",      // ECMAScript 2015 (ES6)标准库
+      "ES7"       // ECMAScript 2016 (ES7)标准库
+    ]
+  },
+  "include": [
+    "**/*.ts"     // 包含所有子目录中的TypeScript文件
+  ]
+}

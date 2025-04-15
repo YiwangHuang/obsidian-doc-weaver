@@ -10,12 +10,12 @@ import {
 	exportFormatsSetting,
     // exportToFormats,
     addExportFormatsCommands
-} from './src/exportFormats/index';	
+} from './exportFormats/index';	
 
 import { 
     addGetTagWrapperCommands,
     tagWrapperSetting
-} from './src/toggleTagWrapper/index';
+} from './toggleTagWrapper/index';
 
 export default class MyPlugin extends Plugin {
 	private vaultAdapter: DataAdapter;	

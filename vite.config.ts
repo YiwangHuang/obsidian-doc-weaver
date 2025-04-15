@@ -23,7 +23,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     build: {
       lib: {
         // 入口文件
-        entry: resolve(__dirname, 'main.ts'),
+        entry: resolve(__dirname, 'src/main.ts'),
         // 指定输出格式为 CommonJS
         formats: ['cjs'],
         // 文件名

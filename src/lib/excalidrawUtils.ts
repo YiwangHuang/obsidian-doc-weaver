@@ -1,8 +1,7 @@
-import type MyPlugin from '../../main';
+import type MyPlugin from '../main';
 import type { ExcalidrawAutomate } from 'obsidian-excalidraw-plugin';
 import { Notice, TFile } from 'obsidian';
 import * as fs from 'fs';
-import * as path from 'path';
 
 /**
  * 导出Excalidraw绘图为PNG格式

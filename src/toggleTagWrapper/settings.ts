@@ -1,6 +1,6 @@
 import { Setting } from 'obsidian';
-import type MyPlugin from '../../main';
-import { SettingsRegistry } from '../../main';
+import type MyPlugin from '../main';
+import { SettingsRegistry } from '../main';
 
 // 定义标签配置接口
 export interface TagConfig {

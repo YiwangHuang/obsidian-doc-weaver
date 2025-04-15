@@ -2,7 +2,7 @@ import { Notice, TFile, Editor } from 'obsidian';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as placeholders from '../lib/constant';
-import type MyPlugin from '../../main';
+import type MyPlugin from '../main';
 import { ExportFormatsSettings, exportFormatsSetting } from './settings';
 import { TextConverter, BaseConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';

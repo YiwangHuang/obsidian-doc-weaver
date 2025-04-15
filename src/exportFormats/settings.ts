@@ -1,6 +1,6 @@
 import { Setting } from 'obsidian';
-import type MyPlugin from '../../main';
-import { SettingsRegistry } from '../../main';
+import type MyPlugin from '../main';
+import { SettingsRegistry } from '../main';
 import * as path from 'path';
 import * as placeholders from '../lib/constant';
 import * as fs from 'fs';

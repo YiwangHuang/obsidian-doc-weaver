@@ -2,6 +2,8 @@
   "compilerOptions": {
     // 设置基本URL为当前目录，用于解析非相对模块名
     "baseUrl": ".",
+    //解决 CommonJS 模块和 ES 模块之间的互操作性问题
+    "esModuleInterop": true,
     // 将sourcemap作为数据嵌入到JavaScript文件中，而不是生成单独的文件
     "inlineSourceMap": true,
     // 将TypeScript源码内容作为嵌入内容包含在sourcemap中

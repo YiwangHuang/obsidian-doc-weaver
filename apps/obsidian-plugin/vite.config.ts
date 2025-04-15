@@ -60,7 +60,7 @@ export default defineConfig({
       }
     },
     sourcemap: process.env.NODE_ENV !== 'production',
-    outDir: '../..',
+    outDir: '.',
     emptyOutDir: false,
     minify: process.env.NODE_ENV === 'production',
     target: 'es2018',
@@ -73,5 +73,5 @@ export default defineConfig({
       'test-module': resolve(__dirname, '../../packages/test-module/src/index.ts')
     }
   },
-  plugins: [copyManifestPlugin]
+  // plugins: [copyManifestPlugin]
 }); 

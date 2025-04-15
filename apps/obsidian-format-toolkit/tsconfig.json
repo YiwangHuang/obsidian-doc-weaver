@@ -2,9 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "test-module": ["../../packages/test-module/src"]
-    }
+    "types": [
+      "node",
+      "markdown-it",
+      "markdown-it-container"
+    ]
   },
   "include": ["src/**/*.ts"]
 }

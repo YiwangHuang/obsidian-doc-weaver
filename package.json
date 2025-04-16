@@ -4,7 +4,9 @@
 	"description": "Obsidian plugin monorepo",
 	"private": true,
 	"scripts": {
-		"dev": "pnpm --filter obsidian-plugin dev",
+		"dev": "pnpm --filter obsidian-format-toolkit dev",
+		"dev:sample": "pnpm --filter obsidian-plugin dev",
+		"dev:all": "pnpm -r --parallel dev",
 		"build": "pnpm --filter '*' build",
 		"lint": "pnpm --filter '*' lint",
 		"test": "pnpm --filter '*' test",

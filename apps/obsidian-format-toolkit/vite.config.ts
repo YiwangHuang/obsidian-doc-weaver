@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import builtins from 'builtin-modules';
+import { copyFileSync } from 'fs';
 
 // 构建横幅信息
 const banner = `/*
@@ -14,6 +15,22 @@ if you want to view the source, please visit the github repository of this plugi
 interface ConfigEnv {
   mode: string;
 }
+
+// 自定义插件：复制 manifest.json 到根目录
+const copyManifestPlugin = {
+  name: 'copy-manifest',
+  closeBundle() {
+    const manifestPath = resolve(__dirname, 'manifest.json');
+    const destPath = resolve(__dirname, '../../manifest.json');
+    
+    try {
+      copyFileSync(manifestPath, destPath);
+      console.log('✓ manifest.json copied to root directory');
+    } catch (error) {
+      console.error('Failed to copy manifest.json:', error);
+    }
+  }
+};
 
 export default defineConfig(({ mode }: ConfigEnv) => {
   const isProd = mode === 'production';
@@ -30,7 +47,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         fileName: () => 'main.js',
       },
       // 输出目录（默认为当前目录）
-      outDir: '.',
+      outDir: '../..',
       // 清空输出目录（关闭，因为我们希望保留其他文件）
       emptyOutDir: false,
       // 生产环境下不生成 sourcemap
@@ -69,6 +86,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         },
         // 添加插件
         plugins: [
+          copyManifestPlugin,
           nodeResolve({
             browser: true,
           }),

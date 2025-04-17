@@ -234,7 +234,7 @@ export class AdvancedConverter extends BaseConverter{
                     else if(linkFile.extension === 'md'){
                         if(key.endsWith('.excalidraw.md')){
                             exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png');
-                            
+                            // exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg');
                             extType = 'excalidraw';
                         }
                         else{
@@ -276,6 +276,7 @@ export class AdvancedConverter extends BaseConverter{
             if(link.type === 'excalidraw'){
                 if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
                     exportToPngAbs(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
+                    // exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));//TODO: 开发导出svg的选项
                 }
                 continue;
             }

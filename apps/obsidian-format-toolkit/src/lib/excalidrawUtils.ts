@@ -77,11 +77,18 @@ export async function exportToSvg(
         if (!(abstractFile instanceof TFile)) {
             throw new Error("Source file not found or is not a file");
         }
-        
+        console.log(sourcePath);
         // 创建SVG内容并保存到文件
         const svgElements = await ea.createSVG(sourcePath);
-        const svgString = svgElements.outerHTML;
-        
+        const svgString = new XMLSerializer().serializeToString(svgElements);// 将 DOM 对象转为 XML 字符串
+        // const svgString = svgElements.outerHTML;
+        console.log(svgString);
+        // if (!svgString.includes("xmlns")) {// 确保包含命名空间（有些浏览器会遗漏）
+        //     svgString = svgString.replace(
+        //     "<svg",
+        //     '<svg xmlns="http://www.w3.org/2000/svg"'
+        //     );
+        // }
         await plugin.app.vault.create(targetPath, svgString);
         
         new Notice('导出SVG成功');

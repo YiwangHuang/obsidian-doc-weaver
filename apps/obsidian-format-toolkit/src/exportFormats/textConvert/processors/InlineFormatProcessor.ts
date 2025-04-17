@@ -89,7 +89,9 @@ BaseConverter.registerProcessor({
                 .replace(/\[/g, '\\[')
                 .replace(/\]/g, '\\]')
                 .replace(/\{/g, '\\{')
-                .replace(/\}/g, '\\}');
+                .replace(/\}/g, '\\}')
+                .replace(/\*/g, '\\*')
+                .replace(/_/g, '\\_');
         };
 
         // 添加处理iframe的规则

@@ -4,7 +4,7 @@ import type  MyPlugin  from '../../main';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
-import { exportToPngAbs } from '../../lib/excalidrawUtils';
+import { exportToPngAbs, exportToSvg } from '../../lib/excalidrawUtils';
 import { NoteInfo, getNoteInfo } from '../../lib/noteResloveUtils';
 import { generateHexId } from '../../lib/commonUtils';
 
@@ -233,8 +233,8 @@ export class AdvancedConverter extends BaseConverter{
                     }
                     else if(linkFile.extension === 'md'){
                         if(key.endsWith('.excalidraw.md')){
-                            exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png');
-                            // exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg');
+                            // exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png');
+                            exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg');
                             extType = 'excalidraw';
                         }
                         else{
@@ -275,8 +275,8 @@ export class AdvancedConverter extends BaseConverter{
             }
             if(link.type === 'excalidraw'){
                 if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
-                    exportToPngAbs(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
-                    // exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));//TODO: 开发导出svg的选项
+                    // exportToPngAbs(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
+                    exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));//TODO: 同时支持导出为svg或png，允许在设置面板中选择
                 }
                 continue;
             }

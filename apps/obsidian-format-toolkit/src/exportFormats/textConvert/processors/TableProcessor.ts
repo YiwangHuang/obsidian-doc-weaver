@@ -1,5 +1,5 @@
 import { BaseConverter } from '../textConverter';
-import type Token = require('markdown-it/lib/token');
+import type Token from 'markdown-it/lib/token.mjs';
 
 
 // TODO: 在typst下，添加一个处理表格空单元格的规则。我们需要修改表格单元格的渲染规则，检查内容是否为空。

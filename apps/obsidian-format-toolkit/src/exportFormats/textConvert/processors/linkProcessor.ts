@@ -2,7 +2,7 @@ import { BaseConverter, AdvancedConverter } from '../textConverter';
 import { getHeadingText } from '../../../lib/noteResloveUtils';
 import * as path from 'path';
 import url from 'url';
-import StateBlock from 'markdown-it/lib/rules_block/state_block';
+import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 
 const OBSIDIAN_LINK = 'obsidian_link';
 

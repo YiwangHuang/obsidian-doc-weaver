@@ -23,6 +23,6 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
-    "mdit-tab": "workspace:*"
+    "test-module": "workspace:*"
   }
 }

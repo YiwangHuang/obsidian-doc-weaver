@@ -1,0 +1,55 @@
+{
+  "name": "@mdit/helper",
+  "version": "0.16.0",
+  "description": "Helper functions for MarkdownIt plugins",
+  "keywords": [
+    "markdown-it",
+    "helper"
+  ],
+  "homepage": "https://mdit-plugins.github.io/",
+  "bugs": {
+    "url": "https://github.com/mdit-plugins/mdit-plugins/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdit-plugins/mdit-plugins.git",
+    "directory": "packages/helper"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Mr.Hope",
+    "email": "mister-hope@outlook.com",
+    "url": "https://mister-hope.com"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf ./dist",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+  },
+  "peerDependencies": {
+    "markdown-it": "^14.1.0"
+  },
+  "peerDependenciesMeta": {
+    "markdown-it": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "4.7.4",
+    "eslint": "^8.30.0",
+    "@types/markdown-it": "^14.1.2"
+  },
+  "engines": {
+    "node": ">= 18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

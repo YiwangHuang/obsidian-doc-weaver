@@ -1,4 +1,4 @@
-import Token from 'markdown-it/lib/token';
+import Token from 'markdown-it/lib/token.mjs';
 // import { BlockProcessor, Rule, PostProcessor } from '../textConverter';
 import { BaseConverter } from '../textConverter';
 

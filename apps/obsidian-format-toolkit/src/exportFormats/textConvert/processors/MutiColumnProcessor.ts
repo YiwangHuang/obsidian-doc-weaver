@@ -1,5 +1,5 @@
 import MarkdownIt from 'markdown-it';
-import StateBlock from 'markdown-it/lib/rules_block/state_block';
+import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 import { BaseConverter } from '../textConverter';
 import url from 'url';
 

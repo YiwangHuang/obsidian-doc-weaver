@@ -10,6 +10,7 @@ import './processors/MathProcessor';
 import './processors/CalloutProcessor';
 import './processors/linkProcessor';
 import './processors/htmlProcessor';
+import './processors/footnoteProcessor';
 // import './processors/mitiColumNew'; //TODO: 完善功能后替代 MutiColumnProcessor
 
 // 导出 TextConverter 类

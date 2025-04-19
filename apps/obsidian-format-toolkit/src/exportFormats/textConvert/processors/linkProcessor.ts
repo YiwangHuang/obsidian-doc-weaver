@@ -6,6 +6,8 @@ import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 
 const OBSIDIAN_LINK = 'obsidian_link';
 
+// TODO: 考虑基于markdown-it-wiki-links插件重写渲染规则
+
 BaseConverter.registerProcessor({
     name: 'obsidianLinkParserRule',
     formats: ['quarto', 'vuepress', 'typst', 'plain'],
@@ -70,7 +72,7 @@ BaseConverter.registerProcessor({
 
 // 识别引用类型，对.md进行特殊处理；对于其他文件类型，查找路径并推入数组
 // 根据文件名在从当前目录开始逐级查找文件，返回文件路径
-async function obsidianLinkPlugin(converter: BaseConverter){
+function obsidianLinkPlugin(converter: BaseConverter){
     // 使用block规则替代inline规则
     converter.md.block.ruler.before('fence', OBSIDIAN_LINK, (
         state: StateBlock,

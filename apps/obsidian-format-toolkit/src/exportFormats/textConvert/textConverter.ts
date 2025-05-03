@@ -4,7 +4,7 @@ import type  MyPlugin  from '../../main';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
-import { exportToPngAbs, exportToSvg } from '../../lib/excalidrawUtils';
+import { exportToSvg } from '../../lib/excalidrawUtils';
 import { NoteInfo, getNoteInfo } from '../../lib/noteResloveUtils';
 import { generateHexId } from '../../lib/commonUtils';
 

@@ -9,7 +9,7 @@ const passthrough = {
 
 BaseConverter.registerProcessor({
     name: 'mathParserRule',
-    formats: ['quarto', 'vuepress', 'typst'],
+    formats: ['quarto', 'typst'],
     description: '自定义数学公式解析规则',
     preProcessor: (text: string) => {
         const lines = text.split('\n');

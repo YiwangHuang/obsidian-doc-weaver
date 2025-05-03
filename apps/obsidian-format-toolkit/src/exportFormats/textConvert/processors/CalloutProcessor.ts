@@ -7,10 +7,22 @@ import * as url from 'url';
 
 BaseConverter.registerProcessor({
     name: 'calloutParseRule',
-    formats: ['quarto','vuepress','typst'],
+    formats: ['quarto','typst'],
     description: '解析 Callout 语法',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.use(calloutPlugin);
+    }
+});
+
+BaseConverter.registerProcessor({
+    name: 'calloutParseRule_vuepress',
+    formats: ['vuepress',],
+    description: '解析 Callout 语法', 
+    mditRuleSetup: (converter: BaseConverter) => {
+        converter.md.disable(['blockquote']);
+    },
+    postProcessor: (text: string, converter: BaseConverter) => {
+        return text.replace(/&gt;/g, '>'); // TODO: 暂时解决办法：用后置处理器替换&gt;为>
     }
 });
 

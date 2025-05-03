@@ -7,6 +7,7 @@ import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 const OBSIDIAN_LINK = 'obsidian_link';
 
 // TODO: 考虑基于markdown-it-wiki-links插件重写渲染规则
+// TODO: 考虑兼容![[image.png|77%]]这样的格式，用于控制图片宽度
 
 BaseConverter.registerProcessor({
     name: 'obsidianLinkParserRule',
@@ -46,8 +47,8 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'obsidianLinkRendererRule_quarto',
-    formats: ['quarto'],
+    name: 'obsidianLinkRendererRule_vuepress',
+    formats: ['vuepress','quarto'],
     description: '自定义双链接渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {

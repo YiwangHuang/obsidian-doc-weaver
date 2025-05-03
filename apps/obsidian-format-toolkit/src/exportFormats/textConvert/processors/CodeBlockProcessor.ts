@@ -3,8 +3,8 @@ import Token from 'markdown-it/lib/token.mjs';
 import { BaseConverter } from '../textConverter';
 
 BaseConverter.registerProcessor({
-    name: 'codeBlockProcessor',
-    formats: ['vuepress', 'typst'],
+    name: 'codeBlockProcessor_typst',
+    formats: ['typst'],
     description: '处理代码块',
     mditRuleSetup: (converter: BaseConverter) => {
         // 自定义 fence 渲染规则
@@ -18,7 +18,7 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'codeBlockProcessor',
+    name: 'codeBlockProcessor_quarto',
     formats: ['quarto'],
     description: '处理代码块',
     mditRuleSetup: (converter: BaseConverter) => {

@@ -8,7 +8,7 @@ import { BaseConverter } from '../textConverter';
  */
 BaseConverter.registerProcessor({
     name: 'colContainerProcessor',
-    formats: ['quarto', 'vuepress', 'typst', 'plain'],
+    formats: ['quarto', 'typst', 'plain'],
     description: '自定义col容器解析规则',
     mditRuleSetup: (converter: BaseConverter) => {
         // 注册自定义容器插件

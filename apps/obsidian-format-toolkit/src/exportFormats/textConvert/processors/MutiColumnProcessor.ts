@@ -5,7 +5,7 @@ import url from 'url';
 
 BaseConverter.registerProcessor({
     name: 'multiColumnParserRule',
-    formats: ['quarto', 'vuepress', 'typst'],
+    formats: ['quarto', 'typst'],
     description: '自定义分栏格式解析规则',
     mditRuleSetup: (converter: BaseConverter) => {
         columnsPlugin(converter.md);

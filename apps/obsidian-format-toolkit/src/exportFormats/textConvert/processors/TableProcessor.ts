@@ -88,8 +88,8 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'tableRendererRule_quarto',
-    formats: ['quarto'],
+    name: 'tableRendererRule_vuepress',
+    formats: ['vuepress','quarto'],
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.disable(['table']);
     }

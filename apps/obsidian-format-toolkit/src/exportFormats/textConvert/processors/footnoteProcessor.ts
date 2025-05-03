@@ -1,11 +1,10 @@
-import MarkdownIt from 'markdown-it';
 import { BaseConverter } from '../textConverter';
 import footnote from 'markdown-it-footnote';
 
 // 基本脚注处理器 - 注册footnote插件
 BaseConverter.registerProcessor({
     name: 'footnote',
-    formats: ['quarto', 'vuepress', 'typst', 'plain'],
+    formats: ['quarto', 'typst', 'plain'],
     description: '处理脚注语法',
     detail: '支持解析和渲染 [^1] 格式的脚注',
     mditRuleSetup: (converter: BaseConverter) => {

@@ -91,7 +91,8 @@ BaseConverter.registerProcessor({
                 .replace(/\{/g, '\\{')
                 .replace(/\}/g, '\\}')
                 .replace(/\*/g, '\\*')
-                .replace(/_/g, '\\_');
+                .replace(/_/g, '\\_')
+                .replace(/#/g, '\\#');
         };
 
         // 添加处理iframe的规则
@@ -118,7 +119,7 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'simpleReplace_quarto',
+    name: 'simpleReplace_vuepress',
     formats: ['vuepress','quarto'],
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.disable(['heading','emphasis']);//

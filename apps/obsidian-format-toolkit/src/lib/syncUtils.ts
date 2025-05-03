@@ -1,7 +1,7 @@
 // import deasync from 'deasync';
 
 /**
- * 将异步操作转换为同步操作
+ * 将异步操作转换为同步操作 // TODO: 暂时弃用,考虑删除
  * @param promise 要等待的 Promise
  * @param timeout 最大等待时间(ms)，默认 5000ms
  * @returns Promise 的结果

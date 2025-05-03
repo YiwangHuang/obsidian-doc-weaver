@@ -7,7 +7,7 @@ import moment from 'moment';
 export function replaceDatePlaceholders(template: string): string {
     const dateRegex = /{{date:\s*([^}]+)}}/g;
 
-    return template.replace(dateRegex, (matchedPattern, dateFormat) => {
+    return template.replaceAll(dateRegex, (matchedPattern, dateFormat) => {
         return moment().format(dateFormat.trim());
     });
 }

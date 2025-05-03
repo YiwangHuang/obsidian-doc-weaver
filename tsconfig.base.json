@@ -29,7 +29,8 @@
       "DOM",      // DOM API
       "ES5",      // ECMAScript 5标准库
       "ES6",      // ECMAScript 2015 (ES6)标准库
-      "ES7"       // ECMAScript 2016 (ES7)标准库
+      "ES7",      // ECMAScript 2016 (ES7)标准库
+      "ES2021"    // ECMAScript 2021标准库
     ]
   },
   "include": [

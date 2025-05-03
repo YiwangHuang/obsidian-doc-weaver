@@ -1,5 +1,6 @@
 import { BaseConverter, AdvancedConverter } from '../textConverter';
 import { getHeadingText } from '../../../lib/noteResloveUtils';
+import { ensureRelativePath } from '../../../lib/pathUtils';
 import * as path from 'path';
 import url from 'url';
 import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
@@ -53,7 +54,7 @@ BaseConverter.registerProcessor({
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
             const export_name = tokens[idx].content;
-            return `![](${path.posix.join(converter.attachmentDir, export_name)})`;
+            return `![](${ensureRelativePath(path.posix.join(converter.attachmentDir, export_name))})`;
         };
     }
 });

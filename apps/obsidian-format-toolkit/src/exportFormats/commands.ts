@@ -39,9 +39,9 @@ function replacePlaceholders(template: string, converter: TextConverter): string
     const plugin = converter.plugin as MyPlugin;
     const currentFile = converter.getCurrentNoteFile() as TFile;
     return placeholders.replaceDatePlaceholders(template
-    .replace(placeholders.VAR_VAULT_DIR, plugin.VAULT_ABS_PATH)
-    .replace(placeholders.VAR_NOTE_DIR, path.dirname(plugin.getPathAbs(currentFile.path)))//TODO: 第二个参数可改为currentFile.parent.path，待测试
-    .replace(placeholders.VAR_NOTE_NAME, currentFile.basename))
+    .replaceAll(placeholders.VAR_VAULT_DIR, plugin.VAULT_ABS_PATH)
+    .replaceAll(placeholders.VAR_NOTE_DIR, path.dirname(plugin.getPathAbs(currentFile.path)))//TODO: 第二个参数可改为currentFile.parent.path，待测试
+    .replaceAll(placeholders.VAR_NOTE_NAME, currentFile.basename))
 }
 
 async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<void> {

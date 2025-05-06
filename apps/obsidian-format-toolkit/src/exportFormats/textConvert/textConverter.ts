@@ -4,7 +4,8 @@ import type  MyPlugin  from '../../main';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
-import { exportToSvg } from '../../lib/excalidrawUtils';
+import { exportToPng, exportToSvg } from '../../lib/excalidrawUtils';
+import { FormatConfig } from '../settings';
 import { NoteInfo, getNoteInfo } from '../../lib/noteResloveUtils';
 import { generateHexId } from '../../lib/commonUtils';
 
@@ -62,7 +63,7 @@ export class BaseConverter {
     public attachmentDir: string;
 
     public format: OutputFormat;
-
+    public formatConfig: FormatConfig|null = null; // TODO：考虑合并formatConfig和format
     // plugin 和 file 仅在使用tsx测试时可以为空
     constructor(attachmentDir = 'assets') {
         this.md = new MarkdownIt();
@@ -232,10 +233,11 @@ export class AdvancedConverter extends BaseConverter{
                         extType = 'media';
                     }
                     else if(linkFile.extension === 'md'){
-                        if(key.endsWith('.excalidraw.md')){
-                            // exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png');
-                            exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg');
+                        if(key.endsWith('.excalidraw.md') && this.formatConfig !== null){
                             extType = 'excalidraw';
+                            this.formatConfig.excalidraw_export_type === 'svg'?
+                                exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg') :
+                                exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png'); 
                         }
                         else{
                             if(this.isRenewExportName){
@@ -273,15 +275,20 @@ export class AdvancedConverter extends BaseConverter{
             if (!fs.existsSync(attachmentDirAbs)) {
                 fs.mkdirSync(attachmentDirAbs, { recursive: true });
             }
-            if(link.type === 'excalidraw'){
+            if(link.type === 'excalidraw' && this.formatConfig !== null){
                 if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
-                    // exportToPngAbs(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
-                    exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));//TODO: 同时支持导出为svg或png，允许在设置面板中选择
+                    if(this.formatConfig.excalidraw_export_type === 'svg'){
+                        exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
+                    }
+                    else{
+                        exportToPng(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));//TODO: 同时支持导出为svg或png，允许在设置面板中选择
+                    }
                 }
                 continue;
             }
 
             if(link.type === 'markdown'){continue;}//TODO: 开发完markdown的link处理后，不会再遇到这种情况，需要删除
+            // TODO: 需要考虑在deepPaste中，'excalidraw'文件也要被当成多媒体复制，而非跳过
 
             try{
                 

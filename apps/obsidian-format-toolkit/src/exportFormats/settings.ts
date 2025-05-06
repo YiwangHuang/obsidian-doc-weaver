@@ -17,13 +17,14 @@ TODO: 需修改，提示词：
 */
 
 // 类型定义
-interface FormatConfig {
+export interface FormatConfig {
     id: string;           // 格式ID
-    name: string;         // 格式名称
-    path: string;         // 输出路径
-    yamlConfig: string;   // YAML配置
-    enabled: boolean;     // 是否启用
     format: OutputFormat;// 导出格式
+    enabled: boolean;     // 是否启用
+    yaml: string;   // YAML配置
+    name?: string;         // 格式名称
+    path: string;         // 输出路径
+    excalidraw_export_type?: 'png' | 'svg'; // excalidraw导出类型
 }
 
 export interface ExportFormatsSettings {
@@ -159,21 +160,19 @@ function createFormatAssetStructure(basePath: string, format: OutputFormat, plug
 /**
  * 渲染格式的详细设置项
  * @param formatContainer 容器元素
- * @param format 格式配置
- * @param index 格式索引
+ * @param formatConfig 格式配置
  * @param plugin 插件实例
  */
-function renderFormatDetailSettings(formatContainer: HTMLElement, format: FormatConfig, index: number, plugin: MyPlugin): void {
-    const settings = plugin.settingList[exportFormatsSetting.name] as ExportFormatsSettings;
-    
+function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: FormatConfig, plugin: MyPlugin): void {
+
     // 格式名称设置
     new Setting(formatContainer)
         .setName('Format Name')
         .setDesc('The name for this configuration')
         .addText(text => text
-            .setValue(format.name)
+            .setValue(formatConfig.name || `${formatConfig.format}_${formatConfig.id}`) // 如果name为空，则使用默认名称
             .onChange(async (value) => {
-                settings.formats[index].name = value;
+                formatConfig.name = value.trim();
                 await plugin.saveData(plugin.settingList);
             }));
 
@@ -183,29 +182,46 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, format: Format
         .setDesc('The output directory for exported files, support placeholders(占位符)')
         .addText(text => {
             text.setPlaceholder('Enter path')
-                .setValue(format.path)
+                .setValue((formatConfig.path && formatConfig.path !== '') ? // 如果path为空，则使用默认路径
+                    formatConfig.path : path.join(placeholders.VAR_VAULT_DIR, 'output', placeholders.VAR_NOTE_NAME + '_' + formatConfig.format)) 
                 .onChange(async (value) => {
-                    settings.formats[index].path = value;
+                    formatConfig.path = value.trim();
                     await plugin.saveData(plugin.settingList);
                 });
             text.inputEl.style.width = '100%';
         });
 
+    if (!formatConfig.yaml) {
+        formatConfig.yaml = FORMAT_DEFAULT_CONFIGS[formatConfig.format] || '';
+    }
     // YAML配置设置
     new Setting(formatContainer)
         .setName('YAML Config')
         .setDesc('The YAML configuration for export')
         .addTextArea(text => {
             text.setPlaceholder('Enter YAML configuration')
-                .setValue(format.yamlConfig)
+                .setValue(formatConfig.yaml)
                 .onChange(async (value) => {
-                    settings.formats[index].yamlConfig = value;
+                    formatConfig.yaml = value;
                     await plugin.saveData(plugin.settingList);
                 });
             // Make textarea bigger
             text.inputEl.style.width = '100%';
             text.inputEl.style.height = '100px';
             return text;
+        });
+
+    new Setting(formatContainer)
+        .setName('Excalidraw Export Type')
+        .setDesc('The type of excalidraw export')
+        .addDropdown(dropdown => {
+            dropdown.addOption('png', 'PNG')
+                .addOption('svg', 'SVG')
+                .setValue(formatConfig.excalidraw_export_type || 'png') // 如果excalidraw_export_type为空，则使用默认值
+                .onChange(async (value) => {
+                    formatConfig.excalidraw_export_type = value as 'png' | 'svg';
+                    await plugin.saveData(plugin.settingList);
+                });
         });
 
     // 删除按钮和打开附件文件夹按钮
@@ -220,13 +236,15 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, format: Format
                     plugin.PLUGIN_ABS_PATH,
                     'assets',
                     'styles',
-                    format.id
+                    formatConfig.id
                 );
                 if (fs.existsSync(formatStylesPath)) {
                     fs.rmSync(formatStylesPath, { recursive: true, force: true });
                 }
                 
                 // 从设置中移除该格式
+                const settings = plugin.settingList[exportFormatsSetting.name] as ExportFormatsSettings;
+                const index = settings.formats.findIndex(item => item.id == formatConfig.id);
                 settings.formats.splice(index, 1);
                 await plugin.saveData(plugin.settingList);
                 
@@ -240,7 +258,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, format: Format
                     plugin.PLUGIN_ABS_PATH,
                     'assets',
                     'styles',
-                    format.id
+                    formatConfig.id
                 );
                 // 如果文件夹不存在，先创建它
                 if (!fs.existsSync(formatStylesPath)) {
@@ -325,7 +343,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
     containerEl.appendChild(style);
     
     // 添加现有格式的设置
-    settings.formats.forEach((format, index) => {
+    settings.formats.forEach((format) => {
         const formatContainer = containerEl.createEl('div', { 
             cls: `format-settings ${!format.enabled ? 'format-disabled' : ''}`
         });
@@ -348,7 +366,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
             .addToggle(toggle => toggle
                 .setValue(format.enabled)
                 .onChange(async (value) => {
-                    settings.formats[index].enabled = value;
+                    format.enabled = value;
                     await plugin.saveData(plugin.settingList);
                     // 更新禁用状态的视觉反馈
                     formatContainer.classList.toggle('format-disabled', !value);
@@ -370,7 +388,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
         });
         
         // 添加详细设置项
-        renderFormatDetailSettings(detailContainer, format, index, plugin);
+        renderFormatDetailSettings(detailContainer, format, plugin);
         
         // 点击标题区域时切换详细设置的显示/隐藏
         headerEl.addEventListener('click', (event) => {
@@ -408,7 +426,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
                     id: `${selectedFormat}-${hexId}`,
                     name: `${selectedFormat.charAt(0).toUpperCase() + selectedFormat.slice(1)} ${hexId}`,
                     path: path.join(placeholders.VAR_VAULT_DIR, 'output', placeholders.VAR_NOTE_NAME + '_' + selectedFormat),
-                    yamlConfig: FORMAT_DEFAULT_CONFIGS[selectedFormat] || '',  // 提供默认空字符串
+                    yaml: FORMAT_DEFAULT_CONFIGS[selectedFormat] || '',  // 提供默认空字符串
                     enabled: true,
                     format: selectedFormat
                 };

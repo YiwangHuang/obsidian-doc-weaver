@@ -1,6 +1,7 @@
 import type MyPlugin from '../main';
 import type { ExcalidrawAutomate } from 'obsidian-excalidraw-plugin';
 import { Notice, TFile } from 'obsidian';
+import { debugLog } from './testUtils';
 import * as fs from 'fs';
 
 /**
@@ -10,7 +11,7 @@ import * as fs from 'fs';
  * @param targetPathAbs 目标文件路径(系统绝对路径）
  * @returns Promise<void>
  */
-export async function exportToPngAbs(
+export async function exportToPng(
     plugin: MyPlugin, 
     sourcePathRel: string,
     targetPathAbs: string
@@ -45,41 +46,29 @@ export async function exportToPngAbs(
     }
 }
 
-export async function exportToPngRel(
-    plugin: MyPlugin,
-    sourcePathRel: string,
-    targetPathRel: string
-): Promise<void> {
-    const targetPathAbs = plugin.getPathAbs(targetPathRel);
-    await exportToPngAbs(plugin, sourcePathRel, targetPathAbs);
-}
-
-
-
 /**
- * TODO: 目前有bug未使用,待修复
  * 导出Excalidraw绘图为SVG格式
  * @param plugin 插件实例
- * @param sourcePath 源文件路径
- * @param targetPath 目标文件路径
+ * @param sourcePathRel 源文件路径(vault相对路径)
+ * @param targetPathAbs 目标文件路径(系统绝对路径)
  * @returns Promise<void>
  */
 export async function exportToSvg(
     plugin: MyPlugin, 
-    sourcePath: string,
-    targetPath: string
+    sourcePathRel: string,
+    targetPathAbs: string
 ): Promise<void> {
     try {
         const excalidrawPlugin = (plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"];
         const ea = excalidrawPlugin.ea as ExcalidrawAutomate;
-        const abstractFile = plugin.app.vault.getAbstractFileByPath(sourcePath);
+        const abstractFile = plugin.app.vault.getAbstractFileByPath(sourcePathRel);
         
         if (!(abstractFile instanceof TFile)) {
             throw new Error("Source file not found or is not a file");
         }
-        console.log(sourcePath);
+        debugLog(`sourcePath: ${sourcePathRel}`);
         // 创建SVG内容并保存到文件
-        const svgElements = await ea.createSVG(sourcePath);
+        const svgElements = await ea.createSVG(sourcePathRel);
         const svgString = svgElements.outerHTML;
         // console.log(svgString);
         // if (!svgString.includes("xmlns")) {// 确保包含命名空间（有些浏览器会遗漏）
@@ -88,7 +77,7 @@ export async function exportToSvg(
         //     '<svg xmlns="http://www.w3.org/2000/svg"'
         //     );
         // }
-        fs.writeFileSync(targetPath, svgString);
+        fs.writeFileSync(targetPathAbs, svgString);
         new Notice('导出SVG成功');
     } catch (error) {
         new Notice(`导出失败: ${error.message}`);

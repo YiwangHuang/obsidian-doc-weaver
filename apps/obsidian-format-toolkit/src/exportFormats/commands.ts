@@ -53,12 +53,13 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
     const settings = plugin.settingList[exportFormatsSetting.name] as ExportFormatsSettings;// 获取设置
     const converter = new TextConverter(plugin, sourceFile);
     for (const item of settings.formats.filter(item => item.enabled)) {
+        converter.formatConfig = item;
         const exportStyleDirAbs = path.join(plugin.PLUGIN_ABS_PATH, 'assets', 'styles', item.id);
         const exportTargetDirAbs = replacePlaceholders(item.path, converter);
         const exportTargetFilePathAbs = path.join(exportTargetDirAbs,`${sourceFile.basename}.${extensionNameOfFormat[item.format]}`);
 
         // 处理 YAML 配置
-        const yamlInfo = replacePlaceholders(item.yamlConfig, converter);
+        const yamlInfo = replacePlaceholders(item.yaml, converter);
 
         // 创建目标目录
         if (!fs.existsSync(exportTargetDirAbs)) {
@@ -81,6 +82,9 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         // console.log(mainContent)
         // console.log(plugin.app.metadataCache.getFileCache(sourceFile))
         // 打印所有链接的键值对
+        
+        converter.formatConfig = null;
+
         console.log('打印附件信息')//
         for (const link of converter.links) {
             console.log(`Path: ${link.path}, Type: ${link.type}`);

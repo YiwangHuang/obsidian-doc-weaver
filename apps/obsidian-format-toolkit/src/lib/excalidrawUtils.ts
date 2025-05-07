@@ -4,6 +4,8 @@ import { Notice, TFile } from 'obsidian';
 import { debugLog } from './testUtils';
 import * as fs from 'fs';
 
+// TODO: 增加参数，控制输出的PNG或SVG的背景色，可选透明
+
 /**
  * 导出Excalidraw绘图为PNG格式
  * @param plugin 插件实例
@@ -14,7 +16,8 @@ import * as fs from 'fs';
 export async function exportToPng(
     plugin: MyPlugin, 
     sourcePathRel: string,
-    targetPathAbs: string
+    targetPathAbs: string,
+    scale?: number
 ): Promise<void> {
     try {
         const excalidrawPlugin = (plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"];
@@ -30,7 +33,7 @@ export async function exportToPng(
         // ea.copyViewElementsToEAforEditing(excalidrawElements);
         
         // 创建PNG blob并保存到文件
-        const pngBlob = await ea.createPNG(sourcePathRel,2);
+        const pngBlob = await ea.createPNG(sourcePathRel,scale = scale || 2); // scale默认值为2
         const arrayBuffer = await pngBlob.arrayBuffer();
         
         // 确保目标目录存在

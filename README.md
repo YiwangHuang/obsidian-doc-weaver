@@ -92,3 +92,11 @@ If you have multiple URLs, you can also do:
 ## API Documentation
 
 See https://github.com/obsidianmd/obsidian-api
+
+
+## Todo
+
+- [ ] 占位符支持与 md 文档属性联动
+- [ ] excalidraw 输出的png格式的尺寸可调
+- [ ] 用vue重构设置界面，提供更多选项和说明
+- [ ] 提供示例模板

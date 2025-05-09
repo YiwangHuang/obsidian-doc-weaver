@@ -281,7 +281,7 @@ export class AdvancedConverter extends BaseConverter{
                         exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
                     }
                     else{
-                        exportToPng(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name), 5);//TODO: 支持通过可选参数调整PNG分辨率
+                        exportToPng(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name), this.formatConfig.excalidraw_png_scale);//TODO: 支持通过可选参数调整PNG分辨率
                     }
                 }
                 continue;

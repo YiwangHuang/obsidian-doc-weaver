@@ -23,16 +23,35 @@ export interface FormatConfig {
     enabled: boolean;     // 是否启用
     yaml: string;   // YAML配置
     name?: string;         // 格式名称
-    path: string;         // 输出路径
+    output_dir: string;         // 输出路径
+    output_base_name: string; // 输出文件名
     excalidraw_export_type?: 'png' | 'svg'; // excalidraw导出类型
+    excalidraw_png_scale?: number;
 }
 
-export interface ExportFormatsSettings {
+export interface ExportFormatsSettings { // 导出模块设置, 包含所有导出格式配置formats，做成一个对象方便扩展更多设置项
     formats: FormatConfig[];
 }
 
+// 默认设置
+const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportFormatsSettings = {
+    formats: []
+};
+
+export const exportFormatsSetting: SettingsRegistry = {
+    name: 'exportFormats',
+    description: 'Settings for export formats',
+    defaultSettings: DEFAULT_EXPORT_FORMATS_SETTINGS,
+    renderSettingTab: addExportFormatsSettingTab
+}
+
+
+const DEFAULT_OUTPUT_DIR = path.join(placeholders.VAR_VAULT_DIR, 'output');
+const DEFAULT_OUTPUT_BASE_NAME = placeholders.VAR_NOTE_NAME;
+const DEFAULT_EXCALIDRAW_PNG_SCALE = 2;
+
 // 定义每种格式的默认 YAML 配置
-const FORMAT_DEFAULT_CONFIGS: Partial<Record<OutputFormat, string>> = {
+const DEFAULT_YAMLs: Partial<Record<OutputFormat, string>> = {
     'quarto': 
 `---
 title: "{{noteName}}"
@@ -68,10 +87,7 @@ sidebar: auto
 )`
 };
 
-// 默认设置
-export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportFormatsSettings = {
-    formats: []
-};
+
 
 /**
  * 递归读取目录中的所有文件
@@ -176,23 +192,38 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
                 await plugin.saveData(plugin.settingList);
             }));
 
-    // 输出路径设置
+    // 输出目录设置
     new Setting(formatContainer)
-        .setName('Output Path')
+        .setName('Output Directory')
         .setDesc('The output directory for exported files, support placeholders(占位符)')
         .addText(text => {
             text.setPlaceholder('Enter path')
-                .setValue((formatConfig.path && formatConfig.path !== '') ? // 如果path为空，则使用默认路径
-                    formatConfig.path : path.join(placeholders.VAR_VAULT_DIR, 'output', placeholders.VAR_NOTE_NAME + '_' + formatConfig.format)) 
+                .setValue((formatConfig.output_dir && formatConfig.output_dir.trim() !== '') ? // 如果path为空，则使用默认路径
+                    formatConfig.output_dir : DEFAULT_OUTPUT_DIR + '_' + formatConfig.id) 
                 .onChange(async (value) => {
-                    formatConfig.path = value.trim();
+                    formatConfig.output_dir = value.trim();
+                    await plugin.saveData(plugin.settingList);
+                });
+            text.inputEl.style.width = '100%';
+        });
+
+    // 输出文件名设置
+    new Setting(formatContainer)
+        .setName('Output Base Name')
+        .setDesc('The base name for exported files, support placeholders(占位符)')
+        .addText(text => {
+            text.setPlaceholder('Enter base name')
+                .setValue((formatConfig.output_base_name && formatConfig.output_base_name.trim() !== '') ? // 如果path为空，则使用默认路径
+                    formatConfig.output_base_name : DEFAULT_OUTPUT_BASE_NAME) 
+                .onChange(async (value) => {
+                    formatConfig.output_base_name = value.trim();
                     await plugin.saveData(plugin.settingList);
                 });
             text.inputEl.style.width = '100%';
         });
 
     if (!formatConfig.yaml) {
-        formatConfig.yaml = FORMAT_DEFAULT_CONFIGS[formatConfig.format] || '';
+        formatConfig.yaml = DEFAULT_YAMLs[formatConfig.format] || '';
     }
     // YAML配置设置
     new Setting(formatContainer)
@@ -221,8 +252,36 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
                 .onChange(async (value) => {
                     formatConfig.excalidraw_export_type = value as 'png' | 'svg';
                     await plugin.saveData(plugin.settingList);
+                    
+                    // 更新PNG Scale设置的可见性，控制切换导出类型时，更新PNG Scale可见性
+                    const pngScaleEl = formatContainer.querySelector('.png-scale-setting');
+                    if (pngScaleEl) {
+                        pngScaleEl.classList.toggle('png-scale-visible', value === 'png');
+                    }
                 });
         });
+    
+    // 添加 PNG 缩放比例的滑动条设置（始终渲染，但通过CSS控制可见性）
+    new Setting(formatContainer)
+        .setClass('png-scale-setting')
+        .setName('PNG Scale')
+        .setDesc('Scale factor for PNG export (1-9)')
+        .addSlider(slider => {
+            slider
+                .setLimits(1, 9, 1) // 设置最小值、最大值和步长
+                .setValue(formatConfig.excalidraw_png_scale || 2) // 默认值为2
+                .setDynamicTooltip() // 显示当前值的工具提示
+                .onChange(async (value) => {
+                    formatConfig.excalidraw_png_scale = value;
+                    await plugin.saveData(plugin.settingList);
+                });
+        });
+    
+    // 添加CSS样式控制PNG Scale的可见性，控制第一次渲染时，PNG Scale设置的可见性
+    formatContainer.querySelector('.png-scale-setting')?.classList.toggle(
+        'png-scale-visible', 
+        formatConfig.excalidraw_export_type === 'png'
+    );
 
     // 删除按钮和打开附件文件夹按钮
     new Setting(formatContainer)
@@ -339,6 +398,12 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
         .format-disabled h4 {
             opacity: 0.6;
         }
+        .png-scale-setting {
+            display: none;
+        }
+        .png-scale-setting.png-scale-visible {
+            display: block;
+        }
     `;
     containerEl.appendChild(style);
     
@@ -420,13 +485,14 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
         .addButton(button => button
             .setButtonText('Add')
             .onClick(async () => {
-                const hexId = generateHexId();
+                const hexId = generateHexId();// TODO: 考虑使用时间戳作为id
                 const selectedFormat = containerEl.querySelector('select')?.value as OutputFormat || 'quarto';
                 const newFormat: FormatConfig = {
-                    id: `${selectedFormat}-${hexId}`,
+                    id: hexId,
                     name: `${selectedFormat.charAt(0).toUpperCase() + selectedFormat.slice(1)} ${hexId}`,
-                    path: path.join(placeholders.VAR_VAULT_DIR, 'output', placeholders.VAR_NOTE_NAME + '_' + selectedFormat),
-                    yaml: FORMAT_DEFAULT_CONFIGS[selectedFormat] || '',  // 提供默认空字符串
+                    output_dir: DEFAULT_OUTPUT_DIR,
+                    output_base_name: DEFAULT_OUTPUT_BASE_NAME+'_'+hexId,
+                    yaml: DEFAULT_YAMLs[selectedFormat] || '',  // 提供默认空字符串
                     enabled: true,
                     format: selectedFormat
                 };
@@ -450,11 +516,4 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
                 containerEl.empty();
                 addExportFormatsSettingTab(containerEl, plugin);
             }));
-}
-
-export const exportFormatsSetting: SettingsRegistry = {
-    name: 'exportFormats',
-    description: 'Settings for export formats',
-    defaultSettings: DEFAULT_EXPORT_FORMATS_SETTINGS,
-    renderSettingTab: addExportFormatsSettingTab
 }

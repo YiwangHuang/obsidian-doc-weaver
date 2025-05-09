@@ -55,28 +55,27 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
     for (const item of settings.formats.filter(item => item.enabled)) {
         converter.formatConfig = item;
         const exportStyleDirAbs = path.join(plugin.PLUGIN_ABS_PATH, 'assets', 'styles', item.id);
-        const exportTargetDirAbs = replacePlaceholders(item.path, converter);
-        const exportTargetFilePathAbs = path.join(exportTargetDirAbs,`${sourceFile.basename}.${extensionNameOfFormat[item.format]}`);
-
+        const outputDir = replacePlaceholders(item.output_dir, converter);
+        const outputFullName = `${replacePlaceholders(item.output_base_name, converter)}.${extensionNameOfFormat[item.format]}`;
         // 处理 YAML 配置
         const yamlInfo = replacePlaceholders(item.yaml, converter);
 
         // 创建目标目录
-        if (!fs.existsSync(exportTargetDirAbs)) {
-            fs.mkdirSync(exportTargetDirAbs, { recursive: true });
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
         }
         
         // 拷贝样式文件
         if (fs.existsSync(exportStyleDirAbs)) {
-            copyFilesRecursively(exportStyleDirAbs, exportTargetDirAbs);
+            copyFilesRecursively(exportStyleDirAbs, outputDir);
         }
         
         // 处理主要内容与YAML
         const exportContent = await converter.convert(sourceContent, item.format);
-        fs.writeFileSync(exportTargetFilePathAbs, yamlInfo+'\n'+exportContent);
+        fs.writeFileSync(path.join(outputDir,outputFullName), yamlInfo+'\n'+exportContent);
         
         // 拷贝附件
-        converter.copyAttachment(exportTargetDirAbs);
+        converter.copyAttachment(outputDir);
         // const {properties, mainContent} = await getFileContentAndProperties(plugin, sourceFile)
         // console.log(properties)
         // console.log(mainContent)

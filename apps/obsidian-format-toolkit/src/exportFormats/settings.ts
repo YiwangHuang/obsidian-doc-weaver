@@ -17,7 +17,7 @@ TODO: 需修改，提示词：
 */
 
 // 类型定义
-export interface FormatConfig {
+export interface ExportConfig {
     id: string;           // 格式ID
     format: OutputFormat;// 导出格式
     enabled: boolean;     // 是否启用
@@ -29,13 +29,13 @@ export interface FormatConfig {
     excalidraw_png_scale?: number;
 }
 
-export interface ExportFormatsSettings { // 导出模块设置, 包含所有导出格式配置formats，做成一个对象方便扩展更多设置项
-    formats: FormatConfig[];
+export interface ExportManagerSetting { // 导出模块设置, 包含所有导出格式配置formats，做成一个对象方便扩展更多设置项
+    exportConfigs: ExportConfig[];
 }
 
 // 默认设置
-const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportFormatsSettings = {
-    formats: []
+const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSetting = {
+    exportConfigs: []
 };
 
 export const exportFormatsSetting: SettingsRegistry = {
@@ -179,7 +179,7 @@ function createFormatAssetStructure(basePath: string, format: OutputFormat, plug
  * @param formatConfig 格式配置
  * @param plugin 插件实例
  */
-function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: FormatConfig, plugin: MyPlugin): void {
+function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: ExportConfig, plugin: MyPlugin): void {
 
     // 格式名称设置
     new Setting(formatContainer)
@@ -269,7 +269,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
         .addSlider(slider => {
             slider
                 .setLimits(1, 9, 1) // 设置最小值、最大值和步长
-                .setValue(formatConfig.excalidraw_png_scale || 2) // 默认值为2
+                .setValue(formatConfig.excalidraw_png_scale || DEFAULT_EXCALIDRAW_PNG_SCALE) // 默认值为2
                 .setDynamicTooltip() // 显示当前值的工具提示
                 .onChange(async (value) => {
                     formatConfig.excalidraw_png_scale = value;
@@ -302,9 +302,9 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
                 }
                 
                 // 从设置中移除该格式
-                const settings = plugin.settingList[exportFormatsSetting.name] as ExportFormatsSettings;
-                const index = settings.formats.findIndex(item => item.id == formatConfig.id);
-                settings.formats.splice(index, 1);
+                const settings = plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;
+                const index = settings.exportConfigs.findIndex(item => item.id == formatConfig.id);
+                settings.exportConfigs.splice(index, 1);
                 await plugin.saveData(plugin.settingList);
                 
                 // 直接从DOM中移除当前格式的容器，而不是重新渲染整个设置区
@@ -337,7 +337,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
 function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin): void {
     containerEl.createEl('h3', { text: 'Export Formats Settings' });
     
-    const settings = plugin.settingList[exportFormatsSetting.name] as ExportFormatsSettings;
+    const settings = plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;
     
     // 添加样式
     const style = document.createElement('style');
@@ -408,7 +408,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
     containerEl.appendChild(style);
     
     // 添加现有格式的设置
-    settings.formats.forEach((format) => {
+    settings.exportConfigs.forEach((format) => {
         const formatContainer = containerEl.createEl('div', { 
             cls: `format-settings ${!format.enabled ? 'format-disabled' : ''}`
         });
@@ -475,9 +475,9 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
         .setDesc('Add a new export format configuration')
         .addDropdown(dropdown => {
             dropdown
-                .addOption('quarto', 'Quarto')
-                .addOption('vuepress', 'VuePress')
                 .addOption('typst', 'Typst')
+                .addOption('vuepress', 'VuePress')
+                .addOption('quarto', 'Quarto')
                 .setValue('quarto')
                 .onChange(() => {}); // 空函数，因为我们只在点击Add按钮时使用选择的值
             return dropdown;
@@ -487,7 +487,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
             .onClick(async () => {
                 const hexId = generateHexId();// TODO: 考虑使用时间戳作为id
                 const selectedFormat = containerEl.querySelector('select')?.value as OutputFormat || 'quarto';
-                const newFormat: FormatConfig = {
+                const newFormat: ExportConfig = {
                     id: hexId,
                     name: `${selectedFormat.charAt(0).toUpperCase() + selectedFormat.slice(1)} ${hexId}`,
                     output_dir: DEFAULT_OUTPUT_DIR,
@@ -510,7 +510,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
                     createFormatAssetStructure(formatStylesPath, selectedFormat, plugin);
                 }
 
-                settings.formats.push(newFormat);
+                settings.exportConfigs.push(newFormat);
                 await plugin.saveData(plugin.settingList);
                 // 重新渲染当前内容区域
                 containerEl.empty();

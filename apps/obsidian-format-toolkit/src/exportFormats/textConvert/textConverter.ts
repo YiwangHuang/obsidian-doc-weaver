@@ -5,7 +5,7 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import { exportToPng, exportToSvg } from '../../lib/excalidrawUtils';
-import { FormatConfig } from '../settings';
+import { ExportConfig } from '../settings';
 import { NoteInfo, getNoteInfo } from '../../lib/noteResloveUtils';
 import { generateHexId } from '../../lib/commonUtils';
 
@@ -63,7 +63,6 @@ export class BaseConverter {
     public attachmentDir: string;
 
     public format: OutputFormat;
-    public formatConfig: FormatConfig|null = null; // TODO：考虑合并formatConfig和format
     // plugin 和 file 仅在使用tsx测试时可以为空
     constructor(attachmentDir = 'assets') {
         this.md = new MarkdownIt();
@@ -131,6 +130,7 @@ export class AdvancedConverter extends BaseConverter{
     public embedNoteCache: Record<string, NoteInfo> = {}; // 嵌入笔记缓存
     public isRecursiveEmbedNote = true; // 是否递归解析嵌入笔记
     public isRenewExportName = false; // 是否为附件生成新的导出名称，默认不生成(使用原名称作为导出名)
+    public exportConfig: ExportConfig|null = null; // TODO：考虑合并formatConfig和format
     constructor(plugin: MyPlugin, file: TFile, attachmentDir = 'assets') {
         super(attachmentDir);
         this.links = [];
@@ -183,7 +183,7 @@ export class AdvancedConverter extends BaseConverter{
      * 2. 将笔记信息缓存到embedNoteCache中
      * 3. 递归解析笔记中的所有嵌入内容
      */
-    public async resolveEmbedNoteInfo(noteFile: TFile): Promise<void>{
+    public async resolveEmbedNoteInfo(noteFile: TFile): Promise<void>{//TODO: 将该方法和getLinkInfo等方法迁移到父类BaseConverter中
         if(this.embedNoteCache[noteFile.path]) return;// 避免因两个笔记互相嵌入而陷入无限递归
         
         const noteInfo = await getNoteInfo(this.plugin, noteFile);
@@ -208,7 +208,6 @@ export class AdvancedConverter extends BaseConverter{
      * @param linkText 附件文件名
      * @param isRenewExportName 是否生成新的导出名称
      * @returns 附件路径和文件类型
-     * TODO: 考虑增加一个可选参数，用于指定解析的起始文件(起始路径不一定非得是this.currentFile.path)
      * TODO: 考虑用app.metadataCache.getFirstLinkpathDest()来实现路径搜索
      */ 
     public getLinkInfo(linkText: string, sourceNoteFile: TFile = this.getCurrentNoteFile() as TFile): LinkInfo {
@@ -233,9 +232,9 @@ export class AdvancedConverter extends BaseConverter{
                         extType = 'media';
                     }
                     else if(linkFile.extension === 'md'){
-                        if(key.endsWith('.excalidraw.md') && this.formatConfig !== null){
+                        if(key.endsWith('.excalidraw.md') && this.exportConfig !== null){
                             extType = 'excalidraw';
-                            this.formatConfig.excalidraw_export_type === 'svg'?
+                            this.exportConfig.excalidraw_export_type === 'svg'?
                                 exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg') :
                                 exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png'); 
                         }
@@ -275,13 +274,13 @@ export class AdvancedConverter extends BaseConverter{
             if (!fs.existsSync(attachmentDirAbs)) {
                 fs.mkdirSync(attachmentDirAbs, { recursive: true });
             }
-            if(link.type === 'excalidraw' && this.formatConfig !== null){
+            if(link.type === 'excalidraw' && this.exportConfig !== null){
                 if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
-                    if(this.formatConfig.excalidraw_export_type === 'svg'){
+                    if(this.exportConfig.excalidraw_export_type === 'svg'){
                         exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
                     }
                     else{
-                        exportToPng(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name), this.formatConfig.excalidraw_png_scale);//TODO: 支持通过可选参数调整PNG分辨率
+                        exportToPng(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name), this.exportConfig.excalidraw_png_scale);//TODO: 支持通过可选参数调整PNG分辨率
                     }
                 }
                 continue;

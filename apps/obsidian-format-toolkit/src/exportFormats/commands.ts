@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as placeholders from '../lib/constant';
 import type MyPlugin from '../main';
-import { ExportFormatsSettings, exportFormatsSetting } from './settings';
+import { ExportManagerSetting, exportFormatsSetting } from './settings';
 import { TextConverter, BaseConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
 import { getNoteInfo } from '../lib/noteResloveUtils';
@@ -35,7 +35,7 @@ function copyFilesRecursively(
     }
 }
 
-function replacePlaceholders(template: string, converter: TextConverter): string {
+function replacePlaceholders(template: string, converter: TextConverter): string {//TODO: 重构为TextConverter的成员方法
     const plugin = converter.plugin as MyPlugin;
     const currentFile = converter.getCurrentNoteFile() as TFile;
     return placeholders.replaceDatePlaceholders(template
@@ -50,10 +50,10 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         return;
     }
     const sourceContent = (await getNoteInfo(plugin, sourceFile)).mainContent// 只获取笔记主要内容，暂时用不到笔记属性
-    const settings = plugin.settingList[exportFormatsSetting.name] as ExportFormatsSettings;// 获取设置
+    const settings = plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;// 获取设置
     const converter = new TextConverter(plugin, sourceFile);
-    for (const item of settings.formats.filter(item => item.enabled)) {
-        converter.formatConfig = item;
+    for (const item of settings.exportConfigs.filter(item => item.enabled)) {
+        converter.exportConfig = item;
         const exportStyleDirAbs = path.join(plugin.PLUGIN_ABS_PATH, 'assets', 'styles', item.id);
         const outputDir = replacePlaceholders(item.output_dir, converter);
         const outputFullName = `${replacePlaceholders(item.output_base_name, converter)}.${extensionNameOfFormat[item.format]}`;
@@ -82,7 +82,7 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         // console.log(plugin.app.metadataCache.getFileCache(sourceFile))
         // 打印所有链接的键值对
         
-        converter.formatConfig = null;
+        converter.exportConfig = null;
 
         console.log('打印附件信息')//
         for (const link of converter.links) {

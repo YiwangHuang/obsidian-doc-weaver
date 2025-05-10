@@ -1,7 +1,6 @@
 import { Notice, TFile, Editor } from 'obsidian';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as placeholders from '../lib/constant';
 import type MyPlugin from '../main';
 import { ExportManagerSetting, exportFormatsSetting } from './settings';
 import { TextConverter, BaseConverter } from './textConvert/index';
@@ -35,15 +34,6 @@ function copyFilesRecursively(
     }
 }
 
-function replacePlaceholders(template: string, converter: TextConverter): string {//TODO: 重构为TextConverter的成员方法
-    const plugin = converter.plugin as MyPlugin;
-    const currentFile = converter.getCurrentNoteFile() as TFile;
-    return placeholders.replaceDatePlaceholders(template
-    .replaceAll(placeholders.VAR_VAULT_DIR, plugin.VAULT_ABS_PATH)
-    .replaceAll(placeholders.VAR_NOTE_DIR, path.dirname(plugin.getPathAbs(currentFile.path)))//TODO: 第二个参数可改为currentFile.parent.path，待测试
-    .replaceAll(placeholders.VAR_NOTE_NAME, currentFile.basename))
-}
-
 async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<void> {
     if (sourceFile.extension !== 'md' || sourceFile.path.endsWith('.excalidraw.md')) {
         new Notice(`${sourceFile.basename} is not markdown files, only markdown files can be parsed to export.`);
@@ -55,10 +45,10 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
     for (const item of settings.exportConfigs.filter(item => item.enabled)) {
         converter.exportConfig = item;
         const exportStyleDirAbs = path.join(plugin.PLUGIN_ABS_PATH, 'assets', 'styles', item.id);
-        const outputDir = replacePlaceholders(item.output_dir, converter);
-        const outputFullName = `${replacePlaceholders(item.output_base_name, converter)}.${extensionNameOfFormat[item.format]}`;
+        const outputDir = converter.replacePlaceholders(item.output_dir);
+        const outputFullName = `${converter.replacePlaceholders(item.output_base_name)}.${extensionNameOfFormat[item.format]}`;
         // 处理 YAML 配置
-        const yamlInfo = replacePlaceholders(item.yaml, converter);
+        const yamlInfo = converter.replacePlaceholders(item.yaml);
 
         // 创建目标目录
         if (!fs.existsSync(outputDir)) {

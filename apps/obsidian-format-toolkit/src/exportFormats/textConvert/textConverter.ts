@@ -7,7 +7,8 @@ import * as path from 'path';
 import { exportToPng, exportToSvg } from '../../lib/excalidrawUtils';
 import { ExportConfig } from '../settings';
 import { NoteInfo, getNoteInfo } from '../../lib/noteResloveUtils';
-import { generateHexId } from '../../lib/commonUtils';
+import { generateHexId } from '../../lib/idGenerator';
+import * as placeholders from '../../lib/constant';
 
 // import './processors/InlineFormatProcessor';
 
@@ -137,6 +138,20 @@ export class AdvancedConverter extends BaseConverter{
         this.plugin = plugin;
         this.embedNoteCache = {};
         this.noteFileStack.push(file);
+    }
+
+    /**
+     * replacePlaceholders方法，替换模板中的占位符为实际值
+     * @param template 包含占位符的字符串模板
+     * @returns 替换后的字符串
+     */
+    public replacePlaceholders(template: string): string {
+        const currentFile = this.getCurrentNoteFile();
+        // 替换模板中的占位符
+        return placeholders.replaceDatePlaceholders(template
+            .replaceAll(placeholders.VAR_VAULT_DIR, this.plugin.VAULT_ABS_PATH)
+            .replaceAll(placeholders.VAR_NOTE_DIR, path.dirname(this.plugin.getPathAbs(currentFile.path)))
+            .replaceAll(placeholders.VAR_NOTE_NAME, currentFile.basename));
     }
 
     /**
@@ -280,7 +295,7 @@ export class AdvancedConverter extends BaseConverter{
                         exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
                     }
                     else{
-                        exportToPng(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name), this.exportConfig.excalidraw_png_scale);//TODO: 支持通过可选参数调整PNG分辨率
+                        exportToPng(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name), this.exportConfig.excalidraw_png_scale);
                     }
                 }
                 continue;
@@ -299,8 +314,13 @@ export class AdvancedConverter extends BaseConverter{
     }
 }
 
-// 处理文件名,在扩展名前插入随机数
-function addHexId(filename: string, hexNum= 2): string {
+/**
+ * 处理文件名,在扩展名前插入随机数
+ * @param filename 原始文件名
+ * @param hexNum 随机数的十六进制位数，默认为2
+ * @returns 处理后的文件名
+ */
+export function addHexId(filename: string, hexNum= 2): string {
     // 基本扩展名，匹配: .txt, .png, .jpg, .mp3, .mp4
     const basicExt = /\.([a-zA-Z0-9]+)$/;
     //多重扩展名，匹配: .tar.gz, .min.js, .d.ts
@@ -312,49 +332,6 @@ function addHexId(filename: string, hexNum= 2): string {
     }
     // 在基本扩展名前插入随机数
     return filename.replace(basicExt, `_${generateHexId(hexNum)}.$1`);
-}
-
-/*
-按匹配项分割文本，用于辅助文本处理
-*/
-
-export interface TextMatch {
-    text: string;
-    matches: string[];
-}
-
-type TextSegments = (string | TextMatch)[];
-
-export function splitTextByMatches(text: string, regex: RegExp): TextSegments {
-    const segments: TextSegments = [];
-    let lastIndex = 0; // 记录上一次匹配结束的位置
-    
-    // 使用 RegExp.exec() 来迭代所有匹配项
-    let match: RegExpExecArray | null;
-    // 确保正则表达式有全局标志，否则会导致死循环
-    const globalRegex = new RegExp(regex.source, regex.flags + (regex.global ? '' : 'g'));
-    
-    while ((match = globalRegex.exec(text)) !== null) {
-        // 如果匹配位置前有未匹配的文本，将其添加到segments
-        if (match.index > lastIndex) {
-            segments.push(text.slice(lastIndex, match.index));
-        }
-        
-        // 将匹配项添加为TextMatch对象
-        segments.push({
-            text: match[0],
-            matches: match.slice(0) // 包含完整匹配和所有捕获组
-        });
-        
-        lastIndex = globalRegex.lastIndex;
-    }
-    
-    // 处理最后一个匹配之后的剩余文本
-    if (lastIndex < text.length) {
-        segments.push(text.slice(lastIndex));
-    }
-    
-    return segments;
 }
 
 // 用tsx模块测试，这段代码只会在直接运行该文件时执行

@@ -6,7 +6,7 @@ import * as placeholders from '../lib/constant';
 import * as fs from 'fs';
 import { OutputFormat } from './textConvert/textConverter';
 import * as child_process from 'child_process';
-import { generateHexId } from '../lib/commonUtils';
+import { generateTimestamp } from '../lib/idGenerator';
 
 /*
 TODO: 需修改，提示词：
@@ -469,24 +469,27 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
         });
     });
 
+    let formatSelector: HTMLSelectElement
+
     // 添加新格式按钮
     new Setting(containerEl)
         .setName('Add New Format')
         .setDesc('Add a new export format configuration')
         .addDropdown(dropdown => {
+            formatSelector = dropdown.selectEl;
             dropdown
                 .addOption('typst', 'Typst')
                 .addOption('vuepress', 'VuePress')
                 .addOption('quarto', 'Quarto')
-                .setValue('quarto')
+                .setValue('typst')
                 .onChange(() => {}); // 空函数，因为我们只在点击Add按钮时使用选择的值
             return dropdown;
         })
         .addButton(button => button
             .setButtonText('Add')
             .onClick(async () => {
-                const hexId = generateHexId();// TODO: 考虑使用时间戳作为id
-                const selectedFormat = containerEl.querySelector('select')?.value as OutputFormat || 'quarto';
+                const hexId = generateTimestamp("hex");// TODO: 考虑使用时间戳作为id
+                const selectedFormat = formatSelector.value as OutputFormat;//containerEl.querySelector('select')?.value as OutputFormat || 'quarto';
                 const newFormat: ExportConfig = {
                     id: hexId,
                     name: `${selectedFormat.charAt(0).toUpperCase() + selectedFormat.slice(1)} ${hexId}`,

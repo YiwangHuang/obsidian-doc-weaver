@@ -75,7 +75,7 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         converter.exportConfig = null;
 
         console.log('打印附件信息')//
-        for (const link of converter.links) {
+        for (const link of converter.linkParser.links) {
             console.log(`Path: ${link.path}, Type: ${link.type}`);
         }
     }
@@ -88,9 +88,9 @@ type DeepMoveCache = {
 
 async function deepCopy(plugin: MyPlugin, noteFile: TFile, text: string): Promise<void> {
     const converter = new TextConverter(plugin, noteFile);
-    converter.isRecursiveEmbedNote = false; // 默认不递归解析嵌入笔记TODO: 可以改为在设置界面中选择
-    converter.isRenewExportName = true; // 为附件生成新的导出名称
-    //console.log(converter.links);//.map(link => link.path)
+    converter.linkParser.isRecursiveEmbedNote = false; // 默认不递归解析嵌入笔记TODO: 可以改为在设置界面中选择
+    converter.linkParser.isRenewExportName = true; // 为附件生成新的导出名称
+    //console.log(converter.linkParser.links);//.map(link => link.path)
     const copyText = await converter.convert(text, 'plain'); 
     console.log(copyText);
     plugin.commandCache['deepMove'] = {text: copyText, converter} as DeepMoveCache;
@@ -103,7 +103,7 @@ function deepPaste(plugin: MyPlugin, editor: Editor): void {//TODO: 为深度拷
     }
     const currentFile = plugin.app.workspace.getActiveFile() as TFile;
     const {text, converter} = plugin.commandCache['deepMove'] as DeepMoveCache;
-    console.log(converter.links);
+    console.log(converter.linkParser.links);
     editor.replaceRange(text, editor.getCursor());
     if(currentFile.parent){
         converter.copyAttachment(plugin.getPathAbs(currentFile.parent.path));

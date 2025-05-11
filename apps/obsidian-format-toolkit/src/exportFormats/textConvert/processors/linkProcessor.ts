@@ -98,14 +98,13 @@ function obsidianLinkPlugin(converter: BaseConverter){
 
         if(converter instanceof AdvancedConverter ){
         // 获取附件路径和类型
-            const linkInfo = converter.getLinkInfo(linkName);
-            if (linkInfo.type === 'markdown' && converter.isRecursiveEmbedNote) {
-                converter.pushNoteFile(linkInfo.path);
+            const linkInfo = converter.linkParser.getLinkInfo(linkName);
+            if (linkInfo.type === 'markdown' && converter.linkParser.isRecursiveEmbedNote) {
+                converter.linkParser.pushNoteFile(linkInfo.path);
                 
-                // console.log(converter.getCurrentFile());
-                // console.log(linkInfo.headingNames);
-                let headingText = getHeadingText(converter.embedNoteCache[linkInfo.path], linkInfo.raw_text.split('#').slice(1));
-                // console.log(headingText);
+                // 从嵌入笔记缓存中获取包含指定标题的文本
+                let headingText = getHeadingText(converter.linkParser.embedNoteCache[linkInfo.path], linkInfo.raw_text.split('#').slice(1));
+                
                 headingText = converter.preProcess(headingText);// 嵌入笔记的文本需要进行前处理
                 // 解析获取到的文本
                 state.md.block.parse(
@@ -114,7 +113,7 @@ function obsidianLinkPlugin(converter: BaseConverter){
                     state.env,
                     state.tokens
                 );
-                converter.popNoteFile();
+                converter.linkParser.popNoteFile();
             } else {
                 // 创建段落token
                 const token = state.push('paragraph_open', 'p', 1);
@@ -122,7 +121,7 @@ function obsidianLinkPlugin(converter: BaseConverter){
 
                 // 创建链接token
                 const linkToken = state.push(OBSIDIAN_LINK, 'a', 0);
-                converter.pushLinkToLinks(linkInfo);
+                converter.linkParser.pushLinkToLinks(linkInfo);
                 linkToken.content = linkInfo.export_name;
                 linkToken.markup = '![[]]';
                 linkToken.attrs = [['linkType', linkInfo.type]];

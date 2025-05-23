@@ -27,7 +27,7 @@ BaseConverter.registerProcessor({
                 }
             }
         }
-        console.log(lines.join('\n'));
+        // console.log(lines.join('\n'));
         return lines.join('\n');
     },
     mditRuleSetup: (converter: BaseConverter) => {

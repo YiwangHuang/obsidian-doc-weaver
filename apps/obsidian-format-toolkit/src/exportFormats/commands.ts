@@ -1,9 +1,9 @@
 import { Notice, TFile, Editor } from 'obsidian';
 import * as fs from 'fs';
 import * as path from 'path';
-import type MyPlugin from '../main';
+import MyPlugin from '../main';
 import { ExportManagerSetting, exportFormatsSetting } from './settings';
-import { TextConverter, BaseConverter } from './textConvert/index';
+import { TextConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
 import { getNoteInfo } from '../lib/noteResloveUtils';
 import { DEBUG } from '../lib/testUtils';
@@ -65,7 +65,7 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         fs.writeFileSync(path.join(outputDir,outputFullName), yamlInfo+'\n'+exportContent);
         
         // 拷贝附件
-        converter.copyAttachment(outputDir);
+        converter.new_copyAttachment(outputDir);
         // const {properties, mainContent} = await getFileContentAndProperties(plugin, sourceFile)
         // console.log(properties)
         // console.log(mainContent)
@@ -106,7 +106,7 @@ function deepPaste(plugin: MyPlugin, editor: Editor): void {//TODO: 为深度拷
     console.log(converter.linkParser.links);
     editor.replaceRange(text, editor.getCursor());
     if(currentFile.parent){
-        converter.copyAttachment(plugin.getPathAbs(currentFile.parent.path));
+        converter.new_copyAttachment(plugin.getPathAbs(currentFile.parent.path));
     }
 }
 
@@ -166,9 +166,10 @@ export function addExportFormatsCommands(plugin: MyPlugin): void {
                             // console.log(info);
                             const content = editor.getSelection();
                             new Notice(`选中的文本是: ${content}`);
-                            const converter = new BaseConverter();
+                            const converter = new TextConverter(plugin, plugin.app.workspace.getActiveFile() as TFile);
                             console.log(await converter.convert(content, format as OutputFormat));
-                            console.log(converter.md.parse(content, {}));
+                            console.log(converter.linkParser.linkList);
+                            // console.log(converter.md.parse(content, {}));
                             })
                     );
                 }

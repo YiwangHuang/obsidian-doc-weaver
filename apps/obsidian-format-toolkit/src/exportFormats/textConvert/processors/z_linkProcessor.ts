@@ -1,5 +1,5 @@
 import { BaseConverter, AdvancedConverter } from '../textConverter';
-// import { getHeadingText } from '../../../lib/noteResloveUtils';
+import { getHeadingText } from '../../../lib/noteResloveUtils';
 import { ensureRelativePath } from '../../../lib/pathUtils';
 import * as path from 'path';
 import url from 'url';
@@ -41,12 +41,8 @@ BaseConverter.registerProcessor({
     description: '自定义双链接渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
-            const linkToken = tokens[idx];
-            if(linkToken.hidden){
-                return '';
-            }
-            const export_name = linkToken.content;
-            return `\n#image("${path.posix.join(converter.attachmentDir, export_name)}", width: 100%)\n`;
+            const export_name = tokens[idx].content;
+            return `#image("${path.posix.join(converter.attachmentDir, export_name)}", width: 100%)`;
         };
     }
 });
@@ -57,12 +53,8 @@ BaseConverter.registerProcessor({
     description: '自定义双链接渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
-            const linkToken = tokens[idx];
-            if(linkToken.hidden){
-                return '';
-            }
-            const export_name = linkToken.content;
-            return `\n![](${ensureRelativePath(path.posix.join(converter.attachmentDir, export_name))})\n`;
+            const export_name = tokens[idx].content;
+            return `![](${ensureRelativePath(path.posix.join(converter.attachmentDir, export_name))})`;
         };
     }
 });
@@ -73,7 +65,8 @@ BaseConverter.registerProcessor({
     description: '自定义双链接渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
-            return `![[${tokens[idx].content}]]`;
+            const export_name = tokens[idx].content;
+            return `![[${export_name}]]`;
         };
     }
 });
@@ -99,47 +92,41 @@ function obsidianLinkPlugin(converter: BaseConverter){
 
         if (silent) return true;
 
-        
+
         const linkText = linkMatch[1].split('|'); // 链接文本
         const linkName = linkText[0];
 
         if(converter instanceof AdvancedConverter ){
-
-            const linkToken = state.push(OBSIDIAN_LINK, 'a', 0);
-            linkToken.hidden = true;
-            converter.linkParser.parseLink(linkMatch[1], state, linkToken);
-            linkToken.map = [startLine, startLine + 1];
-
-        // // 获取附件路径和类型
-        //     const linkInfo = converter.linkParser.getLinkInfo(linkName);
-        //     if (linkInfo.type === 'markdown' && converter.linkParser.isRecursiveEmbedNote) {
-        //         converter.linkParser.pushNoteFile(linkInfo.path);
+        // 获取附件路径和类型
+            const linkInfo = converter.linkParser.getLinkInfo(linkName);
+            if (linkInfo.type === 'markdown' && converter.linkParser.isRecursiveEmbedNote) {
+                converter.linkParser.pushNoteFile(linkInfo.path);
                 
-        //         // 从嵌入笔记缓存中获取包含指定标题的文本
-        //         let headingText = getHeadingText(converter.linkParser.embedNoteCache[linkInfo.path], linkInfo.raw_text.split('#').slice(1));
+                // 从嵌入笔记缓存中获取包含指定标题的文本
+                let headingText = getHeadingText(converter.linkParser.embedNoteCache[linkInfo.path], linkInfo.raw_text.split('#').slice(1));
                 
-        //         headingText = converter.preProcess(headingText);// 嵌入笔记的文本需要进行前处理
-        //         // 解析获取到的文本
-        //         state.md.block.parse(
-        //             headingText,
-        //             state.md,
-        //             state.env,
-        //             state.tokens
-        //         );
-        //         converter.linkParser.popNoteFile();
-        //     } else {
-        //         // 创建段落token
-        //         const token = state.push('paragraph_open', 'p', 1);
-        //         token.map = [startLine, startLine + 1];
+                headingText = converter.preProcess(headingText);// 嵌入笔记的文本需要进行前处理
+                // 解析获取到的文本
+                state.md.block.parse(
+                    headingText,
+                    state.md,
+                    state.env,
+                    state.tokens
+                );
+                converter.linkParser.popNoteFile();
+            } else {
+                // 创建段落token
+                const token = state.push('paragraph_open', 'p', 1);
+                token.map = [startLine, startLine + 1];
 
-        //         // 创建链接token
-        //         const linkToken = state.push(OBSIDIAN_LINK, 'a', 0);
-        //         converter.linkParser.pushLinkToLinks(linkInfo);
-        //         linkToken.content = linkInfo.export_name;
-        //         linkToken.markup = '![[]]';
-        //         linkToken.attrs = [['linkType', linkInfo.type]];
-        //         state.push('paragraph_close', 'p', -1);
-        //     }
+                // 创建链接token
+                const linkToken = state.push(OBSIDIAN_LINK, 'a', 0);
+                converter.linkParser.pushLinkToLinks(linkInfo);
+                linkToken.content = linkInfo.export_name;
+                linkToken.markup = '![[]]';
+                linkToken.attrs = [['linkType', linkInfo.type]];
+                state.push('paragraph_close', 'p', -1);
+            }
         } else {
             const token = state.push('paragraph_open', 'p', 1);
             token.map = [startLine, startLine + 1];

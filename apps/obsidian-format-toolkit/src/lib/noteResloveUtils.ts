@@ -37,12 +37,6 @@ export function getHeadingText (noteInfo: NoteInfo, headingNames: string[]): str
 //     }
 // }
 
-export function resloveNoteLinkText(linkText:string): {noteName:string, headingNames:string[]} {
-    const noteName = linkText.split('#')[0];
-    const headingNames = linkText.split('#').slice(1);
-    return {noteName, headingNames};
-}
-
 /**
  * 在heading数组中查找指定标题序列的范围
  * @param headingInfo - heading信息数组

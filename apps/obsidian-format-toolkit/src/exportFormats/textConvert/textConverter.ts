@@ -108,7 +108,7 @@ export class AdvancedConverter extends BaseConverter{
 
     public plugin: MyPlugin;
     public entryNote: TFile;
-    public exportConfig: ExportConfig|null = null; // TODO：考虑合并formatConfig和format
+    public exportConfig: ExportConfig|null = null; 
     public linkParser: LinkParser; // 链接解析器
     
     constructor(plugin: MyPlugin, file: TFile, attachmentDir = 'assets') {
@@ -136,6 +136,35 @@ export class AdvancedConverter extends BaseConverter{
         return await super.convert(text, format);
     }
 
+    /**
+     * 拷贝附件到目标目录
+     * @param exportTargetDirAbs 导出目标目录的绝对路径
+     */
+    public new_copyAttachment(exportTargetDirAbs: string): void{
+        const links = this.linkParser.linkList;
+        const attachmentDirAbs = path.join(exportTargetDirAbs,this.attachmentDir);
+        if(!fs.existsSync(attachmentDirAbs)){
+            fs.mkdirSync(attachmentDirAbs, { recursive: true });
+        }
+        for (const link of links) {
+            if(link.type === 'excalidraw' && this.exportConfig !== null){
+                if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
+                    if(this.exportConfig.excalidraw_export_type === 'svg'){
+                        exportToSvg(this.plugin, link.source_path, path.join(attachmentDirAbs, link.export_name));
+                    }
+                    else{
+                        exportToPng(this.plugin, link.source_path, path.join(attachmentDirAbs, link.export_name), this.exportConfig.excalidraw_png_scale);
+                    }
+                }
+                continue;
+            }
+            try{
+                fs.copyFileSync(this.plugin.getPathAbs(link.source_path), path.join(attachmentDirAbs, link.export_name));
+            }catch(error){
+                console.error(`Error copying file: ${error}`);
+            }
+        }
+    }
     /**
      * 拷贝附件到目标目录
      * @param exportTargetDirAbs 导出目标目录的绝对路径

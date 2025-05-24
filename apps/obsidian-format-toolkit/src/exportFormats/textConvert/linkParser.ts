@@ -173,31 +173,28 @@ export class LinkParser {
     /**
      * 在当前文件中查找附件路径
      * @param linkText 要查找的链接文本
-     * @returns 附件路径，如果未找到则返回null
+     * @returns 附件TFile对象，如果未找到则返回null
      */
-    public findAttachmentPath(linkText: string): string|null {
-        const linksOfCurrentFile = this.converter.plugin.app.metadataCache.resolvedLinks[this.getCurrentNoteFile().path];
-        if(linksOfCurrentFile){
-            for(const key of Object.keys(linksOfCurrentFile)){
-                if(key.endsWith(linkText)){
-                    return key;
-                }
-            }
+    public findLinkPath(linkText: string): TFile|null {
+        // const linksOfCurrentFile = this.converter.plugin.app.metadataCache.resolvedLinks[this.getCurrentNoteFile().path];
+        let attachmentFile = this.converter.plugin.app.metadataCache.getFirstLinkpathDest(linkText, this.getCurrentNoteFile().path);
+        if (attachmentFile === null){
+            attachmentFile = this.converter.plugin.app.metadataCache.getFirstLinkpathDest(linkText.split('#')[0], this.getCurrentNoteFile().path);
         }
-        return null;
+        return attachmentFile
     }
     
-    public findEmbedNotePath(linkText: string): string|null {
-        const linksOfCurrentFile = this.converter.plugin.app.metadataCache.resolvedLinks[this.getCurrentNoteFile().path];
-        if(linksOfCurrentFile){
-            for(const key of Object.keys(linksOfCurrentFile)){
-                if(key.endsWith(linkText.split('#')[0]+'.md')){
-                    return key;
-                }
-            }
-        }
-        return null;
-    }
+    // public findEmbedNotePath(linkText: string): string|null {
+    //     const linksOfCurrentFile = this.converter.plugin.app.metadataCache.resolvedLinks[this.getCurrentNoteFile().path];
+    //     if(linksOfCurrentFile){
+    //         for(const key of Object.keys(linksOfCurrentFile)){
+    //             if(key.endsWith(linkText.split('#')[0]+'.md')){
+    //                 return key;
+    //             }
+    //         }
+    //     }
+    //     return null;
+    // }
 
     /**
      * 判断笔记是否属于excalidraw文件
@@ -232,10 +229,15 @@ export class LinkParser {
         const embeds = noteInfo.cachedMetadata.embeds;
         if(embeds){
             for(const embed of embeds){
-                const linkInfo = this.getLinkInfo(embed.link, noteFile); // TODO: 使用简单实现的替换掉getLinkInfo
-                if(linkInfo.type === 'markdown'){
-                    await this.resolveEmbedNoteInfo(linkInfo.file as TFile);
+                const embedFile = this.converter.plugin.app.metadataCache.getFirstLinkpathDest(embed.link.split('#')[0], noteInfo.path);
+                if(embedFile && embedFile.extension === 'md'){
+                    await this.resolveEmbedNoteInfo(embedFile);
                 }
+                // const linkInfo = this.getLinkInfo(embed.link, noteFile); // TODO: 使用简单实现的替换掉getLinkInfo
+                // if(linkInfo.type === 'markdown'){
+                //     await this.resolveEmbedNoteInfo(linkInfo.file as TFile);
+                // }
+
             }
         }
     }
@@ -467,18 +469,18 @@ LinkParser.registerRule({
             description: "定义解析图片链接的处理器，适用所有输出格式",
             formats: ['typst', 'vuepress', 'quarto','plain'], // 仅支持typst和quarto格式
             processor: (linkPart, parser, mdState, linkToken) => {
-                const attachmentPath = parser.findAttachmentPath(linkPart);
-                if(!attachmentPath){
+                const attachmentPath = parser.findLinkPath(linkPart);
+                if(attachmentPath === null){
                     // linkToken.meta.linkType = 'missing';
                     new Notice(`未找到图片链接: ${linkPart}`);
                     console.log(`未找到图片链接: ${linkPart}`);
                     return;
                 }
-                let exportName = path.basename(attachmentPath);// 获取附件名(带扩展名)
+                let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
-                parser.linkList.push({export_name: exportName, source_path: attachmentPath});// 添加到链接列表中
+                parser.linkList.push({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
@@ -487,6 +489,41 @@ LinkParser.registerRule({
         },
     ]
 });
+
+LinkParser.registerRule({
+    name: "mediaExtensionRule",
+    description: "处理媒体链接",
+    priority: 'ext_name',
+    shouldProcess: (linkPart) => {
+        const mediaExtList = mediaExtensions.map(ext => '.' + ext); //TODO: 删除外部的imageExtensions，在该注册规则中定义image适配的扩展名
+        return mediaExtList.some(ext => linkPart.toLowerCase().endsWith(ext));
+    },
+    processors: [
+        {
+            description: "定义解析媒体链接的处理器，适用所有输出格式",
+            formats: ['vuepress', 'quarto','plain'], // 仅支持typst和quarto格式
+            processor: (linkPart, parser, mdState, linkToken) => {
+                const attachmentPath = parser.findLinkPath(linkPart);
+                if(attachmentPath === null){
+                    // linkToken.meta.linkType = 'missing';
+                    new Notice(`未找到媒体链接: ${linkPart}`);
+                    console.log(`未找到媒体链接: ${linkPart}`);
+                    return;
+                }
+                let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
+                if(parser.isRenewExportName){
+                    exportName = parser.addHexId(exportName);
+                }
+                parser.linkList.push({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
+                linkToken.hidden = false;
+                linkToken.content = exportName;
+                linkToken.markup = '![[]]';
+                // console.log(`处理图片链接: ${linkPart} (typst/vuepress/quarto格式)`);
+            }
+        },
+    ]
+});
+
 
 LinkParser.registerRule({
     name: "EmbedNoteRule",
@@ -506,15 +543,15 @@ LinkParser.registerRule({
                     console.log(`嵌入笔记链接未开启递归解析: ${linkPart}`);
                     return;
                 }
-                const embedNotePath = parser.findEmbedNotePath(linkPart);
-                if(!embedNotePath){
+                const embedNoteFile = parser.findLinkPath(linkPart);
+                if(embedNoteFile === null || embedNoteFile.extension !== 'md'){
                     new Notice(`未找到嵌入笔记链接: ${linkPart}`);
                     console.log(`未找到嵌入笔记链接: ${linkPart}`);
                     return;
                 }
 
-                if(parser.isExcalidrawNote(embedNotePath)){
-                    let exportName = path.basename(embedNotePath);// 获取附件名(带扩展名)
+                if(parser.isExcalidrawNote(embedNoteFile)){
+                    let exportName = path.basename(embedNoteFile.path);// 获取附件名(带扩展名)
                     if(parser.isRenewExportName){
                         exportName = parser.addHexId(exportName);
                     }
@@ -523,14 +560,14 @@ LinkParser.registerRule({
                     exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png'); 
                     
 
-                    parser.linkList.push({export_name: exportName, source_path: embedNotePath, type: 'excalidraw'});// 添加到链接列表中
+                    parser.linkList.push({export_name: exportName, source_path: embedNoteFile.path, type: 'excalidraw'});// 添加到链接列表中
                     linkToken.hidden = false;
                     linkToken.content = exportName;
                     linkToken.markup = '![[]]';
                     return;
                 }
-                parser.pushNoteFile(embedNotePath);
-                const noteInfo = parser.embedNoteCache[embedNotePath];
+                parser.pushNoteFile(embedNoteFile.path);
+                const noteInfo = parser.embedNoteCache[embedNoteFile.path];
                 const headingText = getHeadingText(noteInfo, linkPart.split('#').slice(1));
                 // parser.parse(headingText);
                 mdState.md.block.parse(
@@ -542,5 +579,53 @@ LinkParser.registerRule({
                 parser.popNoteFile();
             }
         },
+        {
+            description: "定义解析媒体链接的处理器，专用于plain格式，输出原文",
+            formats: ['plain'], // 专门处理plain格式
+            processor: (linkPart, parser, mdState, linkToken) => {
+                // linkToken.hidden = false;
+                linkToken.content = linkPart;
+                linkToken.markup = '![[]]';
+                // 为plain格式创建text类型的token输出原文
+                // mdState.push('paragraph_open', '', 0);
+                // const textToken = mdState.push('text', '', 0);
+                // textToken.content = `![[${linkPart}]]`;
+                // mdState.push('paragraph_close', '', 0);
+                
+                // console.log(`处理媒体链接: ${linkPart} (plain格式，输出原文)`);
+            }
+        },
     ]
 });
+
+/**
+ * ## Obsidian 文件查找 API 使用说明
+ * 
+ * Obsidian 提供了多种 API 方法来根据附件名查找文件的具体位置：
+ * 
+ * ### 1. app.metadataCache.getFirstLinkpathDest(linkPath, sourcePath)
+ * - **推荐使用**：根据链接文本和源文件路径返回目标文件
+ * - 参数：linkPath (链接文本), sourcePath (源文件路径)
+ * - 返回：TFile 对象或 null
+ * - 示例：`app.metadataCache.getFirstLinkpathDest("image.png", "path/to/note.md")`
+ * 
+ * ### 2. app.metadataCache.getLinkpathDest(linkPath, sourcePath)
+ * - 返回所有匹配的文件（如果有重名文件）
+ * - 返回：TFile[] 数组
+ * 
+ * ### 3. app.vault.getFileByPath(fullPath)
+ * - 如果知道完整路径，直接获取文件对象
+ * - 参数：完整的文件路径
+ * - 返回：TFile 对象或 null
+ * 
+ * ### 4. app.metadataCache.resolvedLinks
+ * - 包含每个文件的所有已解析链接的缓存对象
+ * - 格式：`{[sourcePath]: {[targetPath]: linkCount}}`
+ * 
+ * ### 新增的简化方法
+ * - `getSimpleLinkInfo()`: 使用 getFirstLinkpathDest 的简化链接信息获取
+ * - `findAttachmentPathSimple()`: 使用 getFirstLinkpathDest 的简化附件查找
+ * - `findEmbedNotePathSimple()`: 使用 getFirstLinkpathDest 的简化嵌入笔记查找
+ * 
+ * 这些新方法比原来的基于 resolvedLinks 遍历的方法更高效、更准确。
+ */

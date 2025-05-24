@@ -46,7 +46,7 @@ BaseConverter.registerProcessor({
                 return '';
             }
             const export_name = linkToken.content;
-            return `\n#image("${path.posix.join(converter.attachmentDir, export_name)}", width: 100%)\n`;
+            return `\n#image("${path.posix.join(converter.attachmentDir, export_name)}", width: 100%)\n\n`;
         };
     }
 });
@@ -62,7 +62,7 @@ BaseConverter.registerProcessor({
                 return '';
             }
             const export_name = linkToken.content;
-            return `\n![](${ensureRelativePath(path.posix.join(converter.attachmentDir, export_name))})\n`;
+            return `\n![](${ensureRelativePath(path.posix.join(converter.attachmentDir, export_name))})\n\n`;
         };
     }
 });
@@ -72,6 +72,7 @@ BaseConverter.registerProcessor({
     formats: ['plain'],
     description: '自定义双链接渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
+        // 在plain类型中不进行hidden属性判断，全部渲染
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
             return `![[${tokens[idx].content}]]`;
         };

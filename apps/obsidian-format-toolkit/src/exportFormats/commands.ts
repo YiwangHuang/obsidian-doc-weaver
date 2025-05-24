@@ -65,7 +65,7 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         fs.writeFileSync(path.join(outputDir,outputFullName), yamlInfo+'\n'+exportContent);
         
         // 拷贝附件
-        converter.new_copyAttachment(outputDir);
+        converter.copyAttachment(outputDir);
         // const {properties, mainContent} = await getFileContentAndProperties(plugin, sourceFile)
         // console.log(properties)
         // console.log(mainContent)
@@ -75,8 +75,8 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         converter.exportConfig = null;
 
         console.log('打印附件信息')//
-        for (const link of converter.linkParser.links) {
-            console.log(`Path: ${link.path}, Type: ${link.type}`);
+        for (const link of converter.linkParser.linkList) {
+            console.log(`Path: ${link.source_path}, Type: ${link.type}`);
         }
     }
 }
@@ -103,10 +103,10 @@ function deepPaste(plugin: MyPlugin, editor: Editor): void {//TODO: 为深度拷
     }
     const currentFile = plugin.app.workspace.getActiveFile() as TFile;
     const {text, converter} = plugin.commandCache['deepMove'] as DeepMoveCache;
-    console.log(converter.linkParser.links);
+    console.log(converter.linkParser.linkList);
     editor.replaceRange(text, editor.getCursor());
     if(currentFile.parent){
-        converter.new_copyAttachment(plugin.getPathAbs(currentFile.parent.path));
+        converter.copyAttachment(plugin.getPathAbs(currentFile.parent.path));
     }
 }
 

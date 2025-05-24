@@ -140,7 +140,7 @@ export class AdvancedConverter extends BaseConverter{
      * 拷贝附件到目标目录
      * @param exportTargetDirAbs 导出目标目录的绝对路径
      */
-    public new_copyAttachment(exportTargetDirAbs: string): void{
+    public copyAttachment(exportTargetDirAbs: string): void{
         const links = this.linkParser.linkList;
         const attachmentDirAbs = path.join(exportTargetDirAbs,this.attachmentDir);
         if(!fs.existsSync(attachmentDirAbs)){
@@ -160,44 +160,6 @@ export class AdvancedConverter extends BaseConverter{
             }
             try{
                 fs.copyFileSync(this.plugin.getPathAbs(link.source_path), path.join(attachmentDirAbs, link.export_name));
-            }catch(error){
-                console.error(`Error copying file: ${error}`);
-            }
-        }
-    }
-    /**
-     * 拷贝附件到目标目录
-     * @param exportTargetDirAbs 导出目标目录的绝对路径
-     */
-    public copyAttachment(exportTargetDirAbs: string): void{
-        const links = this.linkParser.links;
-        for (const link of links) {
-            if(link.type === 'media' && this.format === 'typst'){
-                continue
-            }
-            const attachmentDirAbs = path.join(exportTargetDirAbs, this.attachmentDir);
-            // 确保目标目录存在
-            if (!fs.existsSync(attachmentDirAbs)) {
-                fs.mkdirSync(attachmentDirAbs, { recursive: true });
-            }
-            if(link.type === 'excalidraw' && this.exportConfig !== null){
-                if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
-                    if(this.exportConfig.excalidraw_export_type === 'svg'){
-                        exportToSvg(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name));
-                    }
-                    else{
-                        exportToPng(this.plugin, link.path, path.join(attachmentDirAbs, link.export_name), this.exportConfig.excalidraw_png_scale);
-                    }
-                }
-                continue;
-            }
-
-            if(link.type === 'markdown'){continue;}//TODO: 开发完markdown的link处理后，不会再遇到这种情况，需要删除
-            // TODO: 需要考虑在deepPaste中，'excalidraw'文件也要被当成多媒体复制，而非跳过
-
-            try{
-                
-                fs.copyFileSync(this.plugin.getPathAbs(link.path), path.join(attachmentDirAbs, link.export_name));
             }catch(error){
                 console.error(`Error copying file: ${error}`);
             }

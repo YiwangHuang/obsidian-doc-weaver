@@ -110,37 +110,6 @@ function obsidianLinkPlugin(converter: BaseConverter){
             linkToken.hidden = true;
             converter.linkParser.parseLink(linkMatch[1], state, linkToken);
             linkToken.map = [startLine, startLine + 1];
-
-        // // 获取附件路径和类型
-        //     const linkInfo = converter.linkParser.getLinkInfo(linkName);
-        //     if (linkInfo.type === 'markdown' && converter.linkParser.isRecursiveEmbedNote) {
-        //         converter.linkParser.pushNoteFile(linkInfo.path);
-                
-        //         // 从嵌入笔记缓存中获取包含指定标题的文本
-        //         let headingText = getHeadingText(converter.linkParser.embedNoteCache[linkInfo.path], linkInfo.raw_text.split('#').slice(1));
-                
-        //         headingText = converter.preProcess(headingText);// 嵌入笔记的文本需要进行前处理
-        //         // 解析获取到的文本
-        //         state.md.block.parse(
-        //             headingText,
-        //             state.md,
-        //             state.env,
-        //             state.tokens
-        //         );
-        //         converter.linkParser.popNoteFile();
-        //     } else {
-        //         // 创建段落token
-        //         const token = state.push('paragraph_open', 'p', 1);
-        //         token.map = [startLine, startLine + 1];
-
-        //         // 创建链接token
-        //         const linkToken = state.push(OBSIDIAN_LINK, 'a', 0);
-        //         converter.linkParser.pushLinkToLinks(linkInfo);
-        //         linkToken.content = linkInfo.export_name;
-        //         linkToken.markup = '![[]]';
-        //         linkToken.attrs = [['linkType', linkInfo.type]];
-        //         state.push('paragraph_close', 'p', -1);
-        //     }
         } else {
             const token = state.push('paragraph_open', 'p', 1);
             token.map = [startLine, startLine + 1];
@@ -154,55 +123,6 @@ function obsidianLinkPlugin(converter: BaseConverter){
         return true;
     });
 }
-
-
-
-
-
-/**
- * 格式化 markdown-it token 对象为易读的字符串形式，用于调试和开发目的
- * 该函数递归地处理 token 及其子 token，输出包含以下信息：
- * - token 的类型 (type)
- * - token 的内容 (content)
- * - token 的层级 (level)
- * - token 的标签 (tag)
- * - token 的嵌套状态 (nesting)
- * - token 的属性列表 (attrs)
- * - token 的子节点 (children)
- * 
- * @param token - markdown-it token 对象
- * @param level - 缩进层级，用于格式化输出
- * @returns 格式化后的字符串表示
- */
-// function formatToken(token: any, level = 0): string {
-//     let indent = '  '.repeat(level);
-//     let result = `${indent}Token ${token.type}:\n`;
-//     indent = '  '.repeat(level + 1);
-    
-//     // 基本属性
-//     result += `${indent}content: "${token.content}"\n`;
-//     result += `${indent}level: ${token.level}\n`;
-//     result += `${indent}tag: "${token.tag}"\n`;
-//     result += `${indent}nesting: ${token.nesting}\n`;
-    
-//     // 属性列表
-//     if (token.attrs && token.attrs.length > 0) {
-//         result += `${indent}attrs:\n`;
-//         token.attrs.forEach(([key, value]: [string, string]) => {
-//             result += `${indent}  ${key}: "${value}"\n`;
-//         });
-//     }
-
-//     // 子token
-//     if (token.children && token.children.length > 0) {
-//         result += `${indent}children:\n`;
-//         token.children.forEach((child: any) => {
-//             result += formatToken(child, level + 2);
-//         });
-//     }
-
-//     return result;
-// }
 
 if (import.meta.url === url.pathToFileURL(process.argv[1]).href){
     // 辅助函数：格式化token输出

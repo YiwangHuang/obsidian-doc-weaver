@@ -6,28 +6,15 @@ import { generateHexId } from "../../lib/idGenerator";
 import { getHeadingText } from '../../lib/noteResloveUtils';
 import type { OutputFormat } from "./textConverter";
 import type { Token, StateBlock } from "markdown-it";
+import { getLinkpath } from "obsidian";
 // 定义媒体和图片扩展名列表
 export const mediaExtensions = ['mp4','mp3','m4a',]
 export const imageExtensions = ['png','jpg','jpeg','gif','svg','webp']
 
-// 定义链接类型
-export type LinkType = 'media' | 'image' | 'markdown' | 'excalidraw' | 'unknown' | 'missing';
-
 export type LinkConfig = {
     source_path: string; // 源文件路径，相对于vault根目录
     export_name: string; // 导出文件名，包含扩展名      
-    type?: LinkType;
-}
-
-// 定义链接信息接口
-export type LinkInfo = {
-    path: string;
-    raw_text: string;
-    export_name: string;
-    type: LinkType;
-    alias?: string;
-    heading_names?: string[];
-    file?: TFile;
+    type?: 'media' | 'image' | 'markdown' | 'excalidraw';
 }
 
 export interface LinkParseRule{
@@ -97,19 +84,12 @@ export class LinkParser {
         
         // 添加规则到规则列表
         this.rules.push(rule);
-        
-        // 可选：按优先级排序
-        // this.rules.sort((a, b) => {
-        //     const order = ['ext_name', 'no_ext_name', 'decorator', 'alias'];
-        //     return order.indexOf(a.priority) - order.indexOf(b.priority);
-        // });
     }
 
     private converter: AdvancedConverter;
     
     // 从AdvancedConverter迁移的属性
     public linkList: LinkConfig[] = []; // 链接附件信息
-    public links: LinkInfo[] = []; // 链接附件信息
     public isRecursiveEmbedNote = true; // 是否递归解析嵌入笔记
     public isRenewExportName = false; // 是否为附件生成新的导出名称，默认不生成(使用原名称作为导出名)
     private noteFileStack: TFile[] = []; // 文件处理栈，用于跟踪文件处理层级
@@ -176,25 +156,15 @@ export class LinkParser {
      * @returns 附件TFile对象，如果未找到则返回null
      */
     public findLinkPath(linkText: string): TFile|null {
-        // const linksOfCurrentFile = this.converter.plugin.app.metadataCache.resolvedLinks[this.getCurrentNoteFile().path];
-        let attachmentFile = this.converter.plugin.app.metadataCache.getFirstLinkpathDest(linkText, this.getCurrentNoteFile().path);
-        if (attachmentFile === null){
-            attachmentFile = this.converter.plugin.app.metadataCache.getFirstLinkpathDest(linkText.split('#')[0], this.getCurrentNoteFile().path);
-        }
-        return attachmentFile
+        // 使用 Obsidian 官方 API 处理带标题索引的链接
+        // getLinkpath 会自动提取文件路径部分，去掉标题引用
+        const cleanPath = getLinkpath(linkText);
+        
+        // 使用清理后的路径查找文件
+        const attachmentFile = this.converter.plugin.app.metadataCache.getFirstLinkpathDest(cleanPath, this.getCurrentNoteFile().path);
+        
+        return attachmentFile;
     }
-    
-    // public findEmbedNotePath(linkText: string): string|null {
-    //     const linksOfCurrentFile = this.converter.plugin.app.metadataCache.resolvedLinks[this.getCurrentNoteFile().path];
-    //     if(linksOfCurrentFile){
-    //         for(const key of Object.keys(linksOfCurrentFile)){
-    //             if(key.endsWith(linkText.split('#')[0]+'.md')){
-    //                 return key;
-    //             }
-    //         }
-    //     }
-    //     return null;
-    // }
 
     /**
      * 判断笔记是否属于excalidraw文件
@@ -229,15 +199,12 @@ export class LinkParser {
         const embeds = noteInfo.cachedMetadata.embeds;
         if(embeds){
             for(const embed of embeds){
-                const embedFile = this.converter.plugin.app.metadataCache.getFirstLinkpathDest(embed.link.split('#')[0], noteInfo.path);
+                // 使用 Obsidian 官方 API 处理带标题索引的嵌入链接
+                const cleanPath = getLinkpath(embed.link);
+                const embedFile = this.converter.plugin.app.metadataCache.getFirstLinkpathDest(cleanPath, noteInfo.path);
                 if(embedFile && embedFile.extension === 'md'){
                     await this.resolveEmbedNoteInfo(embedFile);
                 }
-                // const linkInfo = this.getLinkInfo(embed.link, noteFile); // TODO: 使用简单实现的替换掉getLinkInfo
-                // if(linkInfo.type === 'markdown'){
-                //     await this.resolveEmbedNoteInfo(linkInfo.file as TFile);
-                // }
-
             }
         }
     }
@@ -313,68 +280,6 @@ export class LinkParser {
     }
 
     /**
-     * 获取附件路径和文件类型
-     * @param linkText 附件文件名
-     * @param sourceNoteFile 源笔记文件（默认为当前处理文件）
-     * @returns 附件路径和文件类型
-     */
-    public getLinkInfo(linkText: string, sourceNoteFile: TFile = this.getCurrentNoteFile()): LinkInfo {
-        const linksOfCurrentFile = this.converter.plugin.app.metadataCache.resolvedLinks[sourceNoteFile.path];// 获取当前文件的所有链接信息
-        if(linksOfCurrentFile){
-            // 遍历所有键，检查是否以fileName结尾
-            for (const key of Object.keys(linksOfCurrentFile)) {
-                if(key.endsWith(linkText) || key.endsWith(linkText.split('#')[0]+'.md')){
-                    const linkFile = this.converter.plugin.app.vault.getFileByPath(key) as TFile;
-                    let extType: LinkType = 'unknown';
-                    let exportName: string = path.basename(key);
-                    if(this.isRenewExportName){
-                        exportName = this.addHexId(exportName);
-                        console.log(`${linkText} -> ${exportName}`);
-                    }
-                    if(imageExtensions.includes(linkFile.extension)){
-                        extType = 'image';
-                    }
-                    else if(mediaExtensions.includes(linkFile.extension)){
-                        extType = 'media';
-                    }
-                    else if(linkFile.extension === 'md'){
-                        if(key.endsWith('.excalidraw.md') && this.converter.exportConfig !== null){
-                            extType = 'excalidraw';
-                            this.converter.exportConfig.excalidraw_export_type === 'svg'?
-                                exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg') :
-                                exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png'); 
-                        }
-                        else{
-                            if(this.isRenewExportName){
-                                exportName = path.basename(key)// markdown文件涉及嵌套，导出名称应保持不变
-                            }
-                            extType = 'markdown';
-                        }
-                    }
-                    return {path: key, raw_text: linkText, export_name: exportName, file: linkFile, type: extType};
-                }
-            }
-        }
-        return {path: linkText, raw_text: linkText, export_name: linkText, type: 'missing'};
-    }
-
-    /**
-     * 将新链接添加到链接列表中，确保没有重复
-     * @param link 要添加的新链接信息
-     */
-    public pushLinkToLinks(link: LinkInfo): void {
-        for (const item of this.links) {
-            if (item.path === link.path) {
-                return;
-            }
-            if (item.export_name === link.export_name) {
-                link.export_name = this.addHexId(link.export_name); //link作为Object，可在函数中直接修改
-            }
-        }
-        this.links.push(link);
-    }
-
-    /**
      * 处理文件名,在扩展名前插入随机数
      * @param filename 原始文件名
      * @param hexNum 随机数的十六进制位数，默认为2
@@ -398,58 +303,7 @@ export class LinkParser {
 
 /**
  * 使用示例：
- * 
- * 1. 注册一个处理图片扩展名的规则
- * ```typescript
- * LinkParser.registerRule({
- *     name: "ImageExtensionRule",
- *     description: "处理图片链接",
- *     priority: 'ext_name',
- *     filter: (linkPart) => imageExtensions.some(ext => linkPart.toLowerCase().endsWith('.' + ext)),
- *     processors: [
- *         {
- *             formats: ['typst', 'quarto'], // 仅支持typst和quarto格式
- *             processor: (linkPart, parser) => {
- *                 // 处理图片链接的逻辑
- *                 console.log(`处理图片链接: ${linkPart} (typst/quarto格式)`);
- *             }
- *         },
- *         {
- *             formats: ['vuepress', 'plain'], // 支持vuepress和plain格式
- *             processor: (linkPart, parser) => {
- *                 // 为vuepress和plain格式处理图片链接
- *                 console.log(`处理图片链接: ${linkPart} (vuepress/plain格式)`);
- *             }
- *         }
- *     ]
- * });
- * ```
- * 
- * 2. 注册一个处理别名的规则
- * ```typescript
- * LinkParser.registerRule({
- *     name: "AliasRule",
- *     description: "处理链接别名",
- *     priority: 'alias',
- *     filter: () => true, // 所有未处理的部分都视为别名
- *     processors: [
- *         {
- *             formats: ['typst'], // 仅支持typst格式
- *             processor: (linkPart, parser) => {
- *                 console.log(`为Typst格式处理别名: ${linkPart}`);
- *             }
- *         },
- *         {
- *             formats: ['quarto', 'vuepress', 'plain'], // 支持其他所有格式
- *             processor: (linkPart, parser) => {
- *                 console.log(`为其他格式处理别名: ${linkPart}`);
- *             }
- *         }
- *     ]
- * });
- * ```
- * 
- * 3. 使用parseLink方法解析链接
+ * 使用parseLink方法解析链接
  * ```typescript
  * const linkParser = new LinkParser(converter);
  * linkParser.parseLink("image.png|显示文本|80%");
@@ -467,11 +321,10 @@ LinkParser.registerRule({
     processors: [
         {
             description: "定义解析图片链接的处理器，适用所有输出格式",
-            formats: ['typst', 'vuepress', 'quarto','plain'], // 仅支持typst和quarto格式
+            formats: ['typst', 'vuepress', 'quarto','plain'],
             processor: (linkPart, parser, mdState, linkToken) => {
                 const attachmentPath = parser.findLinkPath(linkPart);
                 if(attachmentPath === null){
-                    // linkToken.meta.linkType = 'missing';
                     new Notice(`未找到图片链接: ${linkPart}`);
                     console.log(`未找到图片链接: ${linkPart}`);
                     return;
@@ -501,11 +354,10 @@ LinkParser.registerRule({
     processors: [
         {
             description: "定义解析媒体链接的处理器，适用所有输出格式",
-            formats: ['vuepress', 'quarto','plain'], // 仅支持typst和quarto格式
+            formats: ['vuepress', 'quarto','plain'],
             processor: (linkPart, parser, mdState, linkToken) => {
                 const attachmentPath = parser.findLinkPath(linkPart);
                 if(attachmentPath === null){
-                    // linkToken.meta.linkType = 'missing';
                     new Notice(`未找到媒体链接: ${linkPart}`);
                     console.log(`未找到媒体链接: ${linkPart}`);
                     return;
@@ -523,7 +375,6 @@ LinkParser.registerRule({
         },
     ]
 });
-
 
 LinkParser.registerRule({
     name: "EmbedNoteRule",
@@ -569,7 +420,6 @@ LinkParser.registerRule({
                 parser.pushNoteFile(embedNoteFile.path);
                 const noteInfo = parser.embedNoteCache[embedNoteFile.path];
                 const headingText = getHeadingText(noteInfo, linkPart.split('#').slice(1));
-                // parser.parse(headingText);
                 mdState.md.block.parse(
                     headingText,
                     mdState.md,
@@ -583,16 +433,8 @@ LinkParser.registerRule({
             description: "定义解析媒体链接的处理器，专用于plain格式，输出原文",
             formats: ['plain'], // 专门处理plain格式
             processor: (linkPart, parser, mdState, linkToken) => {
-                // linkToken.hidden = false;
                 linkToken.content = linkPart;
                 linkToken.markup = '![[]]';
-                // 为plain格式创建text类型的token输出原文
-                // mdState.push('paragraph_open', '', 0);
-                // const textToken = mdState.push('text', '', 0);
-                // textToken.content = `![[${linkPart}]]`;
-                // mdState.push('paragraph_close', '', 0);
-                
-                // console.log(`处理媒体链接: ${linkPart} (plain格式，输出原文)`);
             }
         },
     ]
@@ -601,31 +443,30 @@ LinkParser.registerRule({
 /**
  * ## Obsidian 文件查找 API 使用说明
  * 
- * Obsidian 提供了多种 API 方法来根据附件名查找文件的具体位置：
+ * ### 处理带标题索引的链接
+ * Obsidian 官方提供了专门处理带标题索引链接的 API：
  * 
- * ### 1. app.metadataCache.getFirstLinkpathDest(linkPath, sourcePath)
- * - **推荐使用**：根据链接文本和源文件路径返回目标文件
- * - 参数：linkPath (链接文本), sourcePath (源文件路径)
- * - 返回：TFile 对象或 null
- * - 示例：`app.metadataCache.getFirstLinkpathDest("image.png", "path/to/note.md")`
+ * #### 1. parseLinktext(linktext: string)
+ * - 解析 wikilink 链接文本为组件部分
+ * - 返回：`{ path: string; subpath: string; }`
+ * - 示例：`parseLinktext("笔记名#标题1#标题2")` 返回 `{ path: "笔记名", subpath: "#标题1#标题2" }`
  * 
- * ### 2. app.metadataCache.getLinkpathDest(linkPath, sourcePath)
- * - 返回所有匹配的文件（如果有重名文件）
- * - 返回：TFile[] 数组
+ * #### 2. getLinkpath(linktext: string) - 推荐使用
+ * - 将链接文本转换为链接路径（只获取文件路径部分）
+ * - 示例：`getLinkpath("笔记名#标题1#标题2")` 返回 `"笔记名"`
  * 
- * ### 3. app.vault.getFileByPath(fullPath)
- * - 如果知道完整路径，直接获取文件对象
- * - 参数：完整的文件路径
- * - 返回：TFile 对象或 null
+ * ### 正确的处理流程：
+ * ```typescript
+ * import { getLinkpath } from 'obsidian';
  * 
- * ### 4. app.metadataCache.resolvedLinks
- * - 包含每个文件的所有已解析链接的缓存对象
- * - 格式：`{[sourcePath]: {[targetPath]: linkCount}}`
+ * // 对于带标题索引的链接，如 "笔记名#标题1#标题2"
+ * const cleanPath = getLinkpath(linkText);  // 得到 "笔记名"
+ * const targetFile = app.metadataCache.getFirstLinkpathDest(cleanPath, sourceFile.path);
+ * ```
  * 
- * ### 新增的简化方法
- * - `getSimpleLinkInfo()`: 使用 getFirstLinkpathDest 的简化链接信息获取
- * - `findAttachmentPathSimple()`: 使用 getFirstLinkpathDest 的简化附件查找
- * - `findEmbedNotePathSimple()`: 使用 getFirstLinkpathDest 的简化嵌入笔记查找
- * 
- * 这些新方法比原来的基于 resolvedLinks 遍历的方法更高效、更准确。
+ * ### 其他文件查找 API：
+ * - `app.metadataCache.getFirstLinkpathDest(linkPath, sourcePath)` - 推荐的文件查找方法
+ * - `app.metadataCache.getLinkpathDest(linkPath, sourcePath)` - 返回所有匹配文件
+ * - `app.vault.getFileByPath(fullPath)` - 通过完整路径获取文件
+ * - `app.metadataCache.resolvedLinks` - 已解析链接的缓存对象
  */

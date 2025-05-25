@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import { OutputFormat } from './textConvert/textConverter';
 import * as child_process from 'child_process';
 import { generateTimestamp } from '../lib/idGenerator';
+import { getDefaultYAML } from './textConvert/defaultStyleConfig/styleConfigs';
 
 /*
 TODO: 需修改，提示词：
@@ -50,42 +51,7 @@ const DEFAULT_OUTPUT_DIR = path.join(placeholders.VAR_VAULT_DIR, 'output');
 const DEFAULT_OUTPUT_BASE_NAME = placeholders.VAR_NOTE_NAME;
 const DEFAULT_EXCALIDRAW_PNG_SCALE = 2;
 
-// 定义每种格式的默认 YAML 配置
-const DEFAULT_YAMLs: Partial<Record<OutputFormat, string>> = {
-    'quarto': 
-`---
-title: "{{noteName}}"
-author: "your name"
-date: "{{date: YYYY-MM-DD}}"
-format:
-  html:
-    toc: true
-    number-sections: true
-    code-fold: true
-    theme: cosmo
----`,
-
-    'vuepress':
-`---
-title: {{noteName}}
-author: your name
-date: {{date: YYYY-MM-DD}}
-categories:
-  - your category
-tags:
-  - your tag
-sidebar: auto
----`,
-
-    'typst':
-`#import "config.typ": *
-
-#show: doc => conf(
-  title: "{{noteName}}",
-  author: "Your name",
-  doc,
-)`
-};
+// YAML 配置已集成到各个样式配置中，通过 getDefaultYAML 函数获取
 
 
 
@@ -223,7 +189,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
         });
 
     if (!formatConfig.yaml) {
-        formatConfig.yaml = DEFAULT_YAMLs[formatConfig.format] || '';
+        formatConfig.yaml = getDefaultYAML(formatConfig.format) || '';
     }
     // YAML配置设置
     new Setting(formatContainer)
@@ -495,7 +461,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
                     name: `${selectedFormat.charAt(0).toUpperCase() + selectedFormat.slice(1)} ${hexId}`,
                     output_dir: DEFAULT_OUTPUT_DIR,
                     output_base_name: DEFAULT_OUTPUT_BASE_NAME+'_'+hexId,
-                    yaml: DEFAULT_YAMLs[selectedFormat] || '',  // 提供默认空字符串
+                    yaml: getDefaultYAML(selectedFormat) || '',  // 提供默认空字符串
                     enabled: true,
                     format: selectedFormat
                 };

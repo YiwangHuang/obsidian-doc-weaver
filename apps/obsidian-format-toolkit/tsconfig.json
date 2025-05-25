@@ -5,7 +5,8 @@
     "types": [
       "node",
       "markdown-it",
-      "markdown-it-container"
+      "markdown-it-container",
+      "vite/client"
     ]
   },
   "include": ["src/**/*.ts"]

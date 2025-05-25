@@ -1,8 +1,8 @@
-import typstFunctions from "./typst/functions.typ?raw";
+import typstConfig from "./typst/config.typ?raw";
+import typstCustomFormat from "./typst/custom_format.typ?raw";
 import type { OutputFormat } from "../textConverter";
-
-// 导出 Typst 函数库文本（用于直接使用）
-export { typstFunctions };
+import * as path from 'path';
+import * as fs from 'fs';
 
 interface ThemeDependency {
   relative_path: string;
@@ -21,19 +21,23 @@ interface StyleConfig {
 const typstStyleConfig: StyleConfig = {
   format: "typst",
   description: "包含所有自定义块函数的 Typst 函数库",
-  yaml: `#import "config.typ": *
-  
-  #show: doc => conf(
-    title: "{{noteName}}",
-    author: "Your name",
-    doc,
-    )`,
   theme_dependency: [
     {
       relative_path: "config.typ",
-      content: typstFunctions
+      content: typstConfig
+    },
+    {
+      relative_path: "custom_format.typ",
+      content: typstCustomFormat
     }
   ],
+  yaml: `#import "config.typ": *
+
+#show: doc => conf(
+  title: "{{noteName}}",
+  author: "Your name",
+  doc,
+)`
 };
 
 // Quarto 样式配置
@@ -75,6 +79,34 @@ export const styleConfigs = {
   quarto: quartoStyleConfig,
   vuepress: vuepressStyleConfig
 };
+
+/**
+ * 基于样式配置创建格式的默认文件结构
+ * @param basePath 目标路径
+ * @param format 格式类型
+ */
+export function createFormatAssetStructure(basePath: string, format: OutputFormat): void {
+    // 从样式配置中获取主题依赖文件
+    const styleConfig = getStyleConfig(format);
+    
+    if (!styleConfig?.theme_dependency) {
+        return; // 如果没有主题依赖，直接返回
+    }
+    
+    // 创建每个主题依赖文件
+    for (const dependency of styleConfig.theme_dependency) {
+        const fullPath = path.join(basePath, dependency.relative_path);
+        const dirPath = path.dirname(fullPath);
+        
+        // 确保目录存在
+        if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+        }
+        
+        // 写入文件内容
+        fs.writeFileSync(fullPath, dependency.content);
+    }
+}
 
 // 获取指定格式的默认 YAML 配置
 export function getDefaultYAML(format: OutputFormat): string {

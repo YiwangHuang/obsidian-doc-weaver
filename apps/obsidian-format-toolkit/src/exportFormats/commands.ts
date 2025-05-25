@@ -44,7 +44,7 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
     const converter = new TextConverter(plugin, sourceFile);
     for (const item of settings.exportConfigs.filter(item => item.enabled)) {
         converter.exportConfig = item;
-        const exportStyleDirAbs = path.join(plugin.PLUGIN_ABS_PATH, 'assets', 'styles', item.id);
+        const exportStyleDirAbs = path.join(plugin.PLUGIN_ABS_PATH, item.style_dir);
         const outputDir = converter.replacePlaceholders(item.output_dir);
         const outputFullName = `${converter.replacePlaceholders(item.output_base_name)}.${extensionNameOfFormat[item.format]}`;
         // 处理 YAML 配置

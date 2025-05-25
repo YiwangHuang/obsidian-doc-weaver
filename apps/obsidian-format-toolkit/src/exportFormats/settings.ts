@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import { OutputFormat } from './textConvert/textConverter';
 import * as child_process from 'child_process';
 import { generateTimestamp } from '../lib/idGenerator';
-import { getDefaultYAML } from './textConvert/defaultStyleConfig/styleConfigs';
+import { getDefaultYAML, createFormatAssetStructure } from './textConvert/defaultStyleConfig/styleConfigs';
 
 /*
 TODO: 需修改，提示词：
@@ -20,6 +20,7 @@ TODO: 需修改，提示词：
 // 类型定义
 export interface ExportConfig {
     id: string;           // 格式ID
+    style_dir: string;    // 样式文件夹路径
     format: OutputFormat;// 导出格式
     enabled: boolean;     // 是否启用
     yaml: string;   // YAML配置
@@ -46,98 +47,11 @@ export const exportFormatsSetting: SettingsRegistry = {
     renderSettingTab: addExportFormatsSettingTab
 }
 
-
 const DEFAULT_OUTPUT_DIR = path.join(placeholders.VAR_VAULT_DIR, 'output');
 const DEFAULT_OUTPUT_BASE_NAME = placeholders.VAR_NOTE_NAME;
 const DEFAULT_EXCALIDRAW_PNG_SCALE = 2;
 
 // YAML 配置已集成到各个样式配置中，通过 getDefaultYAML 函数获取
-
-
-
-/**
- * 递归读取目录中的所有文件
- * @param dirPath 目录路径
- * @param baseDir 基础目录（用于生成相对路径）
- * @returns 文件路径和内容的映射对象
- */
-function readDirRecursively(dirPath: string, baseDir: string = dirPath): Record<string, string> {
-    const files: Record<string, string> = {};
-    
-    // 读取目录内容
-    const items = fs.readdirSync(dirPath);
-    
-    for (const item of items) {
-        const fullPath = path.join(dirPath, item);
-        const stats = fs.statSync(fullPath);
-        
-        if (stats.isDirectory()) {
-            // 递归读取子目录
-            const subFiles = readDirRecursively(fullPath, baseDir);
-            Object.assign(files, subFiles);
-        } else {
-            // 读取文件内容
-            const relativePath = path.relative(baseDir, fullPath);
-            const content = fs.readFileSync(fullPath, 'utf-8');
-            files[relativePath] = content;
-        }
-    }
-    
-    return files;
-}
-
-/**
- * 读取默认依赖文件夹中的文件内容
- * @param plugin 插件实例
- * @returns 每种格式的文件内容映射
- */
-function loadDefaultFiles(plugin: MyPlugin): Partial<Record<OutputFormat, Record<string, string>>> {
-    const defaultFiles: Partial<Record<OutputFormat, Record<string, string>>> = {
-        'quarto': {},
-        'vuepress': {},
-        'typst': {}
-    };
-    
-    const defaultDependencyPath = path.join(
-        plugin.PLUGIN_ABS_PATH,
-        'deflautDependency'
-    );
-    
-    // 读取每种格式的文件
-    for (const format of Object.keys(defaultFiles) as OutputFormat[]) {
-        const formatPath = path.join(defaultDependencyPath, format);
-        if (fs.existsSync(formatPath)) {
-            defaultFiles[format] = readDirRecursively(formatPath);
-        }
-    }
-    
-    return defaultFiles;
-}
-
-/**
- * 创建格式的默认文件结构
- * @param basePath 目标路径
- * @param format 格式类型
- * @param plugin 插件实例
- */
-function createFormatAssetStructure(basePath: string, format: OutputFormat, plugin: MyPlugin): void {
-    const defaultFiles = loadDefaultFiles(plugin);
-    const files = defaultFiles[format] || {};
-    
-    // 创建每个默认文件
-    for (const [filePath, content] of Object.entries(files)) {
-        const fullPath = path.join(basePath, filePath);
-        const dirPath = path.dirname(fullPath);
-        
-        // 确保目录存在
-        if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true });
-        }
-        
-        // 写入文件内容
-        fs.writeFileSync(fullPath, content);
-    }
-}
 
 /**
  * 渲染格式的详细设置项
@@ -259,9 +173,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
                 // 删除对应的资源文件夹
                 const formatStylesPath = path.join(
                     plugin.PLUGIN_ABS_PATH,
-                    'assets',
-                    'styles',
-                    formatConfig.id
+                    formatConfig.style_dir
                 );
                 if (fs.existsSync(formatStylesPath)) {
                     fs.rmSync(formatStylesPath, { recursive: true, force: true });
@@ -281,9 +193,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
             .onClick(() => {
                 const formatStylesPath = path.join(
                     plugin.PLUGIN_ABS_PATH,
-                    'assets',
-                    'styles',
-                    formatConfig.id
+                    formatConfig.style_dir
                 );
                 // 如果文件夹不存在，先创建它
                 if (!fs.existsSync(formatStylesPath)) {
@@ -458,6 +368,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
                 const selectedFormat = formatSelector.value as OutputFormat;//containerEl.querySelector('select')?.value as OutputFormat || 'quarto';
                 const newFormat: ExportConfig = {
                     id: hexId,
+                    style_dir: path.join('styles', hexId),
                     name: `${selectedFormat.charAt(0).toUpperCase() + selectedFormat.slice(1)} ${hexId}`,
                     output_dir: DEFAULT_OUTPUT_DIR,
                     output_base_name: DEFAULT_OUTPUT_BASE_NAME+'_'+hexId,
@@ -467,18 +378,16 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
                 };
 
                 // 创建对应的资源文件夹
-                const formatStylesPath = path.join(
+                const styleDirAbs = path.join(
                     plugin.PLUGIN_ABS_PATH,
-                    'assets',
-                    'styles',
-                    newFormat.id
+                    newFormat.style_dir
                 );
-                if (!fs.existsSync(formatStylesPath)) {
-                    fs.mkdirSync(formatStylesPath, { recursive: true });
+                if (!fs.existsSync(styleDirAbs)) {
+                    fs.mkdirSync(styleDirAbs, { recursive: true });
                     // 从默认依赖文件夹复制资源文件
-                    createFormatAssetStructure(formatStylesPath, selectedFormat, plugin);
                 }
-
+                createFormatAssetStructure(styleDirAbs, selectedFormat);
+                
                 settings.exportConfigs.push(newFormat);
                 await plugin.saveData(plugin.settingList);
                 // 重新渲染当前内容区域

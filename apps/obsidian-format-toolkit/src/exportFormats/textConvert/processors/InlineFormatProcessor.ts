@@ -1,7 +1,5 @@
 import MarkdownIt from 'markdown-it';
 import { BaseConverter } from '../textConverter';
-import * as url from 'url';
-
 
 BaseConverter.registerProcessor({
     name: 'plain',
@@ -79,6 +77,11 @@ BaseConverter.registerProcessor({
         converter.md.renderer.rules.underline_open = () => "#underline[";
         converter.md.renderer.rules.underline_close = () => "]";
 
+        // 添加自定义 typst_symbol 类型的渲染规则，避免 # 被转义
+        converter.md.renderer.rules.typst_symbol = (tokens, idx) => {
+            return tokens[idx].content; // 直接输出内容，不进行转义处理
+        };
+
         // typst会把没有转义的括号理解成代码，添加文本处理规则，处理括号的转义
         converter.md.renderer.rules.text = (tokens, idx) => {
             // 获取文本内容并替换所有类型的括号
@@ -125,25 +128,6 @@ BaseConverter.registerProcessor({
         converter.md.disable(['heading','emphasis']);//
     }
 });
-
-
-
-
-if (import.meta.url === url.pathToFileURL(process.argv[1]).href){
-    const text = `
-# 标题
-## 子标题
-
-- **列表项1**
-- *列表<u>项2</u>*
-
-A.选项一<br>
-B.选项二<br>
-`;
-    console.log(new BaseConverter().convert(text,'typst'));
-    console.log(new BaseConverter().convert(text,'quarto'));
-}
-
 
 /**
  * 创建一个无规则的 MarkdownIt 实例

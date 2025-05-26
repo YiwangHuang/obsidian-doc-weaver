@@ -1,9 +1,5 @@
 #import "@preview/octique:0.1.0": * //支持Octicons图标,https://primer.style/octicons/
 
-// =======
-// 以下是
-
-
 // 定义 callout 格式, collapse 属性备用
 #let callout(type: "note", title: none, collapse: none, body) = {
   // 定义哪些类型应该被隐藏
@@ -12,7 +8,7 @@
   // 如果type在hidden_types中，返回空内容
   if type in hidden_types { return [] }
 
-  let color = if  type == "done" { green }
+  let color = if  type == "done" { rgb("#27ad27") } // 使用深绿色 (Dark Green)
     else if type == "question" { orange }
     else if type == "danger" { red }
     else if type == "tip"or type == "note"  { blue }
@@ -21,13 +17,11 @@
 
   let icon = if type == "note" { "ℹ" }
     // else if type == "warning" { image("alert-circle.svg", height:0.9em) }
-    else if type == "question" { octique("question", width: 0.9em, color: color) }
-    else if type == "tip" { octique("light-bulb", width: 0.9em, color: color) } //  bell-fill
-    else if type == "info" { octique("pencil", width: 0.9em, color: color) } //  bookmark
-    else if type == "done" { octique("check-circle", width: 0.9em, color: color) }
+    else if type == "question" { octique("question", width: 1em, color: color) }
+    else if type == "tip" { octique("light-bulb", width: 1em, color: color) } //  bell-fill
+    else if type == "info" { octique("pencil", width: 1em, color: color) } //  bookmark
+    else if type == "done" { octique("check-circle", width: 1em, color: color) }
     else { ">" }
-  
-
   
   block(
     width: 100%,    // 块宽度占满容器
@@ -44,7 +38,8 @@
     above: 0.5em,   // 此块与上方内容的间距
     below: 0.5em,   // 此块与下方内容的间距
     [
-      #box(icon) 
+      // 使用 align 和 box 的 baseline 属性来实现图标和标题的垂直居中对齐
+      #box(icon, baseline: 15%) 
       #if title != none {
         [#text(title, fill: color, weight: "extrabold") #linebreak()] //[#title #linebreak()]
       }

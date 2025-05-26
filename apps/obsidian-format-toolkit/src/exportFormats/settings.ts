@@ -142,7 +142,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
         });
     
     // 添加 PNG 缩放比例的滑动条设置（始终渲染，但通过CSS控制可见性）
-    new Setting(formatContainer)
+    const pngScaleSetting = new Setting(formatContainer)
         .setClass('png-scale-setting')
         .setName('PNG Scale')
         .setDesc('Scale factor for PNG export (1-9)')
@@ -157,11 +157,11 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
                 });
         });
     
-    // 添加CSS样式控制PNG Scale的可见性，控制第一次渲染时，PNG Scale设置的可见性
-    formatContainer.querySelector('.png-scale-setting')?.classList.toggle(
-        'png-scale-visible', 
-        formatConfig.excalidraw_export_type === 'png'
-    );
+    // 设置初始可见性状态，确保在初次渲染时就正确显示PNG Scale设置
+    const shouldShowPngScale = (formatConfig.excalidraw_export_type || 'png') === 'png';
+    if (shouldShowPngScale) {
+        pngScaleSetting.settingEl.classList.add('png-scale-visible');
+    }
 
     // 删除按钮和打开附件文件夹按钮
     new Setting(formatContainer)

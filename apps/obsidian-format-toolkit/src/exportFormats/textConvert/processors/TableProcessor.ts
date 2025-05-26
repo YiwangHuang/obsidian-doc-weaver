@@ -28,9 +28,9 @@ BaseConverter.registerProcessor({
             while (currentIdx < tokens.length && tokens[currentIdx].type !== 'table_close') {
                 const token = tokens[currentIdx];
                 if (token && token.type === 'inline' && (!token.children || token.children.length === 0)) {
-                    // 为空单元格添加一个text类型的token作为子token
+                    // 为空单元格添加一个自定义的typst_symbol类型的token作为子token
                     token.children = [{
-                        type: 'text',
+                        type: 'typst_symbol',
                         tag: '',
                         attrs: null,
                         map: null,

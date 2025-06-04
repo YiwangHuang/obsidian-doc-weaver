@@ -53,7 +53,7 @@ export default class MyPlugin extends Plugin {
         this.settingTab.renderSettingTab();
 
 		// 在左侧功能区创建一个图标按钮
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Format Toolkit', (evt: MouseEvent) => {
+		const ribbonIconEl = this.addRibbonIcon('dice', 'Doc Weaver', (evt: MouseEvent) => {
 			new Notice('This is a notice!');
 		});
 		ribbonIconEl.addClass('my-plugin-ribbon-class');

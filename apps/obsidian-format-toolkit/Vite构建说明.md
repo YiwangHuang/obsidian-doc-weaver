@@ -1,4 +1,4 @@
-# Obsidian Format Toolkit Vite构建说明
+# Obsidian Doc Weaver Vite构建说明
 
 本项目已从ESBuild迁移到Vite进行构建打包，并使用pnpm作为包管理工具。本文档提供了使用Vite构建系统的相关说明。
 
@@ -33,7 +33,7 @@
 ## 目录结构说明
 
 ```
-obsidian-format-toolkit/
+obsidian-doc-weaver/
 ├── main.ts           # 主入口文件
 ├── main.js           # 构建后的输出文件(被.gitignore忽略)
 ├── vite.config.ts    # Vite配置文件

@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-format-toolkit",
+	"name": "obsidian-doc-weaver",
 	"version": "1.0.0",
 	"description": "A comprehensive toolkit for note formatting, exporting and creation in Obsidian.",
 	"main": "main.js",

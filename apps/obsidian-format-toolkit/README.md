@@ -1,4 +1,4 @@
-# Format Toolkit for Obsidian
+# Doc Weaver for Obsidian
 
 A comprehensive toolkit that enhances your note-taking experience in Obsidian with powerful formatting, exporting and creation tools.
 
@@ -12,7 +12,7 @@ A comprehensive toolkit that enhances your note-taking experience in Obsidian wi
 
 1. Open Obsidian Settings
 2. Go to Community Plugins and disable Safe Mode
-3. Click Browse and search for "Format Toolkit"
+3. Click Browse and search for "Doc Weaver"
 4. Install and Enable the plugin
 
 ## Development
@@ -23,7 +23,7 @@ This plugin uses Vite for building and bundling and pnpm as package manager.
 
 - Make sure your NodeJS is at least v14.18.0 (`node --version`).
 - Make sure you have pnpm installed (`pnpm -v`). If not, install it with `npm install -g pnpm`.
-- Clone this repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/format-toolkit` folder.
+- Clone this repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/doc-weaver` folder.
 - Run `pnpm install` to install dependencies.
 - Run `pnpm dev` to start compilation in watch mode.
 

@@ -60,18 +60,19 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
             copyFilesRecursively(exportStyleDirAbs, outputDir);
         }
         
+        converter.resetLinkParser(); // 每次导出前重置linkParser，避免重复写入链接信息
+
         // 处理主要内容与YAML
         const exportContent = await converter.convert(sourceContent, item.format);
         fs.writeFileSync(path.join(outputDir,outputFullName), yamlInfo+'\n'+exportContent);
         
         // 拷贝附件
         converter.copyAttachment(outputDir);
-        // const {properties, mainContent} = await getFileContentAndProperties(plugin, sourceFile)
-        // console.log(properties)
-        // console.log(mainContent)
-        // console.log(plugin.app.metadataCache.getFileCache(sourceFile))
-        // 打印所有链接的键值对
+
+        new Notice(converter.linkParser.formatExportSummary(path.join(outputDir, outputFullName)), 0); // 打印导出信息
         
+        // TODO: 双语支持导出信息
+
         converter.exportConfig = null;
 
         console.log('打印附件信息')//

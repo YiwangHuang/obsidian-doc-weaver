@@ -97,6 +97,13 @@ See https://github.com/obsidianmd/obsidian-api
 ## Todo
 
 - [ ] 占位符支持与 md 文档属性联动
-- [ ] excalidraw 输出的png格式的尺寸可调
+- [X] excalidraw 输出的png格式的尺寸可调
 - [ ] 用vue重构设置界面，提供更多选项和说明
 - [ ] 提供示例模板
+- [ ] 支持输出到微信公众号
+
+[公众号文章中插入数学公式之完美方案](https://zhuanlan.zhihu.com/p/682559312)
+
+[GitHub - latentcat/mpmath: 微信公众号公式编辑插件](https://github.com/latentcat/mpmath)
+
+[GitHub - chararch/obsidian-enhanced-publisher: 增强的Obsidian发布插件，支持图片自动存储、HTML预览和发布到微信公众号等内容平台](https://github.com/chararch/obsidian-enhanced-publisher)

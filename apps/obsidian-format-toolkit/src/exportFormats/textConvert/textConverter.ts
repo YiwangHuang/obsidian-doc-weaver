@@ -118,6 +118,10 @@ export class AdvancedConverter extends BaseConverter{
         this.linkParser = new LinkParser(this);
     }
 
+    public resetLinkParser(){
+        this.linkParser = new LinkParser(this);
+    }
+
     /**
      * replacePlaceholders方法，替换模板中的占位符为实际值
      * @param template 包含占位符的字符串模板

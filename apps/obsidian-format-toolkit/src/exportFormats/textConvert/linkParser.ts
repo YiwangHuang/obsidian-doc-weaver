@@ -89,11 +89,12 @@ export class LinkParser {
     private converter: AdvancedConverter;
     
     // 从AdvancedConverter迁移的属性
-    public linkList: LinkConfig[] = []; // 链接附件信息
+    private linkMap: Map<string, LinkConfig> = new Map(); // 链接附件信息，以source_path为键
     public isRecursiveEmbedNote = true; // 是否递归解析嵌入笔记
     public isRenewExportName = false; // 是否为附件生成新的导出名称，默认不生成(使用原名称作为导出名)
     private noteFileStack: TFile[] = []; // 文件处理栈，用于跟踪文件处理层级
     public embedNoteCache: Record<string, NoteInfo> = {}; // 嵌入笔记缓存
+    public embedNoteCount = 0; // 嵌入笔记数量，期望在Notice中显示
 
     constructor(converter: AdvancedConverter) {
         this.converter = converter;
@@ -134,6 +135,7 @@ export class LinkParser {
         if (!file) {
             return false;
         }
+        this.embedNoteCount++;
         this.noteFileStack.push(file);
         return true;
     }
@@ -299,6 +301,79 @@ export class LinkParser {
         return filename.replace(basicExt, `_${generateHexId(hexNum)}.$1`);
     }
 
+    /**
+     * 获取所有链接的数组形式（用于向后兼容）
+     * @returns 链接配置数组
+     */
+    public get linkList(): LinkConfig[] {
+        return Array.from(this.linkMap.values());
+    }
+
+    /**
+     * 安全地添加链接到linkMap，避免添加重复的链接信息
+     * 重复判断基于source_path，同一个源文件只会被添加一次
+     * @param linkConfig 要添加的链接配置
+     * @returns 如果成功添加返回true，如果已存在则返回false
+     */
+    public addLink(linkConfig: LinkConfig): void {
+        this.linkMap.set(linkConfig.source_path, linkConfig);
+    }
+
+    /**
+     * 格式化输出导出信息摘要，用于在Notice中显示
+     * @param outputPath 输出文件路径（可选）
+     * @returns 格式化的导出信息字符串
+     */
+    public formatExportSummary(outputPath?: string): string {
+        const lines: string[] = [];
+        
+        // 添加输出路径信息
+        if (outputPath) {
+            lines.push(`Export path: ${outputPath}`);
+        }
+        
+        const totalLinks = this.linkMap.size;
+        
+        // 添加嵌入笔记统计
+        if (this.embedNoteCount > 0) {
+            lines.push(`\nEmbedded notes: ${this.embedNoteCount}`);
+        }
+        
+        // 如果有链接，统计并显示详细分类
+        if (totalLinks > 0) {
+            const linkStats: Record<string, number> = {};
+            
+            // 直接遍历Map的值，统计分类
+            for (const link of this.linkMap.values()) {
+                let category: string;
+                
+                if (link.type === 'excalidraw') {
+                    // 对于excalidraw类型，根据导出格式特别分类
+                    const issvg = this.exportConfig?.excalidraw_export_type === 'svg';
+                    category = issvg ? 'Excalidraw->SVG' : 'Excalidraw->PNG';
+                } else {
+                    // 对于其他类型，直接使用导出文件名的扩展名（去掉点号）
+                    const extension = path.extname(link.export_name).toLowerCase();
+                    category = extension ? extension.substring(1).toUpperCase() : 'no-extension';
+                }
+                
+                // 统计数量
+                linkStats[category] = (linkStats[category] || 0) + 1;
+            }
+            
+            lines.push(`\nAttachments (${totalLinks}):`);
+            
+            // 按扩展名排序显示
+            const categories = Object.entries(linkStats).sort(([a], [b]) => a.localeCompare(b));
+            
+            for (const [category, count] of categories) {
+                lines.push(`  ${category}: ${count}`);
+            }
+        }
+        
+        return lines.join('\n');
+    }
+
 }
 
 /**
@@ -333,7 +408,7 @@ LinkParser.registerRule({
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
-                parser.linkList.push({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
+                parser.addLink({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
@@ -366,7 +441,7 @@ LinkParser.registerRule({
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
-                parser.linkList.push({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
+                parser.addLink({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
@@ -411,7 +486,7 @@ LinkParser.registerRule({
                     exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png'); 
                     
 
-                    parser.linkList.push({export_name: exportName, source_path: embedNoteFile.path, type: 'excalidraw'});// 添加到链接列表中
+                    parser.addLink({export_name: exportName, source_path: embedNoteFile.path, type: 'excalidraw'});// 添加到链接列表中
                     linkToken.hidden = false;
                     linkToken.content = exportName;
                     linkToken.markup = '![[]]';

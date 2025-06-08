@@ -5,9 +5,9 @@
 	"private": true,
 	"scripts": {
 		"dev": "pnpm --filter obsidian-doc-weaver dev",
-		"dev:sample": "pnpm --filter obsidian-plugin dev",
 		"dev:all": "pnpm -r --parallel dev",
-		"build": "pnpm --filter '*' build",
+		"build": "pnpm --filter obsidian-doc-weaver build",
+		"build:all": "pnpm --filter '*' build",
 		"lint": "pnpm --filter '*' lint",
 		"test": "pnpm --filter '*' test",
 		"clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules dist .turbo"

@@ -46,7 +46,6 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
     for (const item of settings.exportConfigs.filter(item => item.enabled)) {
         converter.exportConfig = item;
         const styleDirAbs = path.posix.join(plugin.PLUGIN_ABS_PATH, item.style_dir);
-        // const outputDir = converter.replacePlaceholders(item.output_dir); // TODO: 路径处理，实现跨平台兼容
         const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir)); // 跨平台路径处理
         const outputFullName = `${converter.replacePlaceholders(item.output_base_name)}.${extensionNameOfFormat[item.format]}`;
         // 处理 YAML 配置

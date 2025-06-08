@@ -5,10 +5,10 @@ import * as path from 'path';
 import { generateHexId } from "../../lib/idGenerator";
 import { getHeadingText } from '../../lib/noteResloveUtils';
 import type { OutputFormat } from "./textConverter";
-// import type { Token, StateBlock } from "markdown-it";
+import type { Token, StateBlock } from "markdown-it";
 
-import type StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
-import type Token from 'markdown-it/lib/token.mjs';
+// import type StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
+// import type Token from 'markdown-it/lib/token.mjs';
 // 适配"moduleResolution": "bundler"
 
 import { getLinkpath } from "obsidian";

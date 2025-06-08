@@ -146,7 +146,7 @@ export class AdvancedConverter extends BaseConverter{
      */
     public copyAttachment(exportTargetDirAbs: string): void{
         const links = this.linkParser.linkList;
-        const attachmentDirAbs = path.join(exportTargetDirAbs,this.attachmentDir);
+        const attachmentDirAbs = path.posix.join(exportTargetDirAbs,this.attachmentDir);
         if(!fs.existsSync(attachmentDirAbs)){
             fs.mkdirSync(attachmentDirAbs, { recursive: true });
         }
@@ -154,16 +154,16 @@ export class AdvancedConverter extends BaseConverter{
             if(link.type === 'excalidraw' && this.exportConfig !== null){
                 if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
                     if(this.exportConfig.excalidraw_export_type === 'svg'){
-                        exportToSvg(this.plugin, link.source_path, path.join(attachmentDirAbs, link.export_name));
+                        exportToSvg(this.plugin, link.source_path, path.posix.join(attachmentDirAbs, link.export_name));
                     }
                     else{
-                        exportToPng(this.plugin, link.source_path, path.join(attachmentDirAbs, link.export_name), this.exportConfig.excalidraw_png_scale);
+                        exportToPng(this.plugin, link.source_path, path.posix.join(attachmentDirAbs, link.export_name), this.exportConfig.excalidraw_png_scale);
                     }
                 }
                 continue;
             }
             try{
-                fs.copyFileSync(this.plugin.getPathAbs(link.source_path), path.join(attachmentDirAbs, link.export_name));
+                fs.copyFileSync(this.plugin.getPathAbs(link.source_path), path.posix.join(attachmentDirAbs, link.export_name));
             }catch(error){
                 console.error(`Error copying file: ${error}`);
             }

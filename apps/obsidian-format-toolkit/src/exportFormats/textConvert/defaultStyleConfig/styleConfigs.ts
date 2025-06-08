@@ -95,7 +95,7 @@ export function createFormatAssetStructure(basePath: string, format: OutputForma
     
     // 创建每个主题依赖文件
     for (const dependency of styleConfig.theme_dependency) {
-        const fullPath = path.join(basePath, dependency.relative_path);
+                    const fullPath = path.posix.join(basePath, dependency.relative_path);
         const dirPath = path.dirname(fullPath);
         
         // 确保目录存在

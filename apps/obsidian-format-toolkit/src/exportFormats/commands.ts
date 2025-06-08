@@ -7,6 +7,7 @@ import { TextConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
 import { getNoteInfo } from '../lib/noteResloveUtils';
 import { DEBUG } from '../lib/testUtils';
+import { normalizeCrossPlatformPath } from '../lib/pathUtils';
 
 //TODO: 新增功能：直接通过typst的WebAssembly版本导出为pdf
 /**
@@ -20,8 +21,8 @@ function copyFilesRecursively(
     const files = fs.readdirSync(sourceDir, { withFileTypes: true });
     
     for (const file of files) {
-        const sourcePath = path.join(sourceDir, file.name);
-        const targetPath = path.join(targetDir, file.name);
+        const sourcePath = path.posix.join(sourceDir, file.name);
+        const targetPath = path.posix.join(targetDir, file.name);
 
         if (file.isDirectory()) {
             copyFilesRecursively(sourcePath, targetPath, fileFilter);
@@ -44,8 +45,9 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
     const converter = new TextConverter(plugin, sourceFile);
     for (const item of settings.exportConfigs.filter(item => item.enabled)) {
         converter.exportConfig = item;
-        const exportStyleDirAbs = path.join(plugin.PLUGIN_ABS_PATH, item.style_dir);
-        const outputDir = converter.replacePlaceholders(item.output_dir);
+        const styleDirAbs = path.posix.join(plugin.PLUGIN_ABS_PATH, item.style_dir);
+        // const outputDir = converter.replacePlaceholders(item.output_dir); // TODO: 路径处理，实现跨平台兼容
+        const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir)); // 跨平台路径处理
         const outputFullName = `${converter.replacePlaceholders(item.output_base_name)}.${extensionNameOfFormat[item.format]}`;
         // 处理 YAML 配置
         const yamlInfo = converter.replacePlaceholders(item.yaml);
@@ -56,20 +58,20 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         }
         
         // 拷贝样式文件
-        if (fs.existsSync(exportStyleDirAbs)) {
-            copyFilesRecursively(exportStyleDirAbs, outputDir);
+        if (fs.existsSync(styleDirAbs)) {
+            copyFilesRecursively(styleDirAbs, outputDir);
         }
         
         converter.resetLinkParser(); // 每次导出前重置linkParser，避免重复写入链接信息
 
         // 处理主要内容与YAML
         const exportContent = await converter.convert(sourceContent, item.format);
-        fs.writeFileSync(path.join(outputDir,outputFullName), yamlInfo+'\n'+exportContent);
+        fs.writeFileSync(path.posix.join(outputDir,outputFullName), yamlInfo+'\n'+exportContent);
         
         // 拷贝附件
         converter.copyAttachment(outputDir);
 
-        new Notice(converter.linkParser.formatExportSummary(path.join(outputDir, outputFullName)), 0); // 打印导出信息
+        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 0); // 打印导出信息
         
         // TODO: 双语支持导出信息
 

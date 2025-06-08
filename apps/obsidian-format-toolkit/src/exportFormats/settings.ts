@@ -47,7 +47,7 @@ export const exportFormatsSetting: SettingsRegistry = {
     renderSettingTab: addExportFormatsSettingTab
 }
 
-const DEFAULT_OUTPUT_DIR = path.join(placeholders.VAR_VAULT_DIR, 'output');
+const DEFAULT_OUTPUT_DIR = path.posix.join(placeholders.VAR_VAULT_DIR, 'output');
 const DEFAULT_OUTPUT_BASE_NAME = placeholders.VAR_NOTE_NAME;
 const DEFAULT_EXCALIDRAW_PNG_SCALE = 2;
 
@@ -171,7 +171,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
             .setButtonText('Delete')
             .onClick(async () => {
                 // 删除对应的资源文件夹
-                const formatStylesPath = path.join(
+                const formatStylesPath = path.posix.join(
                     plugin.PLUGIN_ABS_PATH,
                     formatConfig.style_dir
                 );
@@ -191,7 +191,7 @@ function renderFormatDetailSettings(formatContainer: HTMLElement, formatConfig: 
         .addButton(button => button
             .setButtonText('Open Assets Folder')
             .onClick(() => {
-                const formatStylesPath = path.join(
+                const formatStylesPath = path.posix.join(
                     plugin.PLUGIN_ABS_PATH,
                     formatConfig.style_dir
                 );
@@ -368,7 +368,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
                 const selectedFormat = formatSelector.value as OutputFormat;//containerEl.querySelector('select')?.value as OutputFormat || 'quarto';
                 const newFormat: ExportConfig = {
                     id: hexId,
-                    style_dir: path.join('styles', hexId),
+                    style_dir: path.posix.join('styles', hexId),
                     name: `${selectedFormat.charAt(0).toUpperCase() + selectedFormat.slice(1)} ${hexId}`,
                     output_dir: DEFAULT_OUTPUT_DIR,
                     output_base_name: DEFAULT_OUTPUT_BASE_NAME+'_'+hexId,
@@ -378,7 +378,7 @@ function addExportFormatsSettingTab(containerEl: HTMLElement, plugin: MyPlugin):
                 };
 
                 // 创建对应的资源文件夹
-                const styleDirAbs = path.join(
+                const styleDirAbs = path.posix.join(
                     plugin.PLUGIN_ABS_PATH,
                     newFormat.style_dir
                 );

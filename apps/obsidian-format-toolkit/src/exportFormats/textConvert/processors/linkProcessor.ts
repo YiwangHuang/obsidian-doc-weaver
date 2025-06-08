@@ -142,5 +142,5 @@ if (import.meta.url === url.pathToFileURL(process.argv[1]).href){
     // });
     console.log(converter.convert(text));
     // console.log(converter.links);
-    // console.log(path.join(__filename))
+    // console.log(path.posix.join(__filename))
 }

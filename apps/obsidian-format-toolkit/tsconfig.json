@@ -9,5 +9,5 @@
       "vite/client"
     ]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.vue"]
 }

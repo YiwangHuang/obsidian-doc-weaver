@@ -1,5 +1,7 @@
 import { App, DataAdapter, FileSystemAdapter, Notice, Plugin, PluginSettingTab, TFile } from 'obsidian';
 import path from 'path';
+import { createApp, App as VueApp } from 'vue';
+import SettingsApp from './vue/components/SettingsApp.vue';
 
 // import { 
 // 	addGetCreateNoteCommands,
@@ -157,9 +159,12 @@ class initSettingTab  {
 export class AlternativeSettingTab extends PluginSettingTab {
     plugin: MyPlugin;
     activeTab: string;
+    private vueApp?: VueApp;
     
     // 定义所有可用的设置选项卡
     private readonly moduleSettings: SettingsRegistry[];
+    // 测试模式开关 - 设置为true时使用Vue组件
+    private readonly useVueMode: boolean = true;
 
     constructor(app: App, plugin: MyPlugin, settingTab: initSettingTab) {
         super(app, plugin);
@@ -172,9 +177,27 @@ export class AlternativeSettingTab extends PluginSettingTab {
         const {containerEl} = this;
         containerEl.empty();
 
-        this.createTabContainer(containerEl);
-        this.createContentContainer(containerEl);
-        this.addTabStyles();
+        if (this.useVueMode) {
+            this.renderVueComponent(containerEl);
+        } else {
+            this.createTabContainer(containerEl);
+            this.createContentContainer(containerEl);
+            this.addTabStyles();
+        }
+    }
+
+    private renderVueComponent(containerEl: HTMLElement): void {
+        // 创建Vue应用挂载点
+        const mountPoint = containerEl.createDiv('vue-settings-container');
+        
+        // 创建Vue应用实例
+        this.vueApp = createApp(SettingsApp, {
+            plugin: this.plugin,
+            moduleSettings: this.moduleSettings
+        });
+        
+        // 挂载Vue应用
+        this.vueApp.mount(mountPoint);
     }
 
     private createTabContainer(containerEl: HTMLElement): void {
@@ -254,6 +277,14 @@ export class AlternativeSettingTab extends PluginSettingTab {
             }
         `;
         document.head.appendChild(style);
+    }
+
+    hide(): void {
+        // 清理Vue应用
+        if (this.vueApp) {
+            this.vueApp.unmount();
+            this.vueApp = undefined;
+        }
     }
 }
 

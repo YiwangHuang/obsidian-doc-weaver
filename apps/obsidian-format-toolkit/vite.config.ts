@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import vue from '@vitejs/plugin-vue';
 import builtins from 'builtin-modules';
 import { copyFileSync } from 'fs';
 
@@ -36,6 +37,11 @@ export default defineConfig(({ mode }: ConfigEnv) => {
   const isProd = mode === 'production';
   
   return {
+    // 添加Vue插件支持
+    plugins: [
+      vue(), // Vue单文件组件支持
+    ],
+    
     // 定义构建配置
     build: {
       lib: {

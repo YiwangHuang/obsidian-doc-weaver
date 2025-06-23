@@ -1,3 +1,43 @@
+<!--
+  Obsidian Vue弹窗集成组件
+  
+  功能说明：
+  - 将Vue组件内容集成到Obsidian原生Modal中
+  - 保持完美的Obsidian主题一致性和用户体验
+  - 支持双向绑定的可见性控制
+  - 自动处理Modal的创建、打开、关闭生命周期
+  - 支持自定义标题和关闭回调
+  - 组件卸载时自动清理Modal资源
+  
+  配置项：
+  Props:
+  - visible: 弹窗可见状态 (boolean) 必需
+  - obsidianApp: Obsidian应用实例 (ObsidianApp) 必需
+  - title: 弹窗标题 (string) 可选
+  - onClose: 关闭回调函数 (Function) 可选
+  
+  Events:
+  - update:visible: 可见状态变化时发出，传递新的boolean值
+  - close: 弹窗关闭时发出
+  
+  Slots:
+  - default: 弹窗内容区域
+  
+  使用示例：
+  <ObsidianVueModal
+    v-model:visible="showModal"
+    :obsidian-app="app"
+    title="设置"
+    @close="handleClose"
+  >
+    <div>弹窗内容...</div>
+  </ObsidianVueModal>
+  
+  注意事项：
+  - 该组件使用隐藏的DOM元素配合Obsidian Modal实现
+  - Vue内容会被复制到Obsidian Modal中，因此事件绑定需要特别处理
+  - 建议配合其他UI组件使用，而不是直接操作DOM
+-->
 <template>
   <!-- 这个组件不直接渲染内容，而是通过Obsidian Modal渲染 -->
   <div style="display: none;">

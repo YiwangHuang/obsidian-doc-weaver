@@ -1,3 +1,38 @@
+<!--
+  下拉选择组件
+  
+  功能说明：
+  - 提供标准的下拉选择功能
+  - 支持双向数据绑定(v-model)
+  - 支持字符串和数字类型的选项值
+  - 支持选项禁用状态
+  - 自动类型转换(保持原始值类型)
+  - 自定义下拉箭头样式
+  - 使用Obsidian主题样式确保一致性
+  
+  配置项：
+  Props:
+  - modelValue: 当前选中值 (string | number) 必需
+  - options: 选项数组 (DropdownOption[]) 必需
+    * DropdownOption类型：
+      - value: 选项值 (string | number)
+      - label: 显示文本 (string)  
+      - disabled: 是否禁用 (boolean) 可选
+  - disabled: 是否禁用整个下拉框 (boolean) 默认 false
+  
+  Events:
+  - update:modelValue: 选择变化时发出，传递新的值
+  - change: 选择变化时发出，传递新的值
+  
+  使用示例：
+  <Dropdown 
+    v-model="selectedValue" 
+    :options="[
+      { value: 'option1', label: '选项1' },
+      { value: 'option2', label: '选项2', disabled: true }
+    ]" 
+  />
+-->
 <template>
   <select
     :value="modelValue"

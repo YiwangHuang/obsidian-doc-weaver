@@ -1,3 +1,38 @@
+<!--
+  设置面板容器组件
+  
+  功能说明：
+  - 提供设置页面的主容器和布局结构
+  - 集成保存状态指示器，显示保存进度和错误信息
+  - 自动显示/隐藏状态栏基于保存状态
+  - 提供统一的内容区域布局和间距
+  - 支持加载动画和错误提示样式
+  - 使用Obsidian主题样式确保一致性
+  
+  配置项：
+  Props:
+  - saveState: 保存状态对象 (SaveState) 必需
+    * SaveState类型：
+      - saving: 是否正在保存 (boolean)
+      - error: 错误信息 (string | null)
+  
+  Slots:
+  - default: 设置内容区域，用于放置配置项组件
+  
+  状态指示器功能：
+  - 保存中：显示旋转加载动画和"Saving..."文本
+  - 错误：显示警告图标和错误信息
+  - 正常：隐藏状态栏
+  
+  使用示例：
+  <SettingsPanel :save-state="saveState">
+    <ConfigurationItem title="设置1">
+      <template #control>
+        <ToggleSwitch v-model="setting1" />
+      </template>
+    </ConfigurationItem>
+  </SettingsPanel>
+-->
 <template>
   <div class="settings-panel">
     <!-- 保存状态指示器 -->

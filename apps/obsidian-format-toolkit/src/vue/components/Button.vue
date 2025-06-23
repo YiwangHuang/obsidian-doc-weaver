@@ -1,3 +1,27 @@
+<!--
+  通用按钮组件
+  
+  功能说明：
+  - 提供4种样式变体：primary(主要)、secondary(次要)、danger(危险)、ghost(幽灵)
+  - 支持3种尺寸：small、medium、large
+  - 支持加载状态显示和禁用状态
+  - 完全使用Obsidian主题变量确保一致性
+  - 支持键盘导航和无障碍访问
+  
+  配置项：
+  Props:
+  - type: 按钮类型 ('button' | 'submit' | 'reset') 默认 'button'
+  - variant: 样式变体 ('primary' | 'secondary' | 'danger' | 'ghost') 默认 'secondary'  
+  - size: 尺寸 ('small' | 'medium' | 'large') 默认 'medium'
+  - disabled: 是否禁用 (boolean) 默认 false
+  - loading: 是否显示加载状态 (boolean) 默认 false
+  
+  Events:
+  - click: 点击事件，传递MouseEvent对象
+  
+  Slots:
+  - default: 按钮内容区域
+-->
 <template>
   <button
     :type="type"

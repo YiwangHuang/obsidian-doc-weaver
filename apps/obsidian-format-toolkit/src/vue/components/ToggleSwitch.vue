@@ -1,3 +1,24 @@
+<!--
+  开关切换组件
+  
+  功能说明：
+  - 提供美观的开关切换界面，基于Obsidian设计风格
+  - 支持双向数据绑定(v-model)
+  - 支持禁用状态和键盘操作
+  - 带有平滑的过渡动画效果
+  - 完全无障碍访问支持
+  
+  配置项：
+  Props:
+  - modelValue: 当前开关状态 (boolean) 必需
+  - disabled: 是否禁用 (boolean) 默认 false
+  
+  Events:
+  - update:modelValue: 状态变化时发出，传递新的boolean值
+  
+  使用示例：
+  <ToggleSwitch v-model="enabled" :disabled="false" />
+-->
 <template>
   <label class="toggle-switch" :class="{ disabled }">
     <input

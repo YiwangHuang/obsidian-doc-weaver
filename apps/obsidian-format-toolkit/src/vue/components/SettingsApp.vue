@@ -1,18 +1,67 @@
+<!--
+  Vue设置应用根组件
+  
+  功能说明：
+  - 作为Vue设置面板的根容器组件
+  - 集成标签页导航和设置面板容器
+  - 提供完整的设置状态管理和数据流
+  - 包含组件演示和测试功能
+  - 支持Obsidian弹窗集成演示
+  - 自动保存用户设置到插件配置
+  
+  主要特性：
+  - 多标签页支持，动态内容切换
+  - 防抖保存机制(500ms延迟)
+  - 完整的弹窗交互流程演示
+  - 组件状态同步和变更跟踪
+  - 响应式UI适配移动端
+  
+  配置项：
+  Props:
+  - plugin: Obsidian插件实例 (ObsidianPlugin) 必需
+  
+  组件演示内容：
+  1. 基础UI组件测试(开关、输入框、下拉框、按钮)
+  2. 配置项容器布局演示
+  3. Obsidian弹窗集成完整流程
+  4. 动态项目管理功能
+  5. 保存状态和错误处理
+  
+  使用示例：
+  <SettingsApp :plugin="pluginInstance" />
+-->
 <template>
   <div class="vue-settings-container">
     <h2>Vue Settings Panel</h2>
     
     <!-- 使用新的标签页组件 -->
     <SettingsTabs
-      :tabs="tabs"
+      :tabs="props.moduleSettings"
       :active-tab="activeTab"
       :on-tab-change="switchTab"
     />
     
     <!-- 使用新的设置面板组件 -->
     <SettingsPanel :save-state="saveState">
-      <!-- 这里将在后续阶段添加具体的设置组件 -->
-      <div class="settings-placeholder">
+      <!-- 根据当前标签页显示不同的设置内容 -->
+      <div v-if="activeTab === 'tagWrapper'" class="module-settings">
+        <TagWrapperSettings 
+          :plugin="plugin"
+          @settings-changed="handleTagWrapperSettingsChanged"
+        />
+      </div>
+      
+      <!-- Export Formats设置 -->
+      <div v-else-if="activeTab === 'exportFormats'" class="module-settings">
+        <div class="module-placeholder">
+          <h3>导出格式设置</h3>
+          <p>这个模块的Vue化还在开发中...</p>
+          <p>目前使用原生DOM实现</p>
+        </div>
+      </div>
+      
+      <!-- 演示和测试内容 -->
+      <div v-else-if="activeTab === 'Demo'" class="settings-placeholder">
         <ConfigurationItem
           title="Vue组件测试"
           description="这是一个Vue组件的测试示例，展示基础组件的使用"
@@ -58,7 +107,7 @@
             <span class="status-text">{{ activeTab }}</span>
           </template>
           <template #details>
-            <p>Available Tabs: {{ tabs.map(t => t.name).join(', ') }}</p>
+            <p>Available Tabs: {{ props.moduleSettings.map(t => t.name).join(', ') }}</p>
             <p>Test Enabled: {{ testEnabled }}</p>
             <p>Test Text: {{ testText || '(empty)' }}</p>
             <p>Test Select: {{ testSelect }}</p>
@@ -204,6 +253,7 @@ import TextInput from './TextInput.vue';
 import TextArea from './TextArea.vue';
 import Dropdown from './Dropdown.vue';
 import Button from './Button.vue';
+import TagWrapperSettings from '../../toggleTagWrapper/components/TagWrapperSettings.vue';
 import type { DropdownOption } from './Dropdown.vue';
 
 // 定义Props
@@ -218,11 +268,8 @@ console.log('Plugin:', props.plugin.manifest.name);
 console.log('Module Settings:', props.moduleSettings.map(m => m.name));
 console.log('Current Settings:', settings);
 
-// 当前活跃的标签页
-const activeTab = ref(props.moduleSettings[0]?.name || '');
-
-// 计算属性：获取标签页列表
-const tabs = computed(() => props.moduleSettings);
+// 当前活跃的标签页 - 使用实际的模块名称
+const activeTab = ref(props.moduleSettings[0]?.name || 'tagWrapper');
 
 // 切换标签页
 const switchTab = (tabName: string) => {
@@ -314,6 +361,14 @@ const addModalItem = () => {
 const removeModalItem = (index: number) => {
   modalConfig.value.items.splice(index, 1);
   markModalChanged();
+};
+
+/**
+ * 处理Tag Wrapper设置变更
+ */
+const handleTagWrapperSettingsChanged = (settings: any) => {
+  console.log('Tag Wrapper settings changed:', settings);
+  // 这里可以添加额外的处理逻辑
 };
 </script>
 

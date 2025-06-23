@@ -1,3 +1,31 @@
+<!--
+  文本输入框组件
+  
+  功能说明：
+  - 支持多种输入类型(text、password、email、url、number)
+  - 支持双向数据绑定(v-model)
+  - 提供错误状态显示和样式
+  - 支持禁用和只读状态
+  - 完整的键盘和鼠标交互
+  - 使用Obsidian主题样式确保一致性
+  
+  配置项：
+  Props:
+  - modelValue: 输入框值 (string) 必需
+  - type: 输入类型 ('text' | 'password' | 'email' | 'url' | 'number') 默认 'text'
+  - placeholder: 占位符文本 (string) 默认 ''
+  - disabled: 是否禁用 (boolean) 默认 false
+  - readonly: 是否只读 (boolean) 默认 false
+  - hasError: 是否显示错误状态 (boolean) 默认 false
+  
+  Events:
+  - update:modelValue: 输入值变化时发出，传递新的string值
+  - blur: 失去焦点时发出，传递FocusEvent对象
+  - focus: 获得焦点时发出，传递FocusEvent对象
+  
+  使用示例：
+  <TextInput v-model="text" type="email" placeholder="请输入邮箱" :hasError="!isValid" />
+-->
 <template>
   <input
     :type="type"

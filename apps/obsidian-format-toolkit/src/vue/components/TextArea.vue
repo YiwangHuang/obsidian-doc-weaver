@@ -1,3 +1,34 @@
+<!--
+  多行文本输入框组件
+  
+  功能说明：
+  - 支持多行文本输入和编辑
+  - 支持双向数据绑定(v-model)
+  - 可控制的垂直尺寸调整功能
+  - 支持自定义行数和列数
+  - 提供错误状态显示
+  - 支持禁用和只读状态
+  - 使用Obsidian主题样式确保一致性
+  
+  配置项：
+  Props:
+  - modelValue: 文本框值 (string) 必需
+  - placeholder: 占位符文本 (string) 默认 ''
+  - disabled: 是否禁用 (boolean) 默认 false
+  - readonly: 是否只读 (boolean) 默认 false
+  - hasError: 是否显示错误状态 (boolean) 默认 false
+  - rows: 可见行数 (number) 默认 4
+  - cols: 可见列数 (number) 可选
+  - resizable: 是否允许调整大小 (boolean) 默认 true
+  
+  Events:
+  - update:modelValue: 输入值变化时发出，传递新的string值
+  - blur: 失去焦点时发出，传递FocusEvent对象
+  - focus: 获得焦点时发出，传递FocusEvent对象
+  
+  使用示例：
+  <TextArea v-model="content" :rows="6" placeholder="请输入详细内容..." />
+-->
 <template>
   <textarea
     :value="modelValue"

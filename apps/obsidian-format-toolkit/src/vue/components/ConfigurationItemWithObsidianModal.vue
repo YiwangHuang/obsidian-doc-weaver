@@ -1,3 +1,55 @@
+<!--
+  带Obsidian弹窗的配置项组件
+  
+  功能说明：
+  - 扩展ConfigurationItem，增加Obsidian原生弹窗功能
+  - 支持主要控制组件(如开关)和弹窗高级设置的组合
+  - 集成保存状态管理和未保存更改提醒
+  - 提供完整的弹窗交互流程(打开、保存、重置、取消)
+  - 支持确认关闭机制防止意外丢失更改
+  - 使用Obsidian原生Modal确保完美的主题集成
+  
+  配置项：
+  Props:
+  - title: 配置项标题 (string) 可选
+  - description: 配置项描述文本 (string) 可选
+  - disabled: 是否禁用 (boolean) 默认 false
+  - modalTitle: 弹窗标题 (string) 可选，默认基于title生成
+  - modalButtonText: 弹窗按钮文本 (string) 默认 '高级设置'
+  - modalButtonTooltip: 弹窗按钮提示文本 (string) 默认 '打开高级设置'
+  - saveState: 保存状态对象 (SaveState) 可选
+  - hasUnsavedChanges: 是否有未保存更改 (boolean) 默认 false
+  - confirmOnCancel: 取消时是否确认 (boolean) 默认 true
+  - obsidianApp: Obsidian应用实例 (ObsidianApp) 必需
+  
+  Events:
+  - modal-open: 弹窗打开时发出
+  - modal-close: 弹窗关闭时发出
+  - modal-save: 弹窗保存时发出
+  - modal-reset: 弹窗重置时发出
+  - modal-cancel: 弹窗取消时发出
+  
+  Slots:
+  - control: 主要控制组件插槽
+  - details: 基础详细信息插槽
+  - modal-content: 弹窗内容插槽
+  
+  使用示例：
+  <ConfigurationItemWithObsidianModal
+    title="高级导出设置"
+    description="配置详细的导出参数"
+    :obsidian-app="app"
+    :has-unsaved-changes="hasChanges"
+    @modal-save="handleSave"
+  >
+    <template #control>
+      <ToggleSwitch v-model="exportEnabled" />
+    </template>
+    <template #modal-content>
+      <TextInput v-model="exportPath" placeholder="导出路径" />
+    </template>
+  </ConfigurationItemWithObsidianModal>
+-->
 <template>
   <ConfigurationItem
     :title="title"

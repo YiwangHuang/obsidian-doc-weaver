@@ -180,9 +180,9 @@ export class AlternativeSettingTab extends PluginSettingTab {
         if (this.useVueMode) {
             this.renderVueComponent(containerEl);
         } else {
-            this.createTabContainer(containerEl);
-            this.createContentContainer(containerEl);
-            this.addTabStyles();
+        this.createTabContainer(containerEl);
+        this.createContentContainer(containerEl);
+        this.addTabStyles();
         }
     }
 

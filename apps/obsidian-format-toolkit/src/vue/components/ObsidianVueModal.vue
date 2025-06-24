@@ -1,54 +1,33 @@
 <!--
-  Obsidian Vue弹窗集成组件
+  最简单的Obsidian Vue弹窗组件
   
   功能说明：
-  - 将Vue组件内容集成到Obsidian原生Modal中
-  - 保持完美的Obsidian主题一致性和用户体验
+  - 将Vue组件内容渲染到Obsidian原生Modal中
   - 支持双向绑定的可见性控制
-  - 自动处理Modal的创建、打开、关闭生命周期
-  - 支持自定义标题和关闭回调
-  - 组件卸载时自动清理Modal资源
+  - 最简单的实现，无额外功能
   
   配置项：
   Props:
   - visible: 弹窗可见状态 (boolean) 必需
-  - obsidianApp: Obsidian应用实例 (ObsidianApp) 必需
+  - obsidianApp: Obsidian应用实例 (App) 必需
   - title: 弹窗标题 (string) 可选
-  - onClose: 关闭回调函数 (Function) 可选
   
   Events:
-  - update:visible: 可见状态变化时发出，传递新的boolean值
-  - close: 弹窗关闭时发出
+  - update:visible: 可见状态变化时发出
   
   Slots:
-  - default: 弹窗内容区域
-  
-  使用示例：
-  <ObsidianVueModal
-    v-model:visible="showModal"
-    :obsidian-app="app"
-    title="设置"
-    @close="handleClose"
-  >
-    <div>弹窗内容...</div>
-  </ObsidianVueModal>
-  
-  注意事项：
-  - 该组件使用隐藏的DOM元素配合Obsidian Modal实现
-  - Vue内容会被复制到Obsidian Modal中，因此事件绑定需要特别处理
-  - 建议配合其他UI组件使用，而不是直接操作DOM
+  - default: 弹窗内容
 -->
 <template>
-  <!-- 这个组件不直接渲染内容，而是通过Obsidian Modal渲染 -->
-  <div style="display: none;">
-    <div ref="vueContent">
+  <Teleport to="body" v-if="visible">
+    <div ref="modalContainer" style="display: none;">
       <slot></slot>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, onUnmounted } from 'vue';
 import { Modal, App as ObsidianApp } from 'obsidian';
 
 // Props定义
@@ -56,67 +35,72 @@ interface ObsidianVueModalProps {
   visible: boolean;
   obsidianApp: ObsidianApp;
   title?: string;
-  onClose?: () => void;
 }
 
-// Events定义  
+// Events定义
 interface ObsidianVueModalEmits {
   (e: 'update:visible', value: boolean): void;
-  (e: 'close'): void;
 }
 
 const props = defineProps<ObsidianVueModalProps>();
 const emit = defineEmits<ObsidianVueModalEmits>();
 
 // 引用
-const vueContent = ref<HTMLElement>();
-let obsidianModal: CustomVueModal | null = null;
+const modalContainer = ref<HTMLElement>();
+let obsidianModal: SimpleVueModal | null = null;
 
-// 自定义Obsidian Modal类
-class CustomVueModal extends Modal {
-  private vueElement: HTMLElement;
-  private onCloseCallback?: () => void;
-  private titleText?: string;
+// 简单的Obsidian Modal类
+class SimpleVueModal extends Modal {
+  private vueContainer: HTMLElement;
+  private modalTitle?: string;
+  private onModalClose: () => void;
 
-  constructor(app: ObsidianApp, vueElement: HTMLElement, title?: string, onClose?: () => void) {
+  constructor(
+    app: ObsidianApp, 
+    vueContainer: HTMLElement, 
+    title?: string,
+    onClose?: () => void
+  ) {
     super(app);
-    this.vueElement = vueElement;
-    this.titleText = title;
-    this.onCloseCallback = onClose;
+    this.vueContainer = vueContainer;
+    this.modalTitle = title;
+    this.onModalClose = onClose || (() => {});
   }
 
   onOpen() {
     const { contentEl } = this;
     
     // 设置标题
-    if (this.titleText) {
+    if (this.modalTitle) {
       const titleEl = contentEl.createEl('h2', { 
-        text: this.titleText,
+        text: this.modalTitle,
         cls: 'modal-title'
       });
       titleEl.style.marginBottom = '16px';
     }
     
-    // 将Vue组件内容移动到Modal中
-    if (this.vueElement) {
-      contentEl.appendChild(this.vueElement.cloneNode(true));
+    // 直接将Vue容器移入Modal
+    if (this.vueContainer) {
+      // 显示Vue容器并移入Modal
+      this.vueContainer.style.display = 'block';
+      contentEl.appendChild(this.vueContainer);
     }
   }
 
   onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
-    
-    // 触发关闭回调
-    if (this.onCloseCallback) {
-      this.onCloseCallback();
+    // 将Vue容器移回原位并隐藏
+    if (this.vueContainer && this.vueContainer.parentNode) {
+      this.vueContainer.style.display = 'none';
+      document.body.appendChild(this.vueContainer);
     }
+    this.onModalClose();
   }
 }
 
 // 监听visible变化
-watch(() => props.visible, (newVisible) => {
+watch(() => props.visible, async (newVisible) => {
   if (newVisible) {
+    await nextTick();
     openModal();
   } else {
     closeModal();
@@ -124,17 +108,14 @@ watch(() => props.visible, (newVisible) => {
 });
 
 // 打开Modal
-const openModal = async () => {
-  if (!obsidianModal && vueContent.value) {
-    await nextTick(); // 确保Vue内容已渲染
-    
-    obsidianModal = new CustomVueModal(
+const openModal = () => {
+  if (!obsidianModal && modalContainer.value) {
+    obsidianModal = new SimpleVueModal(
       props.obsidianApp,
-      vueContent.value,
+      modalContainer.value,
       props.title,
       () => {
         emit('update:visible', false);
-        emit('close');
         obsidianModal = null;
       }
     );
@@ -157,10 +138,14 @@ onUnmounted(() => {
 });
 </script>
 
-<style>
-/* 使用Obsidian原生样式，几乎不需要自定义样式 */
+<style scoped>
 .modal-title {
   color: var(--text-normal);
   font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+.vue-modal-content {
+  min-height: 100px;
 }
 </style> 

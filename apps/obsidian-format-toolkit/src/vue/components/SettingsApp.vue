@@ -59,6 +59,11 @@
           <p>目前使用原生DOM实现</p>
         </div>
       </div>
+
+      <!-- Vue弹窗组件演示 -->
+      <div v-else-if="activeTab === 'modalDemo'" class="module-settings">
+        <DemoModalComponent :plugin="plugin" />
+      </div>
       
       <!-- 演示和测试内容 -->
       <div v-else-if="activeTab === 'Demo'" class="settings-placeholder">
@@ -114,127 +119,7 @@
           </template>
         </ConfigurationItem>
 
-        <!-- 演示弹窗组件 -->
-        <ConfigurationItemWithObsidianModal
-          title="弹窗设置演示"
-          description="点击'高级设置'按钮打开弹窗进行详细配置"
-          modal-title="高级配置选项"
-          :has-unsaved-changes="modalHasChanges"
-          :obsidian-app="plugin.app"
-          @modal-save="handleModalSave"
-          @modal-reset="handleModalReset"
-          @modal-open="handleModalOpen"
-          @modal-close="handleModalClose"
-        >
-          <template #control>
-            <ToggleSwitch v-model="modalMainEnabled" />
-          </template>
-          
-          <template #details>
-            <p>主要功能已{{ modalMainEnabled ? '启用' : '禁用' }}</p>
-            <p>高级配置项数量: {{ modalConfig.items.length }}</p>
-          </template>
 
-          <template #modal-content>
-            <div class="modal-form">
-              <ConfigurationItem
-                title="高级功能1"
-                description="这是一个复杂的设置项，需要在弹窗中进行配置"
-              >
-                <template #control>
-                  <ToggleSwitch v-model="modalConfig.feature1" @update:model-value="markModalChanged" />
-                </template>
-                <template #details>
-                  <div v-if="modalConfig.feature1" class="feature-details">
-                    <div class="form-group">
-                      <label>配置值1:</label>
-                      <TextInput
-                        v-model="modalConfig.value1"
-                        placeholder="输入配置值..."
-                        @update:model-value="markModalChanged"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label>选择模式:</label>
-                      <Dropdown
-                        v-model="modalConfig.mode1"
-                        :options="modalModeOptions"
-                        @update:model-value="markModalChanged"
-                      />
-                    </div>
-                  </div>
-                </template>
-              </ConfigurationItem>
-
-              <ConfigurationItem
-                title="高级功能2"
-                description="另一个复杂设置，包含多个子选项"
-              >
-                <template #control>
-                  <ToggleSwitch v-model="modalConfig.feature2" @update:model-value="markModalChanged" />
-                </template>
-                <template #details>
-                  <div v-if="modalConfig.feature2" class="feature-details">
-                    <div class="form-group">
-                      <label>详细描述:</label>
-                      <TextArea
-                        v-model="modalConfig.description"
-                        placeholder="输入详细描述..."
-                        :rows="4"
-                        @update:model-value="markModalChanged"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label>优先级:</label>
-                      <Dropdown
-                        v-model="modalConfig.priority"
-                        :options="modalPriorityOptions"
-                        @update:model-value="markModalChanged"
-                      />
-                    </div>
-                  </div>
-                </template>
-              </ConfigurationItem>
-
-              <ConfigurationItem
-                title="项目列表"
-                description="动态管理配置项列表"
-              >
-                <template #control>
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    @click="addModalItem"
-                  >
-                    添加项目
-                  </Button>
-                </template>
-                <template #details>
-                  <div class="items-list">
-                    <div
-                      v-for="(item, index) in modalConfig.items"
-                      :key="index"
-                      class="item-row"
-                    >
-                      <TextInput
-                        v-model="item.name"
-                        placeholder="项目名称..."
-                        @update:model-value="markModalChanged"
-                      />
-                      <Button
-                        variant="danger"
-                        size="small"
-                        @click="removeModalItem(index)"
-                      >
-                        删除
-                      </Button>
-                    </div>
-                  </div>
-                </template>
-              </ConfigurationItem>
-            </div>
-          </template>
-        </ConfigurationItemWithObsidianModal>
       </div>
     </SettingsPanel>
   </div>
@@ -254,6 +139,7 @@ import TextArea from './TextArea.vue';
 import Dropdown from './Dropdown.vue';
 import Button from './Button.vue';
 import TagWrapperSettings from '../../toggleTagWrapper/components/TagWrapperSettings.vue';
+import DemoModalComponent from './DemoModalComponent.vue';
 import type { DropdownOption } from './Dropdown.vue';
 
 // 定义Props
@@ -286,82 +172,7 @@ const testOptions: DropdownOption[] = [
   { value: 'option3', label: 'Option 3' },
 ];
 
-// 弹窗演示相关数据
-const modalMainEnabled = ref(true);
-const modalHasChanges = ref(false);
-const modalConfig = ref({
-  feature1: false,
-  value1: '',
-  mode1: 'auto',
-  feature2: false,
-  description: '',
-  priority: 'medium',
-  items: [
-    { name: 'Default Item 1' },
-    { name: 'Default Item 2' }
-  ]
-});
-
-// 弹窗下拉选项
-const modalModeOptions: DropdownOption[] = [
-  { value: 'auto', label: '自动模式' },
-  { value: 'manual', label: '手动模式' },
-  { value: 'advanced', label: '高级模式' },
-];
-
-const modalPriorityOptions: DropdownOption[] = [
-  { value: 'low', label: '低优先级' },
-  { value: 'medium', label: '中优先级' },
-  { value: 'high', label: '高优先级' },
-  { value: 'critical', label: '紧急' },
-];
-
-// 弹窗相关方法
-const markModalChanged = () => {
-  modalHasChanges.value = true;
-};
-
-const handleModalSave = () => {
-  console.log('Modal save:', modalConfig.value);
-  // 模拟保存过程
-  setTimeout(() => {
-    modalHasChanges.value = false;
-  }, 1000);
-};
-
-const handleModalReset = () => {
-  modalConfig.value = {
-    feature1: false,
-    value1: '',
-    mode1: 'auto',
-    feature2: false,
-    description: '',
-    priority: 'medium',
-    items: [
-      { name: 'Default Item 1' },
-      { name: 'Default Item 2' }
-    ]
-  };
-  modalHasChanges.value = false;
-};
-
-const handleModalOpen = () => {
-  console.log('Modal opened');
-};
-
-const handleModalClose = () => {
-  console.log('Modal closed');
-};
-
-const addModalItem = () => {
-  modalConfig.value.items.push({ name: `New Item ${modalConfig.value.items.length + 1}` });
-  markModalChanged();
-};
-
-const removeModalItem = (index: number) => {
-  modalConfig.value.items.splice(index, 1);
-  markModalChanged();
-};
+// 这些弹窗演示功能已经移动到了独立的DemoModalComponent组件中
 
 /**
  * 处理Tag Wrapper设置变更
@@ -409,44 +220,5 @@ const handleTagWrapperSettingsChanged = (settings: any) => {
   color: var(--text-accent);
 }
 
-/* 弹窗表单样式 */
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.feature-details {
-  margin-top: 12px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-normal);
-}
-
-.items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.item-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.item-row .text-input {
-  flex: 1;
-}
+/* 弹窗表单样式已移动到DemoModalComponent中 */
 </style> 

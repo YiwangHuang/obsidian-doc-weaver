@@ -39,6 +39,19 @@ export default class MyPlugin extends Plugin {
         this.settingTab.registerSettings(exportFormatsSetting);
         this.settingTab.registerSettings(tagWrapperSetting);
         
+        // 注册Demo模块（用于演示Vue弹窗组件）
+        this.settingTab.registerSettings({
+            name: 'modalDemo',
+            description: 'Vue弹窗组件演示',
+            defaultSettings: {},
+            renderSettingTab: (containerEl: HTMLElement, plugin: MyPlugin) => {
+                containerEl.createEl('h3', { text: 'Vue Modal Demo' });
+                containerEl.createEl('p', { 
+                    text: '这个标签页展示了Vue弹窗组件的使用方法。请启用Vue模式查看完整演示。' 
+                });
+            }
+        });
+        
         // 加载保存的设置
         const savedData = await this.loadData();
         if (savedData) {

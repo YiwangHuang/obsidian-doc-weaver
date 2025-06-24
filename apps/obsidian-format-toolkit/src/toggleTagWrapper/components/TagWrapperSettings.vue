@@ -30,8 +30,8 @@
       <ConfigurationItem
         v-for="(tag, index) in settings.tags"
         :key="tag.id"
-        :title="`标签配置 ${index + 1}`"
-        :description="`命令: ${tag.name} | 标签: ${tag.prefix}...${tag.suffix}`"
+        :title="`标签配置 ${index + 1}: ${tag.name}`"
+        :description="`标签: ${tag.prefix}...${tag.suffix} | 状态: ${tag.enabled ? '启用' : '禁用'}`"
       >
         <template #control>
           <div class="tag-controls">
@@ -39,6 +39,13 @@
               v-model="tag.enabled"
               @update:model-value="handleTagEnabledChange(index, $event)"
             />
+            <Button
+              variant="secondary"
+              size="small"
+              @click="openTagModal(index)"
+            >
+              编辑
+            </Button>
             <Button
               variant="danger"
               size="small"
@@ -51,45 +58,79 @@
           </div>
         </template>
 
-        <template #details v-if="tag.enabled">
-          <div class="tag-details">
-            <div class="form-group">
-              <label>命令名称：</label>
-              <TextInput
-                v-model="tag.name"
-                placeholder="输入命令名称..."
-                @update:model-value="handleTagChange(index, 'name', $event)"
-              />
+        <template #details>
+          <div class="tag-summary">
+            <div class="summary-item">
+              <strong>命令名称：</strong>{{ tag.name || '(未设置)' }}
             </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>开始标签：</label>
-                <TextInput
-                  v-model="tag.prefix"
-                  placeholder="如: <u> 或 **"
-                  @update:model-value="handleTagChange(index, 'prefix', $event)"
-                />
-              </div>
-
-              <div class="form-group">
-                <label>结束标签：</label>
-                <TextInput
-                  v-model="tag.suffix"
-                  placeholder="如: </u> 或 **"
-                  @update:model-value="handleTagChange(index, 'suffix', $event)"
-                />
-              </div>
+            <div class="summary-item">
+              <strong>开始标签：</strong><code>{{ tag.prefix || '(空)' }}</code>
             </div>
-
-            <div class="tag-preview">
+            <div class="summary-item">
+              <strong>结束标签：</strong><code>{{ tag.suffix || '(空)' }}</code>
+            </div>
+            <div class="summary-item">
               <strong>预览效果：</strong>
-              <code>{{ tag.prefix }}文本内容{{ tag.suffix }}</code>
+              <code class="preview-code">{{ tag.prefix }}文本内容{{ tag.suffix }}</code>
             </div>
           </div>
         </template>
       </ConfigurationItem>
     </div>
+
+    <!-- 标签编辑弹窗 -->
+    <ObsidianVueModal
+      v-model:visible="modalVisible"
+      :obsidian-app="plugin.app"
+      :title="`编辑标签配置: ${currentTag?.name || '未命名'}`"
+    >
+      <div v-if="currentTag" class="tag-modal-form">
+        <div class="form-group">
+          <label>命令名称：</label>
+          <TextInput
+            v-model="currentTag.name"
+            placeholder="输入命令名称..."
+            @update:model-value="debouncedSave"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>开始标签：</label>
+            <TextInput
+              v-model="currentTag.prefix"
+              placeholder="如: **, <u>, =="
+              @update:model-value="debouncedSave"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>结束标签：</label>
+            <TextInput
+              v-model="currentTag.suffix"
+              placeholder="如: **, </u>, =="
+              @update:model-value="debouncedSave"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>启用状态：</label>
+          <ToggleSwitch
+            v-model="currentTag.enabled"
+            @update:model-value="debouncedSave"
+          />
+        </div>
+
+        <div class="preview-section">
+          <h4>预览</h4>
+          <div class="tag-preview">
+            <p><strong>命令：</strong>Toggle {{ currentTag.name || '(未命名)' }}</p>
+            <p><strong>效果：</strong><code>{{ currentTag.prefix }}选中文本{{ currentTag.suffix }}</code></p>
+          </div>
+        </div>
+      </div>
+    </ObsidianVueModal>
 
     <!-- 添加新标签按钮 -->
     <div class="add-tag-section">
@@ -120,12 +161,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import type MyPlugin from '../../main';
 import type { TagConfig, TagWrapperSettings } from '../settings';
 import { DEFAULT_TAG_WRAPPER_SETTINGS } from '../settings';
 import { debounce } from '../../vue/utils';
 import ConfigurationItem from '../../vue/components/ConfigurationItem.vue';
+import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
 import TextInput from '../../vue/components/TextInput.vue';
 import Button from '../../vue/components/Button.vue';
@@ -153,6 +195,10 @@ const saveState = reactive({
 const settings = reactive<TagWrapperSettings>({
   tags: [...(props.plugin.settingList.tagWrapper as TagWrapperSettings || DEFAULT_TAG_WRAPPER_SETTINGS).tags]
 });
+
+// 弹窗状态
+const modalVisible = ref(false);
+const currentTag = ref<TagConfig | null>(null);
 
 /**
  * 生成5位16进制随机ID
@@ -239,6 +285,14 @@ const deleteTag = (index: number) => {
     debouncedSave();
   }
 };
+
+/**
+ * 打开标签编辑弹窗
+ */
+const openTagModal = (index: number) => {
+  currentTag.value = settings.tags[index];
+  modalVisible.value = true;
+};
 </script>
 
 <style scoped>
@@ -276,8 +330,38 @@ const deleteTag = (index: number) => {
   gap: 12px;
 }
 
-.tag-details {
-  padding: 16px 0;
+.tag-summary {
+  padding: 12px 0;
+}
+
+.summary-item {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-item strong {
+  color: var(--text-normal);
+  min-width: 80px;
+}
+
+.summary-item code {
+  background: var(--background-secondary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+}
+
+.preview-code {
+  color: var(--text-accent);
+}
+
+.tag-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .form-group {
@@ -298,25 +382,100 @@ const deleteTag = (index: number) => {
   gap: 16px;
 }
 
-.tag-preview {
-  margin-top: 12px;
-  padding: 12px;
-  background: var(--background-secondary);
-  border-radius: 4px;
-  border-left: 3px solid var(--interactive-accent);
+.field-help {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
 }
 
-.tag-preview strong {
+.toggle-with-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-label {
+  font-size: 14px;
   color: var(--text-normal);
-  margin-right: 8px;
+  font-weight: 500;
 }
 
-.tag-preview code {
+.preview-section {
+  margin-top: 8px;
+}
+
+.preview-section h4 {
+  margin: 0 0 12px 0;
+  color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tag-preview {
+  padding: 16px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  border-left: 4px solid var(--interactive-accent);
+}
+
+.preview-item {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-item:last-child {
+  margin-bottom: 0;
+}
+
+.command-name {
+  font-family: var(--font-monospace);
   background: var(--background-primary);
   padding: 2px 6px;
   border-radius: 3px;
+  color: var(--text-accent);
+}
+
+.wrap-preview {
+  background: var(--background-primary);
+  padding: 4px 8px;
+  border-radius: 3px;
   font-family: var(--font-monospace);
   color: var(--text-accent);
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--background-modifier-border);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.status-badge.active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.example-section {
+  margin-top: 8px;
+}
+
+.example-section h4 {
+  margin: 0 0 12px 0;
+  color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.example-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .add-tag-section {

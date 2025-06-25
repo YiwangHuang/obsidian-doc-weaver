@@ -26,7 +26,7 @@
       </p>
     </div>
 
-    <!-- 可拖拽的标签配置列表 -->
+    <!-- 可拖拽的标签配置列表 --><!-- ghost-class="tag-ghost" -->
     <draggable
       v-model="settings.tags"
       item-key="id"
@@ -35,37 +35,50 @@
       @end="onDragEnd"
     >
       <template #item="{ element: tag, index }">
-        <div class="tag-item" :class="{ disabled: !tag.enabled }" draggable="true">
-          <div class="tag-main-content">
-            <div class="tag-info">
-              <h4 class="tag-name">{{ tag.name || '(未命名)' }}</h4>
-              <div class="tag-preview">
-                <code>{{ tag.prefix || '(空)' }}</code>文本内容<code>{{ tag.suffix || '(空)' }}</code>
-              </div>
-            </div>
-            <div class="tag-actions" @mousedown.stop @click.stop>
-              <ToggleSwitch
-                v-model="tag.enabled"
-                @update:model-value="handleTagEnabledChange(index, $event)"
-              />
-              <Button
-                variant="secondary"
-                size="small"
-                @click="openTagModal(index)"
-              >
-                编辑
-              </Button>
-              <Button
-                variant="danger"
-                size="small"
-                @click="deleteTag(index)"
-                :disabled="settings.tags.length <= 1"
-                title="删除此标签配置"
-              >
-                删除
-              </Button>
-            </div>
-          </div>
+        <div 
+          class="tag-item" 
+          :style="{
+            padding: '9px',
+            marginBottom: '9px',
+            background: tag.enabled ? '#ffffff' : '#f9fafb',
+            border: tag.enabled ? '2px solid #e5e7eb' : '2px solid #d1d5db',
+            borderRadius: '8px',
+            cursor: 'grab',
+            transition: 'all 0.2s ease',
+            userSelect: 'none',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            opacity: tag.enabled ? 1 : 0.6
+          }"
+          draggable="true"
+                  style="display: flex; align-items: center; gap: 12px;"
+        >
+          <span style="font-size: 14px; font-weight: 500;">{{ tag.name || '(未命名)' }}</span>
+          <span style="color: var(--text-muted); margin: 0 4px;">-</span>
+          <span style="font-size: 13px; color: var(--text-muted); min-width: 150px; margin-left: auto;">
+            <code>{{ tag.prefix || '(空)' }}</code>文本内容<code>{{ tag.suffix || '(空)' }}</code>
+          </span>
+          <span style="display: flex; align-items: center; gap: 9px; margin-left: auto;" @mousedown.stop @click.stop>
+            <ToggleSwitch
+              v-model="tag.enabled"
+              @update:model-value="handleTagEnabledChange(index, $event)"
+            />
+            <Button
+              variant="secondary"
+              size="small"
+              @click="openTagModal(index)"
+            >
+              编辑
+            </Button>
+            <Button
+              variant="danger"
+              size="small"
+              @click="deleteTag(index)"
+              :disabled="settings.tags.length <= 1"
+              title="删除此标签配置"
+            >
+              删除
+            </Button>
+          </span>
         </div>
       </template>
     </draggable>
@@ -114,7 +127,15 @@
           />
         </div>
 
-        <div class="preview-section">
+        <div 
+          class="preview-section" 
+          :style="{
+            padding: '16px',
+            background: '#f9fafb',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px'
+          }"
+        >
           <h4>预览</h4>
           <div class="tag-preview">
             <p><strong>命令：</strong>Toggle {{ currentTag.name || '(未命名)' }}</p>
@@ -283,6 +304,8 @@ const addNewTag = () => {
   settings.tags.push(newTag);
   debouncedSave();
 };
+
+
 </script>
 
 <style scoped>
@@ -313,58 +336,23 @@ const addNewTag = () => {
   margin-bottom: 24px;
 }
 
-.tag-item {
-  padding: 16px;
-  margin-bottom: 12px;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
-  cursor: grab;
-  transition: all 0.2s ease;
-  user-select: none;
+:deep(.tag-item) {
+  /* 移除CSS边框样式，使用内联样式 */
+  position: relative;
 }
 
-.tag-item:hover {
-  background: var(--background-modifier-hover);
-  border-color: var(--background-modifier-border-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+:deep(.tag-item:hover) {
+  border-color: #3b82f6 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
 }
 
 .tag-item:active {
-  cursor: grabbing;
+  cursor: grabbing !important;
+  transform: translateY(0) !important;
 }
 
-.tag-item.disabled {
-  opacity: 0.6;
-}
-
-.tag-main-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.tag-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.tag-name {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-normal);
-  line-height: 1.3;
-}
-
-.tag-preview {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
+/* 删除了多余的CSS类，改为使用内联样式 */
 
 .tag-preview code {
   background: var(--background-secondary);
@@ -373,13 +361,6 @@ const addNewTag = () => {
   font-family: var(--font-monospace);
   font-size: 12px;
   color: var(--text-accent);
-}
-
-.tag-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
 }
 
 /* 弹窗表单样式 */
@@ -408,9 +389,8 @@ const addNewTag = () => {
 }
 
 .preview-section {
-  padding: 16px;
-  background: var(--background-secondary);
-  border-radius: 6px;
+  /* 移除CSS背景和边框样式，使用内联样式 */
+  position: relative;
 }
 
 .preview-section h4 {
@@ -487,34 +467,8 @@ const addNewTag = () => {
   100% { transform: rotate(360deg); }
 }
 
-/* 拖拽时的样式 */
-.sortable-ghost {
-  opacity: 0.5;
-  background: var(--background-modifier-hover);
-}
-
-.sortable-chosen {
-  background: var(--background-modifier-hover);
-}
-
-.sortable-drag {
-  background: var(--background-primary);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  transform: rotate(2deg);
-}
-
 /* 响应式布局 */
 @media (max-width: 768px) {
-  .tag-main-content {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  
-  .tag-actions {
-    justify-content: flex-start;
-  }
-  
   .form-row {
     grid-template-columns: 1fr;
   }

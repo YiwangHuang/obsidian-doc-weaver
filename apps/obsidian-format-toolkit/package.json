@@ -35,6 +35,7 @@
 		"markdown-it-footnote": "^4.0.0",
 		"markdown-it-texmath": "^1.0.0",
 		"typst": "^0.10.0-8",
-		"vue": "^3.4.0"
+		"vue": "^3.4.0",
+		"vuedraggable": "^4.1.0"
 	}
 }

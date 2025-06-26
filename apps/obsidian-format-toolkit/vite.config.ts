@@ -89,6 +89,15 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           format: 'cjs',
           // 指定扩展名
           entryFileNames: 'main.js',
+          // 自定义资源文件名（包括CSS）
+          assetFileNames: (assetInfo: any) => {
+            // 如果是CSS文件，使用自定义名称
+            if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+              return 'styles.css'; // 自定义CSS文件名
+            }
+            // 其他资源保持默认命名
+            return '[name].[ext]';
+          },
         },
         // 添加插件
         plugins: [

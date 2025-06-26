@@ -26,38 +26,27 @@
       </p>
     </div>
 
-    <!-- 可拖拽的标签配置列表 --><!-- ghost-class="tag-ghost" -->
+    <!-- 可拖拽的标签配置列表 -->
     <draggable
       v-model="settings.tags"
       item-key="id"
       class="tag-configs-list"
-      @start="onDragStart"
-      @end="onDragEnd"
+      ghost-class="ghost"
+      @start="dragging = true"
+      @end="dragging = false; handleDragEnd()"
     >
       <template #item="{ element: tag, index }">
         <div 
-          class="tag-item" 
-          :style="{
-            padding: '9px',
-            marginBottom: '9px',
-            background: tag.enabled ? '#ffffff' : '#f9fafb',
-            border: tag.enabled ? '2px solid #e5e7eb' : '2px solid #d1d5db',
-            borderRadius: '8px',
-            cursor: 'grab',
-            transition: 'all 0.2s ease',
-            userSelect: 'none',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            opacity: tag.enabled ? 1 : 0.6
-          }"
+          class="tag-item"
+          :class="{ 'tag-enabled': tag.enabled, 'tag-disabled': !tag.enabled }"
           draggable="true"
-                  style="display: flex; align-items: center; gap: 12px;"
         >
-          <span style="font-size: 14px; font-weight: 500;">{{ tag.name || '(未命名)' }}</span>
-          <span style="color: var(--text-muted); margin: 0 4px;">-</span>
-          <span style="font-size: 13px; color: var(--text-muted); min-width: 150px; margin-left: auto;">
+          <span class="tag-name">{{ tag.name || '(未命名)' }}</span>
+          <span class="tag-separator">-</span>
+          <span class="tag-preview">
             <code>{{ tag.prefix || '(空)' }}</code>文本内容<code>{{ tag.suffix || '(空)' }}</code>
           </span>
-          <span style="display: flex; align-items: center; gap: 9px; margin-left: auto;" @mousedown.stop @click.stop>
+          <span class="tag-actions" @mousedown.stop @click.stop>
             <ToggleSwitch
               v-model="tag.enabled"
               @update:model-value="handleTagEnabledChange(index, $event)"
@@ -66,17 +55,21 @@
               variant="secondary"
               size="small"
               @click="openTagModal(index)"
+              class="icon-btn"
             >
-              编辑
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <span class="sr-only">编辑</span>
             </Button>
             <Button
-              variant="danger"
+              variant="secondary"
               size="small"
-              @click="deleteTag(index)"
+              @click="showDeleteConfirm(index)"
               :disabled="settings.tags.length <= 1"
               title="删除此标签配置"
+              class="icon-btn"
             >
-              删除
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              <span class="sr-only">删除</span>
             </Button>
           </span>
         </div>
@@ -118,24 +111,8 @@
             />
           </div>
         </div>
-
-        <div class="form-group">
-          <label>启用状态：</label>
-          <ToggleSwitch
-            v-model="currentTag.enabled"
-            @update:model-value="debouncedSave"
-          />
-        </div>
-
-        <div 
-          class="preview-section" 
-          :style="{
-            padding: '16px',
-            background: '#f9fafb',
-            border: '1px solid #e5e7eb',
-            borderRadius: '6px'
-          }"
-        >
+        
+        <div class="preview-section">
           <h4>预览</h4>
           <div class="tag-preview">
             <p><strong>命令：</strong>Toggle {{ currentTag.name || '(未命名)' }}</p>
@@ -168,6 +145,31 @@
     <div v-if="saveState.error" class="error-indicator">
       保存失败：{{ saveState.error }}
     </div>
+
+    <!-- 删除确认弹窗 -->
+    <ObsidianVueModal
+      v-model:visible="deleteConfirmVisible"
+      :obsidian-app="plugin.app"
+     >
+      <div class="confirm-delete-form">
+        <h4>确认删除标签配置</h4>
+        <p>确认要删除此标签配置吗？</p>
+        <div class="form-actions">
+          <Button
+            variant="secondary"
+            @click="deleteConfirmVisible = false"
+          >
+            取消
+          </Button>
+          <Button
+            variant="primary"
+            @click="confirmDelete"
+          >
+            确认删除
+          </Button>
+        </div>
+      </div>
+    </ObsidianVueModal>
   </div>
 </template>
 
@@ -210,6 +212,11 @@ const settings = reactive<TagWrapperSettings>({
 // 弹窗状态
 const modalVisible = ref(false);
 const currentTag = ref<TagConfig | null>(null);
+const deleteConfirmVisible = ref(false);
+const deleteTagIndex = ref<number | null>(null);
+
+// 拖拽状态
+const dragging = ref(false);
 
 /**
  * 保存设置到插件
@@ -241,16 +248,9 @@ const saveSettings = async () => {
 const debouncedSave = debounce(saveSettings, 500);
 
 /**
- * 拖拽开始事件
+ * 保存设置并处理拖拽结束
  */
-const onDragStart = () => {
-  console.log('🚀 开始拖拽标签配置');
-};
-
-/**
- * 拖拽结束事件
- */
-const onDragEnd = () => {
+const handleDragEnd = () => {
   console.log('🏁 拖拽结束，保存新顺序');
   // 拖拽结束后自动保存
   debouncedSave();
@@ -274,16 +274,26 @@ const openTagModal = (index: number) => {
 };
 
 /**
- * 删除标签配置
+ * 显示删除确认弹窗
  */
-const deleteTag = (index: number) => {
+const showDeleteConfirm = (index: number) => {
   if (settings.tags.length <= 1) {
-    console.warn('⚠️ 至少需要保留一个标签配置');
     return;
   }
+  deleteTagIndex.value = index;
+  deleteConfirmVisible.value = true;
+};
+
+/**
+ * 执行删除操作
+ */
+const confirmDelete = () => {
+  if (deleteTagIndex.value === null) return;
   
-  console.log(`🗑️ 删除标签配置: ${settings.tags[index].name}`);
-  settings.tags.splice(index, 1);
+  console.log(`🗑️ 删除标签配置: ${settings.tags[deleteTagIndex.value].name}`);
+  settings.tags.splice(deleteTagIndex.value, 1);
+  deleteConfirmVisible.value = false;
+  deleteTagIndex.value = null;
   debouncedSave();
 };
 
@@ -336,20 +346,62 @@ const addNewTag = () => {
   margin-bottom: 24px;
 }
 
-:deep(.tag-item) {
-  /* 移除CSS边框样式，使用内联样式 */
+/* 拖拽时的ghost效果 - 只改变边框颜色 */
+.ghost {
+  border-color: var(--interactive-accent) !important;
+}
+
+.tag-item {
+  padding: 9px;
+  margin-bottom: 9px;
+  border-radius: 8px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
   position: relative;
 }
 
-:deep(.tag-item:hover) {
-  border-color: #3b82f6 !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+.tag-enabled {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  opacity: 1;
 }
 
-.tag-item:active {
-  cursor: grabbing !important;
-  transform: translateY(0) !important;
+.tag-disabled {
+  background: #f9fafb;
+  border: 2px solid #d1d5db;
+  opacity: 0.6;
+}
+
+/* 移除鼠标悬浮效果，参考示例代码风格 */
+
+.tag-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.tag-separator {
+  color: var(--text-muted);
+  margin: 0 4px;
+}
+
+.tag-preview {
+  font-size: 13px;
+  color: var(--text-muted);
+  min-width: 150px;
+  margin-left: auto;
+}
+
+.tag-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
 }
 
 /* 删除了多余的CSS类，改为使用内联样式 */
@@ -389,7 +441,10 @@ const addNewTag = () => {
 }
 
 .preview-section {
-  /* 移除CSS背景和边框样式，使用内联样式 */
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
   position: relative;
 }
 
@@ -476,5 +531,54 @@ const addNewTag = () => {
   .tag-item {
     padding: 12px;
   }
+}
+
+/* 图标按钮样式 */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px !important;
+  min-width: 28px;
+  height: 28px;
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-normal);
+}
+
+.icon-btn:hover svg {
+  color: var(--text-accent);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 确认弹窗样式 */
+.confirm-delete-form {
+  padding: 16px;
+}
+
+.confirm-delete-form p {
+  margin: 0 0 20px 0;
+  color: var(--text-normal);
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style> 

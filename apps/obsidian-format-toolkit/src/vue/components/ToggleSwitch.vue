@@ -113,11 +113,5 @@ const handleChange = (event: Event) => {
   box-shadow: 0 0 0 2px var(--interactive-accent-hover);
 }
 
-.toggle-switch:hover .toggle-slider {
-  background-color: var(--interactive-hover);
-}
-
-.toggle-input:checked + .toggle-switch:hover .toggle-slider {
-  background-color: var(--interactive-accent-hover);
-}
+/* 移除悬浮时底色变化 */
 </style> 

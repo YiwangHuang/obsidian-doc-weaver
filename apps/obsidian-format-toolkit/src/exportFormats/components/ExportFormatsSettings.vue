@@ -43,7 +43,7 @@
           :class="{ 'export-enabled': config.enabled, 'export-disabled': !config.enabled }"
           draggable="true"
         >
-          <span class="export-name">{{ config.name || '(未命名)' }}</span>
+          <span class="export-name">{{ config.name }}</span>
           <span class="export-separator">-</span>
           <span class="export-preview">
             <code>{{ config.format }}</code> → <span class="output-path">{{ getPreviewPath(config) }}</span>
@@ -90,15 +90,16 @@
     <ObsidianVueModal
       v-model:visible="modalVisible"
       :obsidian-app="plugin.app"
-      :title="`编辑导出格式配置: ${currentConfig?.name || '未命名'}`"
+      :title="`编辑导出格式配置: ${editingConfig?.name || '未命名'}`"
+      @update:visible="onModalVisibilityChange"
     >
-      <div v-if="currentConfig" class="export-modal-form">
+      <div v-if="editingConfig" class="export-modal-form">
         <div class="form-group">
           <label>格式名称：</label>
           <TextInput
-            :model-value="currentConfig.name || ''"
-            @update:model-value="(value) => { if (currentConfig) { currentConfig.name = value; debouncedSave(); } }"
+            v-model="editingConfig.name"
             placeholder="输入格式名称..."
+            @update:model-value="debouncedSave"
           />
         </div>
 
@@ -106,7 +107,7 @@
           <div class="form-group">
             <label>输出目录：</label>
             <TextInput
-              v-model="currentConfig.output_dir"
+              v-model="editingConfig.output_dir"
               placeholder="如: output、${VAR_VAULT_DIR}/export"
               @update:model-value="debouncedSave"
             />
@@ -115,7 +116,7 @@
           <div class="form-group">
             <label>输出文件名：</label>
             <TextInput
-              v-model="currentConfig.output_base_name"
+              v-model="editingConfig.output_base_name"
               placeholder="如: ${VAR_NOTE_NAME}、document"
               @update:model-value="debouncedSave"
             />
@@ -125,7 +126,7 @@
         <div class="form-group">
           <label>YAML配置：</label>
           <TextArea
-            v-model="currentConfig.yaml"
+            v-model="editingConfig.yaml"
             placeholder="输入导出格式的YAML配置..."
             :rows="8"
             @update:model-value="debouncedSave"
@@ -136,22 +137,22 @@
           <div class="form-group">
             <label>Excalidraw导出类型：</label>
             <Dropdown
-              :model-value="currentConfig.excalidraw_export_type || 'png'"
+              v-model="editingConfig.excalidraw_export_type"
               :options="excalidrawExportOptions"
-              @update:model-value="(value) => { if (currentConfig) { currentConfig.excalidraw_export_type = value as 'png' | 'svg'; handleExcalidrawTypeChange(); } }"
+              @update:model-value="handleExcalidrawTypeChange"
             />
           </div>
 
-          <div v-if="currentConfig.excalidraw_export_type === 'png'" class="form-group">
-            <label>PNG缩放比例：{{ currentConfig.excalidraw_png_scale || 2 }}</label>
+          <div v-if="editingConfig.excalidraw_export_type === 'png'" class="form-group">
+            <label>PNG缩放比例：{{ editingConfig.excalidraw_png_scale }}</label>
             <input
               type="range"
-              :value="currentConfig.excalidraw_png_scale || 2"
-              @input="handlePngScaleChange"
+              v-model="editingConfig.excalidraw_png_scale"
               min="1"
               max="9"
               step="1"
               class="png-scale-slider"
+              @input="debouncedSave"
             />
           </div>
         </div>
@@ -159,10 +160,10 @@
         <div class="preview-section">
           <h4>预览</h4>
           <div class="export-preview">
-            <p><strong>格式：</strong>{{ currentConfig.format }}</p>
-            <p><strong>输出路径：</strong><code>{{ getPreviewPath(currentConfig) }}</code></p>
-            <p><strong>Excalidraw：</strong>{{ currentConfig.excalidraw_export_type || 'png' }} 
-              <span v-if="currentConfig.excalidraw_export_type === 'png'">({{ currentConfig.excalidraw_png_scale || 2 }}x)</span>
+            <p><strong>格式：</strong>{{ editingConfig.format }}</p>
+            <p><strong>输出路径：</strong><code>{{ getPreviewPath(editingConfig) }}</code></p>
+            <p><strong>Excalidraw：</strong>{{ editingConfig.excalidraw_export_type }} 
+              <span v-if="editingConfig.excalidraw_export_type === 'png'">({{ editingConfig.excalidraw_png_scale }}x)</span>
             </p>
           </div>
         </div>
@@ -234,8 +235,17 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import type MyPlugin from '../../main';
-import type { ExportConfig, ExportManagerSetting } from '../settings';
-import { DEFAULT_EXPORT_FORMATS_SETTINGS } from '../settings';
+import type { 
+  ExportConfig, 
+  ExportManagerSetting
+} from '../types';
+import { 
+  DEFAULT_EXPORT_FORMATS_SETTINGS,
+  EXPORT_FORMATS_CONSTANTS,
+  FORMAT_OPTIONS,
+  EXCALIDRAW_EXPORT_OPTIONS,
+  EXTENSION_MAP
+} from '../types';
 import type { OutputFormat } from '../textConvert/textConverter';
 import { debounce } from '../../vue/utils';
 import { generateTimestamp } from '../../lib/idGenerator';
@@ -262,10 +272,9 @@ interface ExportFormatsSettingsEmits {
 const props = defineProps<ExportFormatsSettingsProps>();
 const emit = defineEmits<ExportFormatsSettingsEmits>();
 
-// 默认设置常量
+// 使用types.ts中的常量
 const DEFAULT_OUTPUT_DIR = path.posix.join(placeholders.VAR_VAULT_DIR, 'output');
 const DEFAULT_OUTPUT_BASE_NAME = placeholders.VAR_NOTE_NAME;
-const DEFAULT_EXCALIDRAW_PNG_SCALE = 2;
 
 // 保存状态
 const saveState = reactive({
@@ -280,23 +289,14 @@ const settings = reactive<ExportManagerSetting>({
 
 // 弹窗状态
 const modalVisible = ref(false);
-const currentConfig = ref<ExportConfig | null>(null);
+const editingConfig = ref<ExportConfig | null>(null);
 const deleteConfirmVisible = ref(false);
 const deleteConfigIndex = ref<number | null>(null);
 
 // 表单选项
 const selectedFormat = ref<OutputFormat>('typst');
-const formatOptions = [
-  { value: 'typst', label: 'Typst' },
-  { value: 'vuepress', label: 'VuePress' },
-  { value: 'quarto', label: 'Quarto' },
-  { value: 'plain', label: 'Plain' }
-];
-
-const excalidrawExportOptions = [
-  { value: 'png', label: 'PNG' },
-  { value: 'svg', label: 'SVG' }
-];
+const formatOptions = FORMAT_OPTIONS;
+const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
 
 /**
  * 获取预览路径
@@ -311,13 +311,7 @@ const getPreviewPath = (config: ExportConfig): string => {
  * 根据格式获取文件扩展名
  */
 const getExtensionByFormat = (format: OutputFormat): string => {
-  const extensionMap = {
-    'typst': 'typ',
-    'vuepress': 'md',
-    'quarto': 'qmd',
-    'plain': 'md'
-  };
-  return extensionMap[format] || 'txt';
+  return EXTENSION_MAP[format] || 'txt';
 };
 
 /**
@@ -370,12 +364,7 @@ const handleExportEnabledChange = (index: number, enabled: boolean) => {
  * 打开导出格式编辑弹窗
  */
 const openExportModal = (index: number) => {
-  const config = settings.exportConfigs[index];
-  currentConfig.value = { 
-    ...config,
-    name: config.name || `${config.format}_${config.id}`,
-    excalidraw_export_type: config.excalidraw_export_type || 'png'
-  };
+  editingConfig.value = settings.exportConfigs[index];
   modalVisible.value = true;
 };
 
@@ -384,21 +373,10 @@ const openExportModal = (index: number) => {
  */
 const handleExcalidrawTypeChange = () => {
   // 当切换到PNG时，确保有默认的缩放值
-  if (currentConfig.value?.excalidraw_export_type === 'png' && !currentConfig.value.excalidraw_png_scale) {
-    currentConfig.value.excalidraw_png_scale = DEFAULT_EXCALIDRAW_PNG_SCALE;
+  if (editingConfig.value?.excalidraw_export_type === 'png' && !editingConfig.value.excalidraw_png_scale) {
+    editingConfig.value.excalidraw_png_scale = EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE;
   }
   debouncedSave();
-};
-
-/**
- * 处理PNG缩放比例变更
- */
-const handlePngScaleChange = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (currentConfig.value) {
-    currentConfig.value.excalidraw_png_scale = Number(target.value);
-    debouncedSave();
-  }
 };
 
 /**
@@ -473,8 +451,8 @@ const addNewExportConfig = async () => {
     yaml: getDefaultYAML(selectedFormat.value) || '',
     enabled: true,
     format: selectedFormat.value,
-    excalidraw_export_type: 'png',
-    excalidraw_png_scale: DEFAULT_EXCALIDRAW_PNG_SCALE
+    excalidraw_export_type: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
+    excalidraw_png_scale: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE
   };
 
   // 创建对应的资源文件夹
@@ -490,6 +468,17 @@ const addNewExportConfig = async () => {
   console.log(`➕ 添加新导出格式配置: ${newConfig.name}`);
   settings.exportConfigs.push(newConfig);
   debouncedSave();
+};
+
+/**
+ * 处理弹窗可见性变更
+ */
+const onModalVisibilityChange = (visible: boolean) => {
+  if (!visible) {
+    // 弹窗关闭时，清理状态
+    editingConfig.value = null;
+    debouncedSave();
+  }
 };
 </script>
 
@@ -765,8 +754,6 @@ const addNewExportConfig = async () => {
 .icon-btn:hover svg {
   color: var(--text-accent);
 }
-
-
 
 /* 确认弹窗样式 */
 .confirm-delete-form {

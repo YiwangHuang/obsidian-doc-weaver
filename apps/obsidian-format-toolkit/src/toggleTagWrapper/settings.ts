@@ -2,54 +2,10 @@ import { Setting } from 'obsidian';
 import type MyPlugin from '../main';
 import { SettingsRegistry } from '../main';
 
-// 定义标签配置接口
-export interface TagConfig {
-    id: string;           // 命令ID
-    name: string;         // 命令名称
-    prefix: string;       // 开始标签
-    suffix: string;       // 结束标签
-    enabled: boolean;     // 是否启用
-}
+// 从types.ts导入类型定义
+import { TagConfig, TagWrapperSettings, DEFAULT_TAG_WRAPPER_SETTINGS, generateHexId } from './types';
 
-// 定义设置接口
-export interface TagWrapperSettings {
-    tags: TagConfig[];
-}
 
-// 默认设置
-export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
-    tags: [
-        {
-            id: 'toggle-underline',
-            name: 'Toggle Underline',
-            prefix: '<u>',
-            suffix: '</u>',
-            enabled: true
-        },
-        {
-            id: 'toggle-bold',
-            name: 'Toggle Bold',
-            prefix: '**',
-            suffix: '**',
-            enabled: true
-        },
-        {
-            id: 'toggle-italic',
-            name: 'Toggle Italic',
-            prefix: '*',
-            suffix: '*',
-            enabled: true
-        }
-    ]
-};
-
-/**
- * 生成5位16进制随机ID
- * @returns string 格式如：'a1b2c'
- */
-function generateHexId(): string {
-    return Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, '0');
-}
 
 // 添加设置面板
 export function addTagWrapperSettingTab(containerEl: HTMLElement, plugin: MyPlugin): void {

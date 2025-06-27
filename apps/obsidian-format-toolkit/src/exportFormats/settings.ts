@@ -17,28 +17,8 @@ TODO: 需修改，提示词：
 3. 先讲思路，经我确认后再改代码
 */
 
-// 类型定义
-export interface ExportConfig {
-    id: string;           // 格式ID
-    style_dir: string;    // 样式文件夹路径
-    format: OutputFormat;// 导出格式
-    enabled: boolean;     // 是否启用
-    yaml: string;   // YAML配置
-    name?: string;         // 格式名称
-    output_dir: string;         // 输出路径
-    output_base_name: string; // 输出文件名
-    excalidraw_export_type?: 'png' | 'svg'; // excalidraw导出类型
-    excalidraw_png_scale?: number;
-}
-
-export interface ExportManagerSetting { // 导出模块设置, 包含所有导出格式配置formats，做成一个对象方便扩展更多设置项
-    exportConfigs: ExportConfig[];
-}
-
-// 默认设置
-export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSetting = {
-    exportConfigs: []
-};
+// 从types.ts导入类型定义
+import { ExportConfig, ExportManagerSetting, DEFAULT_EXPORT_FORMATS_SETTINGS } from './types';
 
 export const exportFormatsSetting: SettingsRegistry = {
     name: 'exportFormats',

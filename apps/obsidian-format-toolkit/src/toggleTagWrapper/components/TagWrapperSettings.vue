@@ -2,10 +2,10 @@
   Tag Wrapper模块设置面板
   
   功能说明：
-  - 管理标签包装器的配置列表
+  - 管理标签配置的列表
   - 支持拖拽排序标签配置
   - 支持启用/禁用每个标签配置
-  - 支持编辑标签的名称、开始标签、结束标签
+  - 支持编辑标签的名称、开始标签、结束标签等
   - 支持添加新的标签配置和删除现有配置
   - 自动保存配置到插件设置
   - 响应式设计，优化的用户体验
@@ -23,8 +23,8 @@
       <h3><LocalizedText en="Tag Wrapper Settings" zh="标签包装器设置" /></h3>
       <p class="module-description">
         <LocalizedText 
-          en="Configure text wrapper tag commands, supports custom start and end tags, drag to reorder"
-          zh="配置文本包装标签的命令，支持自定义开始和结束标签，可拖拽排序"
+          en="Configure tag wrapper commands, wrap selected text with custom tags, drag to reorder"
+          zh="配置标签包装器命令，将选中文本包装在自定义标签中，可拖拽排序"
         />
       </p>
     </div>
@@ -43,10 +43,10 @@
           :class="{ 'tag-enabled': tag.enabled, 'tag-disabled': !tag.enabled }"
           draggable="true"
         >
-          <span class="tag-name">{{ tag.name || '(未命名)' }}</span>
+          <span class="tag-name">{{ tag.name }}</span>
           <span class="tag-separator">-</span>
           <span class="tag-preview">
-            <code>{{ tag.prefix || '(空)' }}</code>文本内容<code>{{ tag.suffix || '(空)' }}</code>
+            <code>{{ tag.prefix }}</code>...<code>{{ tag.suffix }}</code>
           </span>
           <span class="tag-actions" @mousedown.stop @click.stop>
             <ToggleSwitch
@@ -81,43 +81,46 @@
     <ObsidianVueModal
       v-model:visible="modalVisible"
       :obsidian-app="plugin.app"
-      :title="`编辑标签配置: ${currentTag?.name || '未命名'}`"
+      :title="`编辑标签配置: ${editingTag?.name || '未命名'}`"
+      @update:visible="onModalVisibilityChange"
     >
-      <div v-if="currentTag" class="tag-modal-form">
+      <div v-if="editingTag" class="tag-modal-form">
         <div class="form-group">
-          <label>命令名称：</label>
+          <label>标签名称：</label>
           <TextInput
-            v-model="currentTag.name"
-            placeholder="输入命令名称..."
+            v-model="editingTag.name"
+            placeholder="输入标签名称..."
             @update:model-value="debouncedSave"
           />
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>开始标签：</label>
-            <TextInput
-              v-model="currentTag.prefix"
-              placeholder="如: **, <u>, =="
-              @update:model-value="debouncedSave"
-            />
-          </div>
+                 <div class="form-row">
+           <div class="form-group">
+             <label>开始标签：</label>
+             <TextInput
+               v-model="editingTag.prefix"
+               placeholder="如: <div>、**、<!--"
+               @update:model-value="debouncedSave"
+             />
+           </div>
 
-          <div class="form-group">
-            <label>结束标签：</label>
-            <TextInput
-              v-model="currentTag.suffix"
-              placeholder="如: **, </u>, =="
-              @update:model-value="debouncedSave"
-            />
-          </div>
-        </div>
+           <div class="form-group">
+             <label>结束标签：</label>
+             <TextInput
+               v-model="editingTag.suffix"
+               placeholder="如: </div>、**、-->"
+               @update:model-value="debouncedSave"
+             />
+           </div>
+         </div>
         
         <div class="preview-section">
           <h4>预览</h4>
-          <div class="tag-preview">
-            <p><strong>命令：</strong>Toggle {{ currentTag.name || '(未命名)' }}</p>
-            <p><strong>效果：</strong><code>{{ currentTag.prefix }}选中文本{{ currentTag.suffix }}</code></p>
+          <div class="tag-preview-display">
+            <p><strong>效果：</strong></p>
+                         <div class="preview-example">
+               <code>{{ editingTag.prefix }}</code><span class="selected-text">选中的文本</span><code>{{ editingTag.suffix }}</code>
+             </div>
           </div>
         </div>
       </div>
@@ -134,7 +137,7 @@
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        <LocalizedText en="Add New Tag Configuration" zh="添加新标签配置" />
+        <LocalizedText en="Add Tag Configuration" zh="添加标签配置" />
       </Button>
     </div>
 
@@ -151,7 +154,7 @@
     <ObsidianVueModal
       v-model:visible="deleteConfirmVisible"
       :obsidian-app="plugin.app"
-     >
+    >
       <div class="confirm-delete-form">
         <h4><LocalizedText en="Confirm Delete Tag Configuration" zh="确认删除标签配置" /></h4>
         <p><LocalizedText en="Are you sure you want to delete this tag configuration?" zh="确认要删除此标签配置吗？" /></p>
@@ -178,8 +181,14 @@
 import { reactive, ref } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
-import type { TagConfig, TagWrapperSettings } from '../settings';
-import { DEFAULT_TAG_WRAPPER_SETTINGS } from '../settings';
+import type { 
+  TagConfig, 
+  TagWrapperSettings
+} from '../types';
+import { 
+  DEFAULT_TAG_WRAPPER_SETTINGS,
+  createNewTagConfig
+} from '../types';
 import { debounce } from '../../vue/utils';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
@@ -213,11 +222,9 @@ const settings = reactive<TagWrapperSettings>({
 
 // 弹窗状态
 const modalVisible = ref(false);
-const currentTag = ref<TagConfig | null>(null);
+const editingTag = ref<TagConfig | null>(null);
 const deleteConfirmVisible = ref(false);
 const deleteTagIndex = ref<number | null>(null);
-
-
 
 /**
  * 保存设置到插件
@@ -270,7 +277,7 @@ const handleTagEnabledChange = (index: number, enabled: boolean) => {
  * 打开标签编辑弹窗
  */
 const openTagModal = (index: number) => {
-  currentTag.value = { ...settings.tags[index] };
+  editingTag.value = settings.tags[index];
   modalVisible.value = true;
 };
 
@@ -302,21 +309,23 @@ const confirmDelete = () => {
  * 添加新标签配置
  */
 const addNewTag = () => {
-  const hexId = Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, '0');
-  const newTag: TagConfig = {
-    id: `tag-${hexId}`,
-    name: `新标签 ${hexId}`,
-    prefix: '<tag>',
-    suffix: '</tag>',
-    enabled: true
-  };
+  const newTag = createNewTagConfig();
   
   console.log(`➕ 添加新标签配置: ${newTag.name}`);
   settings.tags.push(newTag);
   debouncedSave();
 };
 
-
+/**
+ * 处理弹窗可见性变更
+ */
+const onModalVisibilityChange = (visible: boolean) => {
+  if (!visible) {
+    // 弹窗关闭时，清理状态
+    editingTag.value = null;
+    debouncedSave();
+  }
+};
 </script>
 
 <style scoped>
@@ -378,8 +387,6 @@ const addNewTag = () => {
   opacity: 0.6;
 }
 
-/* 移除鼠标悬浮效果，参考示例代码风格 */
-
 .tag-name {
   font-size: 14px;
   font-weight: 500;
@@ -404,8 +411,6 @@ const addNewTag = () => {
   gap: 9px;
   margin-left: auto;
 }
-
-/* 删除了多余的CSS类，改为使用内联样式 */
 
 .tag-preview code {
   background: var(--background-secondary);
@@ -456,21 +461,35 @@ const addNewTag = () => {
   font-weight: 600;
 }
 
-.tag-preview p {
+.tag-preview-display p {
   margin: 0 0 8px 0;
   font-size: 13px;
 }
 
-.tag-preview p:last-child {
-  margin: 0;
+.preview-example {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-family: var(--font-monospace);
+  font-size: 13px;
 }
 
-.tag-preview code {
-  background: var(--background-primary);
-  padding: 2px 6px;
+.preview-example code {
+  background: var(--background-secondary);
+  padding: 2px 4px;
   border-radius: 3px;
-  font-family: var(--font-monospace);
   color: var(--text-accent);
+}
+
+.selected-text {
+  color: var(--text-normal);
+  background: #e3f2fd;
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 /* 添加按钮区域 */
@@ -478,14 +497,15 @@ const addNewTag = () => {
   margin-bottom: 24px;
   padding-top: 16px;
   border-top: 1px solid var(--background-modifier-border);
-  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 
 .add-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-width: 200px;
+  min-width: 150px;
 }
 
 /* 状态指示器 */
@@ -553,8 +573,6 @@ const addNewTag = () => {
 .icon-btn:hover svg {
   color: var(--text-accent);
 }
-
-
 
 /* 确认弹窗样式 */
 .confirm-delete-form {

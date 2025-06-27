@@ -1,6 +1,7 @@
 import { Editor, EditorPosition, MarkdownView, Command } from "obsidian";
 import type MyPlugin from "../main";
-import { TagConfig, TagWrapperSettings, tagWrapperSetting } from "./settings";
+import { tagWrapperSetting } from "./settings";
+import type { TagConfig, TagWrapperSettings } from "./types";
 
 // 根据设置依次添加标签命令
 export function addGetTagWrapperCommands(plugin: MyPlugin): void {

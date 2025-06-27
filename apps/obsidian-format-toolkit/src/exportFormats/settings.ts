@@ -36,7 +36,7 @@ export interface ExportManagerSetting { // 导出模块设置, 包含所有导�
 }
 
 // 默认设置
-const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSetting = {
+export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSetting = {
     exportConfigs: []
 };
 

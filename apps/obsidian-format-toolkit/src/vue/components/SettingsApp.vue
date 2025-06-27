@@ -33,10 +33,10 @@
       
       <!-- 导出格式设置 -->
       <div v-else-if="activeTab === 'exportFormats'" class="module-content">
-        <div class="module-placeholder">
-          <h3>导出格式设置</h3>
-          <p>此模块的Vue化正在开发中...</p>
-        </div>
+        <ExportFormatsSettings 
+          :plugin="plugin"
+          @settings-changed="handleSettingsChanged"
+        />
       </div>
 
       <!-- 弹窗演示 -->
@@ -54,6 +54,7 @@ import { useSettingsState } from '../utils';
 import SettingsTabs from './SettingsTabs.vue';
 import SettingsPanel from './SettingsPanel.vue';
 import TagWrapperSettings from '../../toggleTagWrapper/components/TagWrapperSettings.vue';
+import ExportFormatsSettings from '../../exportFormats/components/ExportFormatsSettings.vue';
 import DemoModalComponent from './DemoModalComponent.vue';
 
 // 定义Props

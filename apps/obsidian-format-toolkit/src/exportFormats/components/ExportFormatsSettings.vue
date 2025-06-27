@@ -1,0 +1,787 @@
+<!--
+  Export Formats模块设置面板
+  
+  功能说明：
+  - 管理导出格式的配置列表
+  - 支持拖拽排序导出格式配置
+  - 支持启用/禁用每个导出格式配置
+  - 支持编辑导出格式的名称、输出目录、YAML配置等
+  - 支持添加新的导出格式配置和删除现有配置
+  - 自动保存配置到插件设置
+  - 响应式设计，优化的用户体验
+  
+  配置项：
+  Props:
+  - plugin: Obsidian插件实例 (MyPlugin) 必需
+  
+  Events:
+  - settings-changed: 配置变更时发出，传递新的设置对象
+-->
+<template>
+  <div class="export-formats-settings">
+    <div class="module-header">
+      <h3><LocalizedText en="Export Formats Settings" zh="导出格式设置" /></h3>
+      <p class="module-description">
+        <LocalizedText 
+          en="Configure export format commands, support various output formats, drag to reorder"
+          zh="配置导出格式命令，支持多种输出格式，可拖拽排序"
+        />
+      </p>
+    </div>
+
+    <!-- 可拖拽的导出格式配置列表 -->
+    <draggable
+      v-model="settings.exportConfigs"
+      item-key="id"
+      class="export-configs-list"
+      ghost-class="ghost"
+      @end="handleDragEnd()"
+    >
+      <template #item="{ element: config, index }">
+        <div 
+          class="export-item"
+          :class="{ 'export-enabled': config.enabled, 'export-disabled': !config.enabled }"
+          draggable="true"
+        >
+          <span class="export-name">{{ config.name || '(未命名)' }}</span>
+          <span class="export-separator">-</span>
+          <span class="export-preview">
+            <code>{{ config.format }}</code> → <span class="output-path">{{ getPreviewPath(config) }}</span>
+          </span>
+          <span class="export-actions" @mousedown.stop @click.stop>
+            <ToggleSwitch
+              v-model="config.enabled"
+              @update:model-value="handleExportEnabledChange(index, $event)"
+            />
+            <Button
+              variant="secondary"
+              size="small"
+              @click="openExportModal(index)"
+              description="编辑此导出格式配置"
+              class="icon-btn"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </Button>
+            <Button
+              variant="secondary"
+              size="small"
+              @click="showDeleteConfirm(index)"
+              :disabled="settings.exportConfigs.length <= 1"
+              description="删除此导出格式配置"
+              class="icon-btn"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </Button>
+            <Button
+              variant="secondary"
+              size="small"
+              @click="openAssetsFolder(config)"
+              description="打开资源文件夹"
+              class="icon-btn"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-folder"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
+            </Button>
+          </span>
+        </div>
+      </template>
+    </draggable>
+
+    <!-- 导出格式编辑弹窗 -->
+    <ObsidianVueModal
+      v-model:visible="modalVisible"
+      :obsidian-app="plugin.app"
+      :title="`编辑导出格式配置: ${currentConfig?.name || '未命名'}`"
+    >
+      <div v-if="currentConfig" class="export-modal-form">
+        <div class="form-group">
+          <label>格式名称：</label>
+          <TextInput
+            :model-value="currentConfig.name || ''"
+            @update:model-value="(value) => { if (currentConfig) { currentConfig.name = value; debouncedSave(); } }"
+            placeholder="输入格式名称..."
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>输出目录：</label>
+            <TextInput
+              v-model="currentConfig.output_dir"
+              placeholder="如: output、${VAR_VAULT_DIR}/export"
+              @update:model-value="debouncedSave"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>输出文件名：</label>
+            <TextInput
+              v-model="currentConfig.output_base_name"
+              placeholder="如: ${VAR_NOTE_NAME}、document"
+              @update:model-value="debouncedSave"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>YAML配置：</label>
+          <TextArea
+            v-model="currentConfig.yaml"
+            placeholder="输入导出格式的YAML配置..."
+            :rows="8"
+            @update:model-value="debouncedSave"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Excalidraw导出类型：</label>
+            <Dropdown
+              :model-value="currentConfig.excalidraw_export_type || 'png'"
+              :options="excalidrawExportOptions"
+              @update:model-value="(value) => { if (currentConfig) { currentConfig.excalidraw_export_type = value as 'png' | 'svg'; handleExcalidrawTypeChange(); } }"
+            />
+          </div>
+
+          <div v-if="currentConfig.excalidraw_export_type === 'png'" class="form-group">
+            <label>PNG缩放比例：{{ currentConfig.excalidraw_png_scale || 2 }}</label>
+            <input
+              type="range"
+              :value="currentConfig.excalidraw_png_scale || 2"
+              @input="handlePngScaleChange"
+              min="1"
+              max="9"
+              step="1"
+              class="png-scale-slider"
+            />
+          </div>
+        </div>
+        
+        <div class="preview-section">
+          <h4>预览</h4>
+          <div class="export-preview">
+            <p><strong>格式：</strong>{{ currentConfig.format }}</p>
+            <p><strong>输出路径：</strong><code>{{ getPreviewPath(currentConfig) }}</code></p>
+            <p><strong>Excalidraw：</strong>{{ currentConfig.excalidraw_export_type || 'png' }} 
+              <span v-if="currentConfig.excalidraw_export_type === 'png'">({{ currentConfig.excalidraw_png_scale || 2 }}x)</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </ObsidianVueModal>
+
+    <!-- 添加新导出格式按钮 -->
+    <div class="add-export-section">
+      <div class="add-export-controls">
+        <Dropdown
+          v-model="selectedFormat"
+          :options="formatOptions"
+          placeholder="选择导出格式"
+        />
+        <Button
+          variant="primary"
+          @click="addNewExportConfig"
+          class="add-button"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <LocalizedText en="Add Export Format" zh="添加导出格式" />
+        </Button>
+      </div>
+    </div>
+
+    <!-- 保存状态指示器 -->
+    <div v-if="saveState.saving" class="save-indicator">
+      <span class="loading-spinner"></span>
+      正在保存配置...
+    </div>
+    <div v-if="saveState.error" class="error-indicator">
+      保存失败：{{ saveState.error }}
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <ObsidianVueModal
+      v-model:visible="deleteConfirmVisible"
+      :obsidian-app="plugin.app"
+    >
+      <div class="confirm-delete-form">
+        <h4><LocalizedText en="Confirm Delete Export Configuration" zh="确认删除导出格式配置" /></h4>
+        <p><LocalizedText en="Are you sure you want to delete this export configuration?" zh="确认要删除此导出格式配置吗？" /></p>
+        <div class="form-actions">
+          <Button
+            variant="secondary"
+            @click="deleteConfirmVisible = false"
+          >
+            <LocalizedText en="Cancel" zh="取消" />
+          </Button>
+          <Button
+            variant="primary"
+            @click="confirmDelete"
+          >
+            <LocalizedText en="Confirm Delete" zh="确认删除" />
+          </Button>
+        </div>
+      </div>
+    </ObsidianVueModal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { reactive, ref } from 'vue';
+import draggable from 'vuedraggable';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as child_process from 'child_process';
+import type MyPlugin from '../../main';
+import type { ExportConfig, ExportManagerSetting } from '../settings';
+import { DEFAULT_EXPORT_FORMATS_SETTINGS } from '../settings';
+import type { OutputFormat } from '../textConvert/textConverter';
+import { debounce } from '../../vue/utils';
+import { generateTimestamp } from '../../lib/idGenerator';
+import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defaultStyleConfig/styleConfigs';
+import * as placeholders from '../../lib/constant';
+import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
+import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
+import TextInput from '../../vue/components/TextInput.vue';
+import TextArea from '../../vue/components/TextArea.vue';
+import Button from '../../vue/components/Button.vue';
+import Dropdown from '../../vue/components/Dropdown.vue';
+import LocalizedText from '../../vue/components/LocalizedText.vue';
+
+// 定义Props
+interface ExportFormatsSettingsProps {
+  plugin: MyPlugin;
+}
+
+// 定义Events
+interface ExportFormatsSettingsEmits {
+  (e: 'settings-changed', settings: ExportManagerSetting): void;
+}
+
+const props = defineProps<ExportFormatsSettingsProps>();
+const emit = defineEmits<ExportFormatsSettingsEmits>();
+
+// 默认设置常量
+const DEFAULT_OUTPUT_DIR = path.posix.join(placeholders.VAR_VAULT_DIR, 'output');
+const DEFAULT_OUTPUT_BASE_NAME = placeholders.VAR_NOTE_NAME;
+const DEFAULT_EXCALIDRAW_PNG_SCALE = 2;
+
+// 保存状态
+const saveState = reactive({
+  saving: false,
+  error: null as string | null
+});
+
+// 初始化设置
+const settings = reactive<ExportManagerSetting>({
+  exportConfigs: [...(props.plugin.settingList.exportFormats as ExportManagerSetting || DEFAULT_EXPORT_FORMATS_SETTINGS).exportConfigs]
+});
+
+// 弹窗状态
+const modalVisible = ref(false);
+const currentConfig = ref<ExportConfig | null>(null);
+const deleteConfirmVisible = ref(false);
+const deleteConfigIndex = ref<number | null>(null);
+
+// 表单选项
+const selectedFormat = ref<OutputFormat>('typst');
+const formatOptions = [
+  { value: 'typst', label: 'Typst' },
+  { value: 'vuepress', label: 'VuePress' },
+  { value: 'quarto', label: 'Quarto' },
+  { value: 'plain', label: 'Plain' }
+];
+
+const excalidrawExportOptions = [
+  { value: 'png', label: 'PNG' },
+  { value: 'svg', label: 'SVG' }
+];
+
+/**
+ * 获取预览路径
+ */
+const getPreviewPath = (config: ExportConfig): string => {
+  const outputDir = config.output_dir || DEFAULT_OUTPUT_DIR;
+  const outputName = config.output_base_name || DEFAULT_OUTPUT_BASE_NAME;
+  return `${outputDir}/${outputName}.${getExtensionByFormat(config.format)}`;
+};
+
+/**
+ * 根据格式获取文件扩展名
+ */
+const getExtensionByFormat = (format: OutputFormat): string => {
+  const extensionMap = {
+    'typst': 'typ',
+    'vuepress': 'md',
+    'quarto': 'qmd',
+    'plain': 'md'
+  };
+  return extensionMap[format] || 'txt';
+};
+
+/**
+ * 保存设置到插件
+ */
+const saveSettings = async () => {
+  try {
+    saveState.saving = true;
+    saveState.error = null;
+    
+    // 更新插件设置
+    props.plugin.settingList.exportFormats = { ...settings };
+    
+    // 保存到磁盘
+    await props.plugin.saveData(props.plugin.settingList);
+    
+    // 发出设置变更事件
+    emit('settings-changed', settings);
+    
+    console.log('✅ Export formats settings saved successfully');
+  } catch (error) {
+    console.error('❌ Failed to save export formats settings:', error);
+    saveState.error = error instanceof Error ? error.message : 'Unknown error';
+  } finally {
+    saveState.saving = false;
+  }
+};
+
+// 创建防抖保存函数
+const debouncedSave = debounce(saveSettings, 500);
+
+/**
+ * 保存设置并处理拖拽结束
+ */
+const handleDragEnd = () => {
+  console.log('🏁 拖拽结束，保存新顺序');
+  debouncedSave();
+};
+
+/**
+ * 处理导出格式启用状态变更
+ */
+const handleExportEnabledChange = (index: number, enabled: boolean) => {
+  console.log(`🔄 导出格式 ${index} 启用状态变更为: ${enabled}`);
+  settings.exportConfigs[index].enabled = enabled;
+  debouncedSave();
+};
+
+/**
+ * 打开导出格式编辑弹窗
+ */
+const openExportModal = (index: number) => {
+  const config = settings.exportConfigs[index];
+  currentConfig.value = { 
+    ...config,
+    name: config.name || `${config.format}_${config.id}`,
+    excalidraw_export_type: config.excalidraw_export_type || 'png'
+  };
+  modalVisible.value = true;
+};
+
+/**
+ * 处理Excalidraw导出类型变更
+ */
+const handleExcalidrawTypeChange = () => {
+  // 当切换到PNG时，确保有默认的缩放值
+  if (currentConfig.value?.excalidraw_export_type === 'png' && !currentConfig.value.excalidraw_png_scale) {
+    currentConfig.value.excalidraw_png_scale = DEFAULT_EXCALIDRAW_PNG_SCALE;
+  }
+  debouncedSave();
+};
+
+/**
+ * 处理PNG缩放比例变更
+ */
+const handlePngScaleChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (currentConfig.value) {
+    currentConfig.value.excalidraw_png_scale = Number(target.value);
+    debouncedSave();
+  }
+};
+
+/**
+ * 打开资源文件夹
+ */
+const openAssetsFolder = (config: ExportConfig) => {
+  const formatStylesPath = path.posix.join(
+    props.plugin.PLUGIN_ABS_PATH,
+    config.style_dir
+  );
+  
+  // 如果文件夹不存在，先创建它
+  if (!fs.existsSync(formatStylesPath)) {
+    fs.mkdirSync(formatStylesPath, { recursive: true });
+  }
+  
+  // 使用系统默认程序打开文件夹
+  const command = process.platform === 'win32'
+    ? `explorer "${formatStylesPath}"`
+    : process.platform === 'darwin'
+      ? `open "${formatStylesPath}"`
+      : `xdg-open "${formatStylesPath}"`;
+  child_process.exec(command);
+};
+
+/**
+ * 显示删除确认弹窗
+ */
+const showDeleteConfirm = (index: number) => {
+  if (settings.exportConfigs.length <= 1) {
+    return;
+  }
+  deleteConfigIndex.value = index;
+  deleteConfirmVisible.value = true;
+};
+
+/**
+ * 执行删除操作
+ */
+const confirmDelete = async () => {
+  if (deleteConfigIndex.value === null) return;
+  
+  const config = settings.exportConfigs[deleteConfigIndex.value];
+  console.log(`🗑️ 删除导出格式配置: ${config.name}`);
+  
+  // 删除对应的资源文件夹
+  const formatStylesPath = path.posix.join(
+    props.plugin.PLUGIN_ABS_PATH,
+    config.style_dir
+  );
+  if (fs.existsSync(formatStylesPath)) {
+    fs.rmSync(formatStylesPath, { recursive: true, force: true });
+  }
+  
+  settings.exportConfigs.splice(deleteConfigIndex.value, 1);
+  deleteConfirmVisible.value = false;
+  deleteConfigIndex.value = null;
+  debouncedSave();
+};
+
+/**
+ * 添加新导出格式配置
+ */
+const addNewExportConfig = async () => {
+  const hexId = generateTimestamp("hex");
+  const newConfig: ExportConfig = {
+    id: hexId,
+    style_dir: path.posix.join('styles', hexId),
+    name: `${selectedFormat.value.charAt(0).toUpperCase() + selectedFormat.value.slice(1)} ${hexId}`,
+    output_dir: DEFAULT_OUTPUT_DIR,
+    output_base_name: DEFAULT_OUTPUT_BASE_NAME + '_' + hexId,
+    yaml: getDefaultYAML(selectedFormat.value) || '',
+    enabled: true,
+    format: selectedFormat.value,
+    excalidraw_export_type: 'png',
+    excalidraw_png_scale: DEFAULT_EXCALIDRAW_PNG_SCALE
+  };
+
+  // 创建对应的资源文件夹
+  const styleDirAbs = path.posix.join(
+    props.plugin.PLUGIN_ABS_PATH,
+    newConfig.style_dir
+  );
+  if (!fs.existsSync(styleDirAbs)) {
+    fs.mkdirSync(styleDirAbs, { recursive: true });
+  }
+  createFormatAssetStructure(styleDirAbs, selectedFormat.value);
+  
+  console.log(`➕ 添加新导出格式配置: ${newConfig.name}`);
+  settings.exportConfigs.push(newConfig);
+  debouncedSave();
+};
+</script>
+
+<style scoped>
+.export-formats-settings {
+  padding: 0;
+}
+
+.module-header {
+  margin-bottom: 24px;
+}
+
+.module-header h3 {
+  margin: 0 0 8px 0;
+  color: var(--text-normal);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.module-description {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* 拖拽列表样式 */
+.export-configs-list {
+  margin-bottom: 24px;
+}
+
+/* 拖拽时的ghost效果 - 只改变边框颜色 */
+.ghost {
+  border-color: var(--interactive-accent) !important;
+}
+
+.export-item {
+  padding: 9px;
+  margin-bottom: 9px;
+  border-radius: 8px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.export-enabled {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  opacity: 1;
+}
+
+.export-disabled {
+  background: #f9fafb;
+  border: 2px solid #d1d5db;
+  opacity: 0.6;
+}
+
+.export-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.export-separator {
+  color: var(--text-muted);
+  margin: 0 4px;
+}
+
+.export-preview {
+  font-size: 13px;
+  color: var(--text-muted);
+  min-width: 200px;
+  margin-left: auto;
+}
+
+.export-preview code {
+  background: var(--background-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  color: var(--text-accent);
+}
+
+.output-path {
+  font-family: var(--font-monospace);
+  font-size: 12px;
+}
+
+.export-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+}
+
+/* 弹窗表单样式 */
+.export-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: var(--text-normal);
+  font-size: 14px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.png-scale-slider {
+  width: 100%;
+  height: 6px;
+  background: var(--background-modifier-border);
+  outline: none;
+  border-radius: 3px;
+}
+
+.png-scale-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--interactive-accent);
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.png-scale-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--interactive-accent);
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
+}
+
+.preview-section {
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  position: relative;
+}
+
+.preview-section h4 {
+  margin: 0 0 12px 0;
+  color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.export-preview p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+}
+
+.export-preview p:last-child {
+  margin: 0;
+}
+
+.export-preview code {
+  background: var(--background-primary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font-monospace);
+  color: var(--text-accent);
+}
+
+/* 添加按钮区域 */
+.add-export-section {
+  margin-bottom: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.add-export-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 150px;
+}
+
+/* 状态指示器 */
+.save-indicator, .error-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.save-indicator {
+  background: var(--background-modifier-success);
+  color: var(--text-success);
+}
+
+.error-indicator {
+  background: var(--background-modifier-error);
+  color: var(--text-error);
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--text-success);
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .export-item {
+    padding: 12px;
+  }
+  
+  .add-export-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* 图标按钮样式 */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px !important;
+  min-width: 28px;
+  height: 28px;
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-normal);
+}
+
+.icon-btn:hover svg {
+  color: var(--text-accent);
+}
+
+
+
+/* 确认弹窗样式 */
+.confirm-delete-form {
+  padding: 16px;
+}
+
+.confirm-delete-form p {
+  margin: 0 0 20px 0;
+  color: var(--text-normal);
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+</style> 

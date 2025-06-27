@@ -81,10 +81,10 @@
     <ObsidianVueModal
       v-model:visible="modalVisible"
       :obsidian-app="plugin.app"
-      :title="`编辑标签配置: ${editingTag?.name || '未命名'}`"
       @update:visible="onModalVisibilityChange"
     >
       <div v-if="editingTag" class="tag-modal-form">
+        <h2 class="modal-title">编辑标签配置: {{ editingTag.name }}</h2>
         <div class="form-group">
           <label>标签名称：</label>
           <TextInput
@@ -156,7 +156,7 @@
       :obsidian-app="plugin.app"
     >
       <div class="confirm-delete-form">
-        <h4><LocalizedText en="Confirm Delete Tag Configuration" zh="确认删除标签配置" /></h4>
+        <h2 class="modal-title"><LocalizedText en="Confirm Delete Tag Configuration" zh="确认删除标签配置" /></h2>
         <p><LocalizedText en="Are you sure you want to delete this tag configuration?" zh="确认要删除此标签配置吗？" /></p>
         <div class="form-actions">
           <Button
@@ -426,6 +426,13 @@ const onModalVisibilityChange = (visible: boolean) => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.modal-title {
+  color: var(--text-normal);
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  font-size: 18px;
 }
 
 .form-group {

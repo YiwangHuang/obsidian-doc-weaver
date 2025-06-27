@@ -82,9 +82,9 @@
     <ObsidianVueModal
       v-model:visible="modalVisible"
       :obsidian-app="plugin.app"
-      title="演示弹窗"
     >
       <div class="modal-content">
+        <h2 class="modal-title">演示弹窗</h2>
         <h4>弹窗内容</h4>
         <p>这是一个基础的弹窗演示。</p>
         <p>当前输入：{{ inputText || '(空)' }}</p>
@@ -226,6 +226,13 @@ const openModal = () => {
 
 .modal-content {
   padding: 16px;
+}
+
+.modal-title {
+  color: var(--text-normal);
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  font-size: 18px;
 }
 
 .modal-content h4 {

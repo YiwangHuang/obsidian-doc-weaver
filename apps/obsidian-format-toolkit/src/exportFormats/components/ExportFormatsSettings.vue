@@ -90,10 +90,10 @@
     <ObsidianVueModal
       v-model:visible="modalVisible"
       :obsidian-app="plugin.app"
-      :title="`编辑导出格式配置: ${editingConfig?.name || '未命名'}`"
       @update:visible="onModalVisibilityChange"
     >
       <div v-if="editingConfig" class="export-modal-form">
+        <h2 class="modal-title">编辑导出格式配置: {{ editingConfig.name }}</h2>
         <div class="form-group">
           <label>格式名称：</label>
           <TextInput
@@ -207,7 +207,7 @@
       :obsidian-app="plugin.app"
     >
       <div class="confirm-delete-form">
-        <h4><LocalizedText en="Confirm Delete Export Configuration" zh="确认删除导出格式配置" /></h4>
+        <h2 class="modal-title"><LocalizedText en="Confirm Delete Export Configuration" zh="确认删除导出格式配置" /></h2>
         <p><LocalizedText en="Are you sure you want to delete this export configuration?" zh="确认要删除此导出格式配置吗？" /></p>
         <div class="form-actions">
           <Button
@@ -585,6 +585,13 @@ const onModalVisibilityChange = (visible: boolean) => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.modal-title {
+  color: var(--text-normal);
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  font-size: 18px;
 }
 
 .form-group {

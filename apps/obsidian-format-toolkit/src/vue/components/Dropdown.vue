@@ -95,7 +95,7 @@ const handleChange = (event: Event) => {
 <style scoped>
 .dropdown {
   width: 100%;
-  padding: 8px 12px;
+  padding: 0px 9px;
   border: 1px solid var(--background-modifier-border);
   border-radius: 3px;
   background: var(--background-primary);

@@ -94,7 +94,7 @@ export function createNewTagConfig(
     const hexId = generateHexId();
     return {
         id: `tag-${hexId}`,
-        name: name || `新标签 ${hexId}`,
+        name: name || `tag-${hexId}`,
         prefix: prefix || TAG_WRAPPER_CONSTANTS.DEFAULT_TAG_PREFIX,
         suffix: suffix || TAG_WRAPPER_CONSTANTS.DEFAULT_TAG_SUFFIX,
         enabled: TAG_WRAPPER_CONSTANTS.DEFAULT_ENABLED

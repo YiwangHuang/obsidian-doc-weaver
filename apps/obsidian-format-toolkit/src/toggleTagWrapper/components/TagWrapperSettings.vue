@@ -20,9 +20,12 @@
 <template>
   <div class="tag-wrapper-settings">
     <div class="module-header">
-      <h3>标签包装器设置</h3>
+      <h3><LocalizedText en="Tag Wrapper Settings" zh="标签包装器设置" /></h3>
       <p class="module-description">
-        配置文本包装标签的命令，支持自定义开始和结束标签，可拖拽排序
+        <LocalizedText 
+          en="Configure text wrapper tag commands, supports custom start and end tags, drag to reorder"
+          zh="配置文本包装标签的命令，支持自定义开始和结束标签，可拖拽排序"
+        />
       </p>
     </div>
 
@@ -32,8 +35,7 @@
       item-key="id"
       class="tag-configs-list"
       ghost-class="ghost"
-      @start="dragging = true"
-      @end="dragging = false; handleDragEnd()"
+      @end="handleDragEnd()"
     >
       <template #item="{ element: tag, index }">
         <div 
@@ -133,7 +135,7 @@
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        添加新标签配置
+        <LocalizedText en="Add New Tag Configuration" zh="添加新标签配置" />
       </Button>
     </div>
 
@@ -152,20 +154,20 @@
       :obsidian-app="plugin.app"
      >
       <div class="confirm-delete-form">
-        <h4>确认删除标签配置</h4>
-        <p>确认要删除此标签配置吗？</p>
+        <h4><LocalizedText en="Confirm Delete Tag Configuration" zh="确认删除标签配置" /></h4>
+        <p><LocalizedText en="Are you sure you want to delete this tag configuration?" zh="确认要删除此标签配置吗？" /></p>
         <div class="form-actions">
           <Button
             variant="secondary"
             @click="deleteConfirmVisible = false"
           >
-            取消
+            <LocalizedText en="Cancel" zh="取消" />
           </Button>
           <Button
             variant="primary"
             @click="confirmDelete"
           >
-            确认删除
+            <LocalizedText en="Confirm Delete" zh="确认删除" />
           </Button>
         </div>
       </div>
@@ -184,6 +186,7 @@ import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
 import TextInput from '../../vue/components/TextInput.vue';
 import Button from '../../vue/components/Button.vue';
+import LocalizedText from '../../vue/components/LocalizedText.vue';
 
 // 定义Props
 interface TagWrapperSettingsProps {
@@ -215,8 +218,7 @@ const currentTag = ref<TagConfig | null>(null);
 const deleteConfirmVisible = ref(false);
 const deleteTagIndex = ref<number | null>(null);
 
-// 拖拽状态
-const dragging = ref(false);
+
 
 /**
  * 保存设置到插件

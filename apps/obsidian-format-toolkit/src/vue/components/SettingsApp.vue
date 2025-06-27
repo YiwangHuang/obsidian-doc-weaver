@@ -12,7 +12,7 @@
 -->
 <template>
   <div class="settings-container">
-    <h2>设置面板</h2>
+    <h2>Doc Weaver</h2>
     
     <!-- 标签页导航 -->
     <SettingsTabs

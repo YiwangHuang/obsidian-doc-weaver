@@ -156,32 +156,16 @@
       </Button>
     </div>
 
-
-
     <!-- 删除确认弹窗 -->
-    <ObsidianVueModal
+    <ConfirmDialog
       v-model:visible="deleteConfirmVisible"
       :obsidian-app="plugin.app"
+      :onConfirm="confirmDelete"
+      :onCancel="cancelDelete"
     >
-      <div class="confirm-delete-form">
-        <h2 class="modal-title"><LocalizedText en="Confirm Delete Tag Configuration" zh="确认删除标签配置" /></h2>
-        <p><LocalizedText en="Are you sure you want to delete this tag configuration?" zh="确认要删除此标签配置吗？" /></p>
-        <div class="form-actions">
-          <Button
-            variant="secondary"
-            @click="deleteConfirmVisible = false"
-          >
-            <LocalizedText en="Cancel" zh="取消" />
-          </Button>
-          <Button
-            variant="primary"
-            @click="confirmDelete"
-          >
-            <LocalizedText en="Confirm Delete" zh="确认删除" />
-          </Button>
-        </div>
-      </div>
-    </ObsidianVueModal>
+      <h2 class="modal-title"><LocalizedText en="Confirm Delete Tag Configuration" zh="确认删除标签配置" /></h2>
+      <p><LocalizedText en="Are you sure you want to delete this tag configuration?" zh="确认要删除此标签配置吗？" /></p>
+    </ConfirmDialog>
   </div>
 </template>
 
@@ -204,6 +188,7 @@ import TextInput from '../../vue/components/TextInput.vue';
 import Button from '../../vue/components/Button.vue';
 import LocalizedText from '../../vue/components/LocalizedText.vue';
 import MultiColumn from '../../vue/components/MultiColumn.vue';
+import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
 
 // 定义Props
 interface TagWrapperSettingsProps {
@@ -299,9 +284,15 @@ const confirmDelete = () => {
   
   console.log(`🗑️ 删除标签配置: ${settings.tags[deleteTagIndex.value].name}`);
   settings.tags.splice(deleteTagIndex.value, 1);
-  deleteConfirmVisible.value = false;
   deleteTagIndex.value = null;
   debouncedSave();
+};
+
+/**
+ * 取消删除操作
+ */
+const cancelDelete = () => {
+  deleteTagIndex.value = null;
 };
 
 /**
@@ -466,22 +457,5 @@ const onModalVisibilityChange = (visible: boolean) => {
 
 .icon-btn:hover svg {
   color: var(--text-accent);
-}
-
-/* 确认弹窗样式 */
-.confirm-delete-form {
-  padding: 16px;
-}
-
-.confirm-delete-form p {
-  margin: 0 0 20px 0;
-  color: var(--text-normal);
-  font-size: 14px;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
 }
 </style> 

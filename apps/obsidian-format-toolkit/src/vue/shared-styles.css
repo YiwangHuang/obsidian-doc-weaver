@@ -62,6 +62,14 @@ code {
   gap: 8px;
 }
 
+/* 表单操作按钮样式 */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
 /* 预览区域通用样式 */
 .preview-section {
   padding: 16px;

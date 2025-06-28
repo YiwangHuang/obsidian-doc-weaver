@@ -210,29 +210,15 @@
     </div>
 
     <!-- 删除确认弹窗 -->
-    <ObsidianVueModal
+    <ConfirmDialog
       v-model:visible="deleteConfirmVisible"
       :obsidian-app="plugin.app"
+      :onConfirm="confirmDelete"
+      :onCancel="cancelDelete"
     >
-      <div class="confirm-delete-form">
-        <h2 class="modal-title"><LocalizedText en="Confirm Delete Export Configuration" zh="确认删除导出格式配置" /></h2>
-        <p><LocalizedText en="Are you sure you want to delete this export configuration?" zh="确认要删除此导出格式配置吗？" /></p>
-        <div class="form-actions">
-          <Button
-            variant="secondary"
-            @click="deleteConfirmVisible = false"
-          >
-            <LocalizedText en="Cancel" zh="取消" />
-          </Button>
-          <Button
-            variant="primary"
-            @click="confirmDelete"
-          >
-            <LocalizedText en="Confirm Delete" zh="确认删除" />
-          </Button>
-        </div>
-      </div>
-    </ObsidianVueModal>
+      <h2 class="modal-title"><LocalizedText en="Confirm Delete Export Configuration" zh="确认删除导出格式配置" /></h2>
+      <p><LocalizedText en="Are you sure you want to delete this export configuration?" zh="确认要删除此导出格式配置吗？" /></p>
+    </ConfirmDialog>
   </div>
 </template>
 
@@ -267,6 +253,7 @@ import Button from '../../vue/components/Button.vue';
 import Dropdown from '../../vue/components/Dropdown.vue';
 import LocalizedText from '../../vue/components/LocalizedText.vue';
 import MultiColumn from '../../vue/components/MultiColumn.vue';
+import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
 
 // 定义Props
 interface ExportFormatsSettingsProps {
@@ -429,9 +416,15 @@ const confirmDelete = async () => {
   }
   
   settings.exportConfigs.splice(deleteConfigIndex.value, 1);
-  deleteConfirmVisible.value = false;
   deleteConfigIndex.value = null;
   debouncedSave();
+};
+
+/**
+ * 取消删除操作
+ */
+const cancelDelete = () => {
+  deleteConfigIndex.value = null;
 };
 
 /**
@@ -442,7 +435,7 @@ const addNewExportConfig = async () => {
   const newConfig: ExportConfig = {
     id: hexId,
     style_dir: path.posix.join('styles', hexId),
-    name: `${selectedFormat.value.charAt(0).toUpperCase() + selectedFormat.value.slice(1)} ${hexId}`,
+    name: `${hexId}`,
     output_dir: DEFAULT_OUTPUT_DIR,
     output_base_name: DEFAULT_OUTPUT_BASE_NAME + '_' + hexId,
     yaml: getDefaultYAML(selectedFormat.value) || '',
@@ -574,23 +567,6 @@ const onModalVisibilityChange = (visible: boolean) => {
 
 .icon-btn:hover svg {
   color: var(--text-accent);
-}
-
-/* 确认弹窗样式 */
-.confirm-delete-form {
-  padding: 16px;
-}
-
-.confirm-delete-form p {
-  margin: 0 0 20px 0;
-  color: var(--text-normal);
-  font-size: 14px;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
 }
 
 /* 弹窗表单样式 */

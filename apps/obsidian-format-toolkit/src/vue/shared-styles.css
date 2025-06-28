@@ -1,0 +1,81 @@
+/**
+ * Vue组件共享样式文件
+ * 用于管理多个组件间复用的CSS样式，避免重复定义
+ */
+
+/* 模块头部样式 */
+.module-header {
+  margin-bottom: 24px;
+}
+
+.module-header h3 {
+  margin: 0 0 8px 0;
+  color: var(--text-normal);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.module-description {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+/* 弹窗标题样式 */
+.modal-title {
+  color: var(--text-normal);
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+}
+
+/* 通用 code 样式 */
+code {
+  background: var(--background-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  color: var(--text-accent);
+}
+
+/* 格式标签样式 */
+.format-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--text-accent);
+  color: var(--background-primary);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-monospace);
+  letter-spacing: 0.5px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* MultiColumn 组件基础样式 */
+.multi-column-container {
+  gap: 8px;
+}
+
+/* 预览区域通用样式 */
+.preview-section {
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  position: relative;
+}
+
+.preview-section p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+}
+
+.preview-section p:last-child {
+  margin: 0;
+} 

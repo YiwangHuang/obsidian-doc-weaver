@@ -43,36 +43,54 @@
           :class="{ 'tag-enabled': tag.enabled, 'tag-disabled': !tag.enabled }"
           draggable="true"
         >
-          <span class="tag-name">{{ tag.name }}</span>
-          <span class="tag-separator">-</span>
-          <span class="tag-preview">
-            <code>{{ tag.prefix }}</code>...<code>{{ tag.suffix }}</code>
-          </span>
-          <span class="tag-actions" @mousedown.stop @click.stop>
-            <ToggleSwitch
-              v-model="tag.enabled"
-              @update:model-value="handleTagEnabledChange(index, $event)"
-            />
-            <Button
-              variant="secondary"
-              size="small"
-              @click="openTagModal(index)"
-              description="编辑此标签配置"
-              class="icon-btn"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </Button>
-            <Button
-              variant="secondary"
-              size="small"
-              @click="showDeleteConfirm(index)"
-              :disabled="settings.tags.length <= 1"
-              description="删除此标签配置"
-              class="icon-btn"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            </Button>
-          </span>
+          <MultiColumn :columns="[
+            { width: 2, align: 'left' },   // 标签名称栏
+            { width: 3, align: 'left' },   // 预览栏
+            { width: 2, align: 'right' }   // 操作按钮栏
+          ]">
+            <!-- 标签名称栏 -->
+            <template #column-0>
+              <span class="tag-name">{{ tag.name }}</span>
+            </template>
+
+            <!-- 预览栏 -->
+            <template #column-1>
+              <span class="tag-preview">
+                <code>{{ tag.prefix }}</code>
+                <span class="tag-separator">...</span>
+                <code>{{ tag.suffix }}</code>
+              </span>
+            </template>
+
+            <!-- 操作按钮栏 -->
+            <template #column-2>
+              <span class="tag-actions" @mousedown.stop @click.stop>
+                <ToggleSwitch
+                  v-model="tag.enabled"
+                  @update:model-value="handleTagEnabledChange(index, $event)"
+                />
+                <Button
+                  variant="secondary"
+                  size="small"
+                  @click="openTagModal(index)"
+                  description="编辑此标签配置"
+                  class="icon-btn"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  @click="showDeleteConfirm(index)"
+                  :disabled="settings.tags.length <= 1"
+                  description="删除此标签配置"
+                  class="icon-btn"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </Button>
+              </span>
+            </template>
+          </MultiColumn>
         </div>
       </template>
     </draggable>
@@ -116,11 +134,8 @@
         
         <div class="preview-section">
           <h4>预览</h4>
-          <div class="tag-preview-display">
-            <p><strong>效果：</strong></p>
-                         <div class="preview-example">
-               <code>{{ editingTag.prefix }}</code><span class="selected-text">选中的文本</span><code>{{ editingTag.suffix }}</code>
-             </div>
+          <div class="preview-example">
+            <code>{{ editingTag.prefix }}</code><span class="selected-text">选中的文本</span><code>{{ editingTag.suffix }}</code>
           </div>
         </div>
       </div>
@@ -141,14 +156,7 @@
       </Button>
     </div>
 
-    <!-- 保存状态指示器 -->
-    <div v-if="saveState.saving" class="save-indicator">
-      <span class="loading-spinner"></span>
-      正在保存配置...
-    </div>
-    <div v-if="saveState.error" class="error-indicator">
-      保存失败：{{ saveState.error }}
-    </div>
+
 
     <!-- 删除确认弹窗 -->
     <ObsidianVueModal
@@ -195,6 +203,7 @@ import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
 import TextInput from '../../vue/components/TextInput.vue';
 import Button from '../../vue/components/Button.vue';
 import LocalizedText from '../../vue/components/LocalizedText.vue';
+import MultiColumn from '../../vue/components/MultiColumn.vue';
 
 // 定义Props
 interface TagWrapperSettingsProps {
@@ -209,11 +218,7 @@ interface TagWrapperSettingsEmits {
 const props = defineProps<TagWrapperSettingsProps>();
 const emit = defineEmits<TagWrapperSettingsEmits>();
 
-// 保存状态
-const saveState = reactive({
-  saving: false,
-  error: null as string | null
-});
+
 
 // 初始化设置
 const settings = reactive<TagWrapperSettings>({
@@ -231,9 +236,6 @@ const deleteTagIndex = ref<number | null>(null);
  */
 const saveSettings = async () => {
   try {
-    saveState.saving = true;
-    saveState.error = null;
-    
     // 更新插件设置
     props.plugin.settingList.tagWrapper = { ...settings };
     
@@ -246,9 +248,6 @@ const saveSettings = async () => {
     console.log('✅ Tag wrapper settings saved successfully');
   } catch (error) {
     console.error('❌ Failed to save tag wrapper settings:', error);
-    saveState.error = error instanceof Error ? error.message : 'Unknown error';
-  } finally {
-    saveState.saving = false;
   }
 };
 
@@ -329,26 +328,10 @@ const onModalVisibilityChange = (visible: boolean) => {
 </script>
 
 <style scoped>
+@import '../../vue/shared-styles.css';
+
 .tag-wrapper-settings {
   padding: 0;
-}
-
-.module-header {
-  margin-bottom: 24px;
-}
-
-.module-header h3 {
-  margin: 0 0 8px 0;
-  color: var(--text-normal);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.module-description {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1.4;
 }
 
 /* 拖拽列表样式 */
@@ -369,10 +352,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   transition: all 0.2s ease;
   user-select: none;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
 }
 
 .tag-enabled {
@@ -395,30 +374,18 @@ const onModalVisibilityChange = (visible: boolean) => {
 
 .tag-separator {
   color: var(--text-muted);
-  margin: 0 4px;
+  margin: 0 8px;
 }
 
 .tag-preview {
   font-size: 13px;
   color: var(--text-muted);
-  min-width: 150px;
-  margin-left: auto;
 }
 
 .tag-actions {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-left: auto;
-}
-
-.tag-preview code {
-  background: var(--background-secondary);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: var(--font-monospace);
-  font-size: 12px;
-  color: var(--text-accent);
 }
 
 /* 弹窗表单样式 */
@@ -426,13 +393,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-.modal-title {
-  color: var(--text-normal);
-  font-weight: 600;
-  margin: 0 0 16px 0;
-  font-size: 18px;
 }
 
 .form-group {
@@ -453,26 +413,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   gap: 16px;
 }
 
-.preview-section {
-  padding: 16px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  position: relative;
-}
-
-.preview-section h4 {
-  margin: 0 0 12px 0;
-  color: var(--text-normal);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.tag-preview-display p {
-  margin: 0 0 8px 0;
-  font-size: 13px;
-}
-
 .preview-example {
   display: flex;
   align-items: center;
@@ -483,13 +423,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   border-radius: 4px;
   font-family: var(--font-monospace);
   font-size: 13px;
-}
-
-.preview-example code {
-  background: var(--background-secondary);
-  padding: 2px 4px;
-  border-radius: 3px;
-  color: var(--text-accent);
 }
 
 .selected-text {
@@ -513,52 +446,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   align-items: center;
   gap: 8px;
   min-width: 150px;
-}
-
-/* 状态指示器 */
-.save-indicator, .error-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  margin-top: 16px;
-}
-
-.save-indicator {
-  background: var(--background-modifier-success);
-  color: var(--text-success);
-}
-
-.error-indicator {
-  background: var(--background-modifier-error);
-  color: var(--text-error);
-}
-
-.loading-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--text-success);
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* 响应式布局 */
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .tag-item {
-    padding: 12px;
-  }
 }
 
 /* 图标按钮样式 */

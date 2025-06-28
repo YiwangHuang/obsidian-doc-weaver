@@ -43,45 +43,62 @@
           :class="{ 'export-enabled': config.enabled, 'export-disabled': !config.enabled }"
           draggable="true"
         >
-          <span class="export-name">{{ config.name }}</span>
-          <span class="export-separator">-</span>
-          <span class="export-preview">
-            <code>{{ config.format }}</code> → <span class="output-path">{{ getPreviewPath(config) }}</span>
-          </span>
-          <span class="export-actions" @mousedown.stop @click.stop>
-            <ToggleSwitch
-              v-model="config.enabled"
-              @update:model-value="handleExportEnabledChange(index, $event)"
-            />
-            <Button
-              variant="secondary"
-              size="small"
-              @click="openExportModal(index)"
-              description="编辑此导出格式配置"
-              class="icon-btn"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </Button>
-            <Button
-              variant="secondary"
-              size="small"
-              @click="showDeleteConfirm(index)"
-              :disabled="settings.exportConfigs.length <= 1"
-              description="删除此导出格式配置"
-              class="icon-btn"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            </Button>
-            <Button
-              variant="secondary"
-              size="small"
-              @click="openAssetsFolder(config)"
-              description="打开资源文件夹"
-              class="icon-btn"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-folder"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
-            </Button>
-          </span>
+          <MultiColumn :columns="[
+            { width: 1, align: 'left' },   // 格式名称栏
+            { width: 9, align: 'left' },   // 预览栏
+            { width: 1, align: 'right' }   // 操作按钮栏
+          ]">
+
+            <!-- 预览栏 -->
+            <template #column-0>
+                <span class="format-tag">
+                  {{ config.format }}
+                </span>
+            </template>
+
+            <!-- 格式名称栏 -->
+            <template #column-1>
+              <span class="export-name">{{ config.name }}</span>
+            </template>
+
+            <!-- 操作按钮栏 -->
+            <template #column-2>
+              <span class="export-actions" @mousedown.stop @click.stop>
+                <ToggleSwitch
+                  v-model="config.enabled"
+                  @update:model-value="handleExportEnabledChange(index, $event)"
+                />
+                <Button
+                  variant="secondary"
+                  size="small"
+                  @click="openExportModal(index)"
+                  description="编辑此导出格式配置"
+                  class="icon-btn"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  @click="showDeleteConfirm(index)"
+                  :disabled="settings.exportConfigs.length <= 1"
+                  description="删除此导出格式配置"
+                  class="icon-btn"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  @click="openAssetsFolder(config)"
+                  description="打开资源文件夹"
+                  class="icon-btn"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-folder"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
+                </Button>
+              </span>
+            </template>
+          </MultiColumn>
         </div>
       </template>
     </draggable>
@@ -192,15 +209,6 @@
       </div>
     </div>
 
-    <!-- 保存状态指示器 -->
-    <div v-if="saveState.saving" class="save-indicator">
-      <span class="loading-spinner"></span>
-      正在保存配置...
-    </div>
-    <div v-if="saveState.error" class="error-indicator">
-      保存失败：{{ saveState.error }}
-    </div>
-
     <!-- 删除确认弹窗 -->
     <ObsidianVueModal
       v-model:visible="deleteConfirmVisible"
@@ -258,6 +266,7 @@ import TextArea from '../../vue/components/TextArea.vue';
 import Button from '../../vue/components/Button.vue';
 import Dropdown from '../../vue/components/Dropdown.vue';
 import LocalizedText from '../../vue/components/LocalizedText.vue';
+import MultiColumn from '../../vue/components/MultiColumn.vue';
 
 // 定义Props
 interface ExportFormatsSettingsProps {
@@ -275,12 +284,6 @@ const emit = defineEmits<ExportFormatsSettingsEmits>();
 // 使用types.ts中的常量
 const DEFAULT_OUTPUT_DIR = path.posix.join(placeholders.VAR_VAULT_DIR, 'output');
 const DEFAULT_OUTPUT_BASE_NAME = placeholders.VAR_NOTE_NAME;
-
-// 保存状态
-const saveState = reactive({
-  saving: false,
-  error: null as string | null
-});
 
 // 初始化设置
 const settings = reactive<ExportManagerSetting>({
@@ -319,9 +322,6 @@ const getExtensionByFormat = (format: OutputFormat): string => {
  */
 const saveSettings = async () => {
   try {
-    saveState.saving = true;
-    saveState.error = null;
-    
     // 更新插件设置
     props.plugin.settingList.exportFormats = { ...settings };
     
@@ -334,9 +334,6 @@ const saveSettings = async () => {
     console.log('✅ Export formats settings saved successfully');
   } catch (error) {
     console.error('❌ Failed to save export formats settings:', error);
-    saveState.error = error instanceof Error ? error.message : 'Unknown error';
-  } finally {
-    saveState.saving = false;
   }
 };
 
@@ -483,26 +480,10 @@ const onModalVisibilityChange = (visible: boolean) => {
 </script>
 
 <style scoped>
+@import '../../vue/shared-styles.css';
+
 .export-formats-settings {
   padding: 0;
-}
-
-.module-header {
-  margin-bottom: 24px;
-}
-
-.module-header h3 {
-  margin: 0 0 8px 0;
-  color: var(--text-normal);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.module-description {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1.4;
 }
 
 /* 拖拽列表样式 */
@@ -523,10 +504,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   transition: all 0.2s ease;
   user-select: none;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
 }
 
 .export-enabled {
@@ -549,23 +526,12 @@ const onModalVisibilityChange = (visible: boolean) => {
 
 .export-separator {
   color: var(--text-muted);
-  margin: 0 4px;
+  margin: 0 8px;
 }
 
 .export-preview {
   font-size: 13px;
   color: var(--text-muted);
-  min-width: 200px;
-  margin-left: auto;
-}
-
-.export-preview code {
-  background: var(--background-secondary);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: var(--font-monospace);
-  font-size: 12px;
-  color: var(--text-accent);
 }
 
 .output-path {
@@ -577,7 +543,54 @@ const onModalVisibilityChange = (visible: boolean) => {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-left: auto;
+}
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .add-export-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* 图标按钮样式 */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px !important;
+  min-width: 28px;
+  height: 28px;
+}
+
+.icon-btn svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-normal);
+}
+
+.icon-btn:hover svg {
+  color: var(--text-accent);
+}
+
+/* 确认弹窗样式 */
+.confirm-delete-form {
+  padding: 16px;
+}
+
+.confirm-delete-form p {
+  margin: 0 0 20px 0;
+  color: var(--text-normal);
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 /* 弹窗表单样式 */
@@ -585,13 +598,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-.modal-title {
-  color: var(--text-normal);
-  font-weight: 600;
-  margin: 0 0 16px 0;
-  font-size: 18px;
 }
 
 .form-group {
@@ -638,38 +644,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   border: none;
 }
 
-.preview-section {
-  padding: 16px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  position: relative;
-}
-
-.preview-section h4 {
-  margin: 0 0 12px 0;
-  color: var(--text-normal);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.export-preview p {
-  margin: 0 0 8px 0;
-  font-size: 13px;
-}
-
-.export-preview p:last-child {
-  margin: 0;
-}
-
-.export-preview code {
-  background: var(--background-primary);
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-family: var(--font-monospace);
-  color: var(--text-accent);
-}
-
 /* 添加按钮区域 */
 .add-export-section {
   margin-bottom: 24px;
@@ -691,91 +665,5 @@ const onModalVisibilityChange = (visible: boolean) => {
   min-width: 150px;
 }
 
-/* 状态指示器 */
-.save-indicator, .error-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  margin-top: 16px;
-}
-
-.save-indicator {
-  background: var(--background-modifier-success);
-  color: var(--text-success);
-}
-
-.error-indicator {
-  background: var(--background-modifier-error);
-  color: var(--text-error);
-}
-
-.loading-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--text-success);
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
 /* 响应式布局 */
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .export-item {
-    padding: 12px;
-  }
-  
-  .add-export-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-/* 图标按钮样式 */
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px !important;
-  min-width: 28px;
-  height: 28px;
-}
-
-.icon-btn svg {
-  width: 16px;
-  height: 16px;
-  color: var(--text-normal);
-}
-
-.icon-btn:hover svg {
-  color: var(--text-accent);
-}
-
-/* 确认弹窗样式 */
-.confirm-delete-form {
-  padding: 16px;
-}
-
-.confirm-delete-form p {
-  margin: 0 0 20px 0;
-  color: var(--text-normal);
-  font-size: 14px;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
 </style> 

@@ -12,18 +12,18 @@
 -->
 <template>
   <div class="demo-container">
-    <div class="demo-header">
+    <div class="module-header">
       <h3>基础组件演示</h3>
-      <p class="demo-description">
+      <p class="module-description">
         演示基础输入组件和弹窗交互。
       </p>
     </div>
 
     <!-- 基础输入演示 -->
     <div class="demo-section">
-      <div class="section-header">
+      <div class="module-header">
         <h4>输入演示</h4>
-        <p class="section-desc">输入文字查看实时更新效果</p>
+        <p class="module-description">输入文字查看实时更新效果</p>
       </div>
       
       <div class="section-content">
@@ -41,9 +41,9 @@
 
     <!-- 样式演示 -->
     <div class="demo-section">
-      <div class="section-header">
+      <div class="module-header">
         <h4>样式演示</h4>
-        <p class="section-desc">基础样式和交互效果</p>
+        <p class="module-description">基础样式和交互效果</p>
       </div>
       
       <div class="section-content">
@@ -63,18 +63,51 @@
 
     <!-- 弹窗演示 -->
     <div class="demo-section">
-      <div class="section-header">
+      <div class="module-header">
         <h4>弹窗演示</h4>
-        <p class="section-desc">点击按钮打开弹窗</p>
+        <p class="module-description">点击按钮打开弹窗</p>
       </div>
       
       <div class="section-content">
-        <Button
-          variant="primary"
-          @click="openModal"
-        >
-          打开弹窗
-        </Button>
+        <Button @click="showModal">打开弹窗</Button>
+      </div>
+    </div>
+
+    <!-- 分栏布局演示 -->
+    <div class="demo-section">
+      <div class="module-header">
+        <h4>分栏布局演示</h4>
+        <p class="module-description">展示不同比例和对齐方式的分栏布局</p>
+      </div>
+      <div class="section-content">
+        <!-- 2:3比例的左右分栏 -->
+        <div class="demo-block">
+          <h5>2:3 左右分栏</h5>
+          <MultiColumn :columns="[
+            { width: 2, align: 'left', content: '左栏内容 (2/5宽度)' },
+            { width: 3, align: 'right', content: '右栏内容 (3/5宽度)' }
+          ]" />
+        </div>
+
+        <!-- 1:1:1等宽三栏 -->
+        <div class="demo-block">
+          <h5>等宽三栏</h5>
+          <MultiColumn :columns="[
+            { width: 1, align: 'left', content: '左栏' },
+            { width: 1, align: 'center', content: '中栏' },
+            { width: 1, align: 'right', content: '右栏' }
+          ]" />
+        </div>
+
+        <!-- 1:2:1不等宽三栏 -->
+        <div class="demo-block">
+          <h5>1:2:1 三栏</h5>
+          <MultiColumn :columns="[
+            { width: 1, align: 'left', content: '左栏 (1/4宽度)' },
+            { width: 2, align: 'center', content: '中栏 (2/4宽度)' },
+            { width: 1, align: 'right', content: '右栏 (1/4宽度)' }
+          ]" />
+        </div>
       </div>
     </div>
 
@@ -107,7 +140,11 @@ import { ref } from 'vue';
 import type MyPlugin from '../../main';
 import TextInput from './TextInput.vue';
 import Button from './Button.vue';
+import TextArea from './TextArea.vue';
+import Dropdown from './Dropdown.vue';
+import ToggleSwitch from './ToggleSwitch.vue';
 import ObsidianVueModal from './ObsidianVueModal.vue';
+import MultiColumn from './MultiColumn.vue';
 
 // 组件属性接口定义
 interface DemoModalProps {
@@ -125,28 +162,18 @@ const modalVisible = ref(false);
 const openModal = () => {
   modalVisible.value = true;
 };
+
+// 新增的 showModal 函数
+const showModal = () => {
+  modalVisible.value = true;
+};
 </script>
 
 <style scoped>
+@import '../shared-styles.css';
+
 .demo-container {
   padding: 16px 0;
-}
-
-.demo-header {
-  margin-bottom: 24px;
-}
-
-.demo-header h3 {
-  margin: 0 0 8px 0;
-  color: var(--text-normal);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.demo-description {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 14px;
 }
 
 .demo-section {
@@ -156,23 +183,6 @@ const openModal = () => {
 
 .demo-section:last-child {
   border-bottom: none;
-}
-
-.section-header {
-  margin-bottom: 16px;
-}
-
-.section-header h4 {
-  margin: 0 0 4px 0;
-  color: var(--text-normal);
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.section-desc {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 13px;
 }
 
 .section-content {
@@ -228,13 +238,6 @@ const openModal = () => {
   padding: 16px;
 }
 
-.modal-title {
-  color: var(--text-normal);
-  font-weight: 600;
-  margin: 0 0 16px 0;
-  font-size: 18px;
-}
-
 .modal-content h4 {
   margin: 0 0 12px 0;
   color: var(--text-normal);
@@ -261,6 +264,41 @@ const openModal = () => {
   
   .style-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 演示块样式 */
+.demo-block {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+}
+
+.demo-block:last-child {
+  margin-bottom: 0;
+}
+
+.demo-block h5 {
+  margin: 0 0 12px 0;
+  color: var(--text-normal);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 分栏演示样式 */
+.demo-block :deep(.column) {
+  padding: 12px;
+  background: var(--background-secondary);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .demo-block {
+    padding: 12px;
   }
 }
 </style> 

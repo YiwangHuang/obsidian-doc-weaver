@@ -19,89 +19,90 @@
 -->
 <template>
   <div class="export-formats-settings">
-    <div class="module-header">
-      <h3><LocalizedText en="Export Formats Settings" zh="导出格式设置" /></h3>
-      <p class="module-description">
-        <LocalizedText 
-          en="Configure export format commands, support various output formats, drag to reorder"
-          zh="配置导出格式命令，支持多种输出格式，可拖拽排序"
-        />
-      </p>
-    </div>
+    <div class="module-section no-border">
+      <div class="module-header">
+        <h3><LocalizedText en="Export Formats Settings" zh="导出格式设置" /></h3>
+        <p class="module-description">
+          <LocalizedText 
+            en="Configure export format commands, support various output formats, drag to reorder"
+            zh="配置导出格式命令，支持多种输出格式，可拖拽排序"
+          />
+        </p>
+      </div>
 
-    <!-- 可拖拽的导出格式配置列表 -->
-    <draggable
-      v-model="settings.exportConfigs"
-      item-key="id"
-      class="export-configs-list"
-      ghost-class="ghost"
-      @end="handleDragEnd()"
-    >
-      <template #item="{ element: config, index }">
-        <div 
-          class="export-item"
-          :class="{ 'export-enabled': config.enabled, 'export-disabled': !config.enabled }"
-          draggable="true"
-        >
-          <MultiColumn :columns="[
-            { width: 1, align: 'left' },   // 格式名称栏
-            { width: 9, align: 'left' },   // 预览栏
-            { width: 1, align: 'right' }   // 操作按钮栏
-          ]">
+      <!-- 可拖拽的导出格式配置列表 -->
+      <draggable
+        v-model="settings.exportConfigs"
+        item-key="id"
+        ghost-class="ghost"
+        @end="handleDragEnd()"
+      >
+        <template #item="{ element: config, index }">
+          <div 
+            class="export-item"
+            :class="{ 'export-enabled': config.enabled, 'export-disabled': !config.enabled }"
+            draggable="true"
+          >
+            <MultiColumn :columns="[
+              { width: 1, align: 'left' },   // 格式名称栏
+              { width: 9, align: 'left' },   // 预览栏
+              { width: 1, align: 'right' }   // 操作按钮栏
+            ]">
 
-            <!-- 预览栏 -->
-            <template #column-0>
-                <span class="format-tag">
-                  {{ config.format }}
+              <!-- 预览栏 -->
+              <template #column-0>
+                  <span class="format-tag">
+                    {{ config.format }}
+                  </span>
+              </template>
+
+              <!-- 格式名称栏 -->
+              <template #column-1>
+                <span class="export-name">{{ config.name }}</span>
+              </template>
+
+              <!-- 操作按钮栏 -->
+              <template #column-2>
+                <span class="horizontal-stack" @mousedown.stop @click.stop>
+                  <ToggleSwitch
+                    v-model="config.enabled"
+                    @update:model-value="handleExportEnabledChange(index, $event)"
+                  />
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    @click="openExportModal(index)"
+                    description="编辑此导出格式配置"
+                    class="icon-btn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    @click="showDeleteConfirm(index)"
+                    :disabled="settings.exportConfigs.length <= 1"
+                    description="删除此导出格式配置"
+                    class="icon-btn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    @click="openAssetsFolder(config)"
+                    description="打开资源文件夹"
+                    class="icon-btn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-folder"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
+                  </Button>
                 </span>
-            </template>
-
-            <!-- 格式名称栏 -->
-            <template #column-1>
-              <span class="export-name">{{ config.name }}</span>
-            </template>
-
-            <!-- 操作按钮栏 -->
-            <template #column-2>
-              <span class="export-actions" @mousedown.stop @click.stop>
-                <ToggleSwitch
-                  v-model="config.enabled"
-                  @update:model-value="handleExportEnabledChange(index, $event)"
-                />
-                <Button
-                  variant="secondary"
-                  size="small"
-                  @click="openExportModal(index)"
-                  description="编辑此导出格式配置"
-                  class="icon-btn"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="small"
-                  @click="showDeleteConfirm(index)"
-                  :disabled="settings.exportConfigs.length <= 1"
-                  description="删除此导出格式配置"
-                  class="icon-btn"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="small"
-                  @click="openAssetsFolder(config)"
-                  description="打开资源文件夹"
-                  class="icon-btn"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-folder"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
-                </Button>
-              </span>
-            </template>
-          </MultiColumn>
-        </div>
-      </template>
-    </draggable>
+              </template>
+            </MultiColumn>
+          </div>
+        </template>
+      </draggable>
+    </div>
 
     <!-- 导出格式编辑弹窗 -->
     <ObsidianVueModal
@@ -188,8 +189,8 @@
     </ObsidianVueModal>
 
     <!-- 添加新导出格式按钮 -->
-    <div class="add-export-section">
-      <div class="add-export-controls">
+    <div class="module-section" style="display: flex; justify-content: center;">
+      <div class="horizontal-stack">
         <Dropdown
           v-model="selectedFormat"
           :options="formatOptions"
@@ -479,11 +480,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   padding: 0;
 }
 
-/* 拖拽列表样式 */
-.export-configs-list {
-  margin-bottom: 24px;
-}
-
 /* 拖拽时的ghost效果 - 只改变边框颜色 */
 .ghost {
   border-color: var(--interactive-accent) !important;
@@ -536,17 +532,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   display: flex;
   align-items: center;
   gap: 9px;
-}
-/* 响应式布局 */
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .add-export-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
 
 /* 图标按钮样式 */
@@ -620,26 +605,10 @@ const onModalVisibilityChange = (visible: boolean) => {
   border: none;
 }
 
-/* 添加按钮区域 */
-.add-export-section {
-  margin-bottom: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--background-modifier-border);
-}
-
-.add-export-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  justify-content: center;
-}
-
-.add-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 150px;
-}
-
 /* 响应式布局 */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
 </style> 

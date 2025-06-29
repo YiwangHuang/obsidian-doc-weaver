@@ -86,4 +86,26 @@ code {
 
 .preview-section p:last-child {
   margin: 0;
+}
+
+/* 模块分区样式 */
+.module-section {
+  padding-top: 12px;
+  margin-bottom: 12px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+/* 横向布局容器 */
+.horizontal-stack {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .horizontal-stack {
+    flex-direction: column;
+    align-items: stretch;
+  }
 } 

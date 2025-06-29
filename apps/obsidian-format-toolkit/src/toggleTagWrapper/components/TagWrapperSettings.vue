@@ -19,81 +19,82 @@
 -->
 <template>
   <div class="tag-wrapper-settings">
-    <div class="module-header">
-      <h3><LocalizedText en="Tag Wrapper Settings" zh="标签包装器设置" /></h3>
-      <p class="module-description">
-        <LocalizedText 
-          en="Configure tag wrapper commands, wrap selected text with custom tags, drag to reorder"
-          zh="配置标签包装器命令，将选中文本包装在自定义标签中，可拖拽排序"
-        />
-      </p>
+    <div class="module-section no-border">
+      <div class="module-header">
+        <h3><LocalizedText en="Tag Wrapper Settings" zh="标签包装器设置" /></h3>
+        <p class="module-description">
+          <LocalizedText 
+            en="Configure tag wrapper commands, wrap selected text with custom tags, drag to reorder"
+            zh="配置标签包装器命令，将选中文本包装在自定义标签中，可拖拽排序"
+          />
+        </p>
+      </div>
+
+      <!-- 可拖拽的标签配置列表 -->
+      <draggable
+        v-model="settings.tags"
+        item-key="id"
+        ghost-class="ghost"
+        @end="handleDragEnd()"
+      >
+        <template #item="{ element: tag, index }">
+          <div 
+            class="tag-item"
+            :class="{ 'tag-enabled': tag.enabled, 'tag-disabled': !tag.enabled }"
+            draggable="true"
+          >
+            <MultiColumn :columns="[
+              { width: 2, align: 'left' },   // 标签名称栏
+              { width: 3, align: 'left' },   // 预览栏
+              { width: 2, align: 'right' }   // 操作按钮栏
+            ]">
+              <!-- 标签名称栏 -->
+              <template #column-0>
+                <span class="tag-name">{{ tag.name }}</span>
+              </template>
+
+              <!-- 预览栏 -->
+              <template #column-1>
+                <span class="tag-preview">
+                  <code>{{ tag.prefix }}</code>
+                  <span class="tag-separator">...</span>
+                  <code>{{ tag.suffix }}</code>
+                </span>
+              </template>
+
+              <!-- 操作按钮栏 -->
+              <template #column-2>
+                <span class="horizontal-stack" @mousedown.stop @click.stop>
+                  <ToggleSwitch
+                    v-model="tag.enabled"
+                    @update:model-value="handleTagEnabledChange(index, $event)"
+                  />
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    @click="openTagModal(index)"
+                    description="编辑此标签配置"
+                    class="icon-btn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    @click="showDeleteConfirm(index)"
+                    :disabled="settings.tags.length <= 1"
+                    description="删除此标签配置"
+                    class="icon-btn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </Button>
+                </span>
+              </template>
+            </MultiColumn>
+          </div>
+        </template>
+      </draggable>
     </div>
-
-    <!-- 可拖拽的标签配置列表 -->
-    <draggable
-      v-model="settings.tags"
-      item-key="id"
-      class="tag-configs-list"
-      ghost-class="ghost"
-      @end="handleDragEnd()"
-    >
-      <template #item="{ element: tag, index }">
-        <div 
-          class="tag-item"
-          :class="{ 'tag-enabled': tag.enabled, 'tag-disabled': !tag.enabled }"
-          draggable="true"
-        >
-          <MultiColumn :columns="[
-            { width: 2, align: 'left' },   // 标签名称栏
-            { width: 3, align: 'left' },   // 预览栏
-            { width: 2, align: 'right' }   // 操作按钮栏
-          ]">
-            <!-- 标签名称栏 -->
-            <template #column-0>
-              <span class="tag-name">{{ tag.name }}</span>
-            </template>
-
-            <!-- 预览栏 -->
-            <template #column-1>
-              <span class="tag-preview">
-                <code>{{ tag.prefix }}</code>
-                <span class="tag-separator">...</span>
-                <code>{{ tag.suffix }}</code>
-              </span>
-            </template>
-
-            <!-- 操作按钮栏 -->
-            <template #column-2>
-              <span class="tag-actions" @mousedown.stop @click.stop>
-                <ToggleSwitch
-                  v-model="tag.enabled"
-                  @update:model-value="handleTagEnabledChange(index, $event)"
-                />
-                <Button
-                  variant="secondary"
-                  size="small"
-                  @click="openTagModal(index)"
-                  description="编辑此标签配置"
-                  class="icon-btn"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="small"
-                  @click="showDeleteConfirm(index)"
-                  :disabled="settings.tags.length <= 1"
-                  description="删除此标签配置"
-                  class="icon-btn"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                </Button>
-              </span>
-            </template>
-          </MultiColumn>
-        </div>
-      </template>
-    </draggable>
 
     <!-- 标签编辑弹窗 -->
     <ObsidianVueModal
@@ -142,11 +143,10 @@
     </ObsidianVueModal>
 
     <!-- 添加新标签按钮 -->
-    <div class="add-tag-section">
+    <div class="module-section" style="display: flex; justify-content: center;">
       <Button
         variant="primary"
         @click="addNewTag"
-        class="add-button"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -325,11 +325,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   padding: 0;
 }
 
-/* 拖拽列表样式 */
-.tag-configs-list {
-  margin-bottom: 24px;
-}
-
 /* 拖拽时的ghost效果 - 只改变边框颜色 */
 .ghost {
   border-color: var(--interactive-accent) !important;
@@ -421,22 +416,6 @@ const onModalVisibilityChange = (visible: boolean) => {
   background: #e3f2fd;
   padding: 2px 4px;
   border-radius: 3px;
-}
-
-/* 添加按钮区域 */
-.add-tag-section {
-  margin-bottom: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--background-modifier-border);
-  display: flex;
-  justify-content: center;
-}
-
-.add-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 150px;
 }
 
 /* 图标按钮样式 */

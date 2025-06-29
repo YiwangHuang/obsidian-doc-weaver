@@ -5,6 +5,8 @@
  */
 
 import type { OutputFormat } from './textConvert/textConverter';
+import * as placeholders from '../lib/constant';
+import * as path from 'path';
 
 /**
  * 单个导出格式配置接口
@@ -53,9 +55,9 @@ export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSetting = {
  */
 export const EXPORT_FORMATS_CONSTANTS = {
     /** 默认输出目录 */
-    DEFAULT_OUTPUT_DIR: '${VAR_VAULT_DIR}/output',
+    DEFAULT_OUTPUT_DIR: path.join(placeholders.VAR_VAULT_DIR, 'output'),
     /** 默认输出文件名 */
-    DEFAULT_OUTPUT_BASE_NAME: '${VAR_NOTE_NAME}',
+    DEFAULT_OUTPUT_BASE_NAME: placeholders.VAR_NOTE_NAME,
     /** 默认Excalidraw导出类型 */
     DEFAULT_EXCALIDRAW_EXPORT_TYPE: 'png' as const,
     /** 默认PNG缩放比例 */

@@ -81,7 +81,6 @@
                     variant="secondary"
                     size="small"
                     @click="showDeleteConfirm(index)"
-                    :disabled="settings.exportConfigs.length <= 1"
                     description="删除此导出格式配置"
                     class="icon-btn"
                   >
@@ -111,41 +110,43 @@
       @update:visible="onModalVisibilityChange"
     >
       <div v-if="editingConfig" class="export-modal-form">
-        <h2 class="modal-title">编辑导出格式配置: {{ editingConfig.name }}</h2>
+        <h2 class="modal-title">
+          <LocalizedText en="Edit Export Format" zh="编辑导出格式" />: {{ editingConfig.name }}
+        </h2>
         <div class="form-group">
-          <label>格式名称：</label>
+          <label><LocalizedText en="Format Name" zh="格式名称" />：</label>
           <TextInput
             v-model="editingConfig.name"
-            placeholder="输入格式名称..."
+            placeholder="Enter format name..."
             @update:model-value="debouncedSave"
           />
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>输出目录：</label>
+            <label><LocalizedText en="Output Directory" zh="输出目录" />：</label>
             <TextInput
               v-model="editingConfig.output_dir"
-              placeholder="如: output、${VAR_VAULT_DIR}/export"
+              :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR"
               @update:model-value="debouncedSave"
             />
           </div>
 
           <div class="form-group">
-            <label>输出文件名：</label>
+            <label><LocalizedText en="Output Filename" zh="输出文件名" />：</label>
             <TextInput
               v-model="editingConfig.output_base_name"
-              placeholder="如: ${VAR_NOTE_NAME}、document"
+              :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
               @update:model-value="debouncedSave"
             />
           </div>
         </div>
 
         <div class="form-group">
-          <label>YAML配置：</label>
+          <label><LocalizedText en="YAML Configuration" zh="YAML配置" />：</label>
           <TextArea
             v-model="editingConfig.yaml"
-            placeholder="输入导出格式的YAML配置..."
+            placeholder="Enter export format YAML configuration..."
             :rows="8"
             @update:model-value="debouncedSave"
           />
@@ -153,7 +154,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>Excalidraw导出类型：</label>
+            <label><LocalizedText en="Excalidraw Export Type" zh="Excalidraw导出类型" />：</label>
             <Dropdown
               v-model="editingConfig.excalidraw_export_type"
               :options="excalidrawExportOptions"
@@ -162,7 +163,7 @@
           </div>
 
           <div v-if="editingConfig.excalidraw_export_type === 'png'" class="form-group">
-            <label>PNG缩放比例：{{ editingConfig.excalidraw_png_scale }}</label>
+            <label><LocalizedText en="PNG Scale" zh="PNG缩放比例" />：{{ editingConfig.excalidraw_png_scale }}</label>
             <input
               type="range"
               v-model="editingConfig.excalidraw_png_scale"
@@ -176,10 +177,10 @@
         </div>
         
         <div class="preview-section">
-          <h4>预览</h4>
+          <h4><LocalizedText en="Preview" zh="预览" /></h4>
           <div class="export-preview">
-            <p><strong>格式：</strong>{{ editingConfig.format }}</p>
-            <p><strong>输出路径：</strong><code>{{ getPreviewPath(editingConfig) }}</code></p>
+            <p><strong><LocalizedText en="Format" zh="格式" />：</strong>{{ editingConfig.format }}</p>
+            <p><strong><LocalizedText en="Output Path" zh="输出路径" />：</strong><code>{{ getPreviewPath(editingConfig) }}</code></p>
             <p><strong>Excalidraw：</strong>{{ editingConfig.excalidraw_export_type }} 
               <span v-if="editingConfig.excalidraw_export_type === 'png'">({{ editingConfig.excalidraw_png_scale }}x)</span>
             </p>
@@ -194,7 +195,7 @@
         <Dropdown
           v-model="selectedFormat"
           :options="formatOptions"
-          placeholder="选择导出格式"
+          placeholder="Select export format..."
         />
         <Button
           variant="primary"
@@ -217,8 +218,8 @@
       :onConfirm="confirmDelete"
       :onCancel="cancelDelete"
     >
-      <h2 class="modal-title"><LocalizedText en="Confirm Delete Export Configuration" zh="确认删除导出格式配置" /></h2>
-      <p><LocalizedText en="Are you sure you want to delete this export configuration?" zh="确认要删除此导出格式配置吗？" /></p>
+      <h2 class="modal-title"><LocalizedText en="Confirm Delete Export Format" zh="确认删除导出格式" /></h2>
+      <p><LocalizedText en="Are you sure you want to delete this export format?" zh="确认要删除此导出格式吗？" /></p>
     </ConfirmDialog>
   </div>
 </template>
@@ -245,7 +246,6 @@ import type { OutputFormat } from '../textConvert/textConverter';
 import { debounce } from '../../vue/utils';
 import { generateTimestamp } from '../../lib/idGenerator';
 import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defaultStyleConfig/styleConfigs';
-import * as placeholders from '../../lib/constant';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
 import TextInput from '../../vue/components/TextInput.vue';
@@ -269,9 +269,7 @@ interface ExportFormatsSettingsEmits {
 const props = defineProps<ExportFormatsSettingsProps>();
 const emit = defineEmits<ExportFormatsSettingsEmits>();
 
-// 使用types.ts中的常量
-const DEFAULT_OUTPUT_DIR = path.posix.join(placeholders.VAR_VAULT_DIR, 'output');
-const DEFAULT_OUTPUT_BASE_NAME = placeholders.VAR_NOTE_NAME;
+
 
 // 初始化设置
 const settings = reactive<ExportManagerSetting>({
@@ -293,8 +291,8 @@ const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
  * 获取预览路径
  */
 const getPreviewPath = (config: ExportConfig): string => {
-  const outputDir = config.output_dir || DEFAULT_OUTPUT_DIR;
-  const outputName = config.output_base_name || DEFAULT_OUTPUT_BASE_NAME;
+  const outputDir = config.output_dir || EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR;
+  const outputName = config.output_base_name || EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME;
   return `${outputDir}/${outputName}.${getExtensionByFormat(config.format)}`;
 };
 
@@ -391,9 +389,6 @@ const openAssetsFolder = (config: ExportConfig) => {
  * 显示删除确认弹窗
  */
 const showDeleteConfirm = (index: number) => {
-  if (settings.exportConfigs.length <= 1) {
-    return;
-  }
   deleteConfigIndex.value = index;
   deleteConfirmVisible.value = true;
 };
@@ -437,8 +432,8 @@ const addNewExportConfig = async () => {
     id: hexId,
     style_dir: path.posix.join('styles', hexId),
     name: `${hexId}`,
-    output_dir: DEFAULT_OUTPUT_DIR,
-    output_base_name: DEFAULT_OUTPUT_BASE_NAME + '_' + hexId,
+    output_dir: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR,
+    output_base_name: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + hexId,
     yaml: getDefaultYAML(selectedFormat.value) || '',
     enabled: true,
     format: selectedFormat.value,

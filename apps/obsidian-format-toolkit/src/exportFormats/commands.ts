@@ -44,7 +44,14 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
     const sourceContent = (await getNoteInfo(plugin, sourceFile)).mainContent// 只获取笔记主要内容，暂时用不到笔记属性
     const settings = plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;// 获取设置
     const converter = new TextConverter(plugin, sourceFile);
-    for (const item of settings.exportConfigs.filter(item => item.enabled)) {
+    
+    const enabledConfigs = settings.exportConfigs.filter(item => item.enabled);
+    if (enabledConfigs.length === 0) {
+        new Notice("No enabled export formats found. Please enable at least one format in settings.");
+        return;
+    }
+
+    for (const item of enabledConfigs) {
         converter.exportConfig = item;
         const styleDirAbs = path.posix.join(plugin.PLUGIN_ABS_PATH, item.style_dir);
         const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir)); // 跨平台路径处理

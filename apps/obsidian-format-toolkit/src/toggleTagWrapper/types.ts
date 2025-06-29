@@ -62,13 +62,11 @@ export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
  */
 export const TAG_WRAPPER_CONSTANTS = {
     /** 新标签的默认前缀 */
-    DEFAULT_TAG_PREFIX: '<tag>',
+    DEFAULT_TAG_PREFIX: '<u>',
     /** 新标签的默认后缀 */
-    DEFAULT_TAG_SUFFIX: '</tag>',
+    DEFAULT_TAG_SUFFIX: '</u>',
     /** 新标签的默认启用状态 */
     DEFAULT_ENABLED: true,
-    /** 最小标签数量（不能全部删除） */
-    MIN_TAG_COUNT: 1
 } as const;
 
 /**

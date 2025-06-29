@@ -82,7 +82,6 @@
                     variant="secondary"
                     size="small"
                     @click="showDeleteConfirm(index)"
-                    :disabled="settings.tags.length <= 1"
                     description="删除此标签配置"
                     class="icon-btn"
                   >
@@ -103,40 +102,44 @@
       @update:visible="onModalVisibilityChange"
     >
       <div v-if="editingTag" class="tag-modal-form">
-        <h2 class="modal-title">编辑标签配置: {{ editingTag.name }}</h2>
+        <h2 class="modal-title">
+          <LocalizedText en="Edit Tag Configuration" zh="编辑标签配置" />: {{ editingTag.name }}
+        </h2>
         <div class="form-group">
-          <label>标签名称：</label>
+          <label><LocalizedText en="Tag Name" zh="标签名称" />：</label>
           <TextInput
             v-model="editingTag.name"
-            placeholder="输入标签名称..."
+            placeholder="Enter tag name..."
             @update:model-value="debouncedSave"
           />
         </div>
 
-                 <div class="form-row">
-           <div class="form-group">
-             <label>开始标签：</label>
-             <TextInput
-               v-model="editingTag.prefix"
-               placeholder="如: <div>、**、<!--"
-               @update:model-value="debouncedSave"
-             />
-           </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label><LocalizedText en="Start Tag" zh="开始标签" />：</label>
+            <TextInput
+              v-model="editingTag.prefix"
+              placeholder="e.g. <div>, **, <!--"
+              @update:model-value="debouncedSave"
+            />
+          </div>
 
-           <div class="form-group">
-             <label>结束标签：</label>
-             <TextInput
-               v-model="editingTag.suffix"
-               placeholder="如: </div>、**、-->"
-               @update:model-value="debouncedSave"
-             />
-           </div>
-         </div>
+          <div class="form-group">
+            <label><LocalizedText en="End Tag" zh="结束标签" />：</label>
+            <TextInput
+              v-model="editingTag.suffix"
+              placeholder="e.g. </div>, **, -->"
+              @update:model-value="debouncedSave"
+            />
+          </div>
+        </div>
         
         <div class="preview-section">
-          <h4>预览</h4>
+          <h4><LocalizedText en="Preview" zh="预览" /></h4>
           <div class="preview-example">
-            <code>{{ editingTag.prefix }}</code><span class="selected-text">选中的文本</span><code>{{ editingTag.suffix }}</code>
+            <code>{{ editingTag.prefix }}</code>
+            <span class="selected-text"><LocalizedText en="Selected Text" zh="选中的文本" /></span>
+            <code>{{ editingTag.suffix }}</code>
           </div>
         </div>
       </div>
@@ -189,7 +192,7 @@ import Button from '../../vue/components/Button.vue';
 import LocalizedText from '../../vue/components/LocalizedText.vue';
 import MultiColumn from '../../vue/components/MultiColumn.vue';
 import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
-
+// TODO: 目前启用禁用标签，需要重启obsidian应用后才能生效，需要改为实时生效
 // 定义Props
 interface TagWrapperSettingsProps {
   plugin: MyPlugin;
@@ -269,9 +272,6 @@ const openTagModal = (index: number) => {
  * 显示删除确认弹窗
  */
 const showDeleteConfirm = (index: number) => {
-  if (settings.tags.length <= 1) {
-    return;
-  }
   deleteTagIndex.value = index;
   deleteConfirmVisible.value = true;
 };

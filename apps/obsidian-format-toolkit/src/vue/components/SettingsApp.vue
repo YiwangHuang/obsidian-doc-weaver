@@ -50,6 +50,8 @@ import { useSettingsState } from '../utils';
 import SettingsTabs from './SettingsTabs.vue';
 import SettingsPanel from './SettingsPanel.vue';
 import DemoModalComponent from './DemoModalComponent.vue';
+import '../shared-styles.css';
+import { debugLog } from '../../lib/testUtils';
 
 // 定义Props
 const props = defineProps<SettingsAppProps>();
@@ -97,7 +99,7 @@ const switchTab = (tabName: string) => {
 
 // 处理设置变更
 const handleSettingsChanged = (newSettings: any) => {
-  console.log('Settings changed:', newSettings);
+  debugLog('Settings updated:', newSettings);
 };
 </script>
 

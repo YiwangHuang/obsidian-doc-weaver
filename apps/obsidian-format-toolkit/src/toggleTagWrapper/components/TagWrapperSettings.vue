@@ -192,6 +192,7 @@ import Button from '../../vue/components/Button.vue';
 import LocalizedText from '../../vue/components/LocalizedText.vue';
 import MultiColumn from '../../vue/components/MultiColumn.vue';
 import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
+import { debugLog } from '../../lib/testUtils';
 // TODO: 目前启用禁用标签，需要重启obsidian应用后才能生效，需要改为实时生效
 // 定义Props
 interface TagWrapperSettingsProps {
@@ -233,9 +234,9 @@ const saveSettings = async () => {
     // 发出设置变更事件
     emit('settings-changed', settings);
     
-    console.log('✅ Tag wrapper settings saved successfully');
+    debugLog('Tag wrapper settings saved');
   } catch (error) {
-    console.error('❌ Failed to save tag wrapper settings:', error);
+    debugLog('Failed to save tag wrapper settings:', error);
   }
 };
 
@@ -246,7 +247,7 @@ const debouncedSave = debounce(saveSettings, 500);
  * 保存设置并处理拖拽结束
  */
 const handleDragEnd = () => {
-  console.log('🏁 拖拽结束，保存新顺序');
+  debugLog('Drag ended, order saved');
   // 拖拽结束后自动保存
   debouncedSave();
 };
@@ -255,7 +256,7 @@ const handleDragEnd = () => {
  * 处理标签启用状态变更
  */
 const handleTagEnabledChange = (index: number, enabled: boolean) => {
-  console.log(`🔄 标签 ${index} 启用状态变更为: ${enabled}`);
+  debugLog(`Tag ${index} enabled:`, enabled);
   settings.tags[index].enabled = enabled;
   debouncedSave();
 };
@@ -282,7 +283,7 @@ const showDeleteConfirm = (index: number) => {
 const confirmDelete = () => {
   if (deleteTagIndex.value === null) return;
   
-  console.log(`🗑️ 删除标签配置: ${settings.tags[deleteTagIndex.value].name}`);
+  debugLog('Tag deleted:', settings.tags[deleteTagIndex.value].name);
   settings.tags.splice(deleteTagIndex.value, 1);
   deleteTagIndex.value = null;
   debouncedSave();
@@ -301,7 +302,7 @@ const cancelDelete = () => {
 const addNewTag = () => {
   const newTag = createNewTagConfig();
   
-  console.log(`➕ 添加新标签配置: ${newTag.name}`);
+  debugLog('New tag added:', newTag.name);
   settings.tags.push(newTag);
   debouncedSave();
 };

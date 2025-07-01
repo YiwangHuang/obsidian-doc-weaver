@@ -255,6 +255,7 @@ import Dropdown from '../../vue/components/Dropdown.vue';
 import LocalizedText from '../../vue/components/LocalizedText.vue';
 import MultiColumn from '../../vue/components/MultiColumn.vue';
 import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
+import { debugLog } from '../../lib/testUtils';
 
 // 定义Props
 interface ExportFormatsSettingsProps {
@@ -317,9 +318,9 @@ const saveSettings = async () => {
     // 发出设置变更事件
     emit('settings-changed', settings);
     
-    console.log('✅ Export formats settings saved successfully');
+    debugLog('Export formats settings saved');
   } catch (error) {
-    console.error('❌ Failed to save export formats settings:', error);
+    debugLog('Failed to save export formats settings:', error);
   }
 };
 
@@ -330,7 +331,7 @@ const debouncedSave = debounce(saveSettings, 500);
  * 保存设置并处理拖拽结束
  */
 const handleDragEnd = () => {
-  console.log('🏁 拖拽结束，保存新顺序');
+  debugLog('Drag ended, order saved');
   debouncedSave();
 };
 
@@ -338,7 +339,7 @@ const handleDragEnd = () => {
  * 处理导出格式启用状态变更
  */
 const handleExportEnabledChange = (index: number, enabled: boolean) => {
-  console.log(`🔄 导出格式 ${index} 启用状态变更为: ${enabled}`);
+  debugLog(`Export format ${index} enabled:`, enabled);
   settings.exportConfigs[index].enabled = enabled;
   debouncedSave();
 };
@@ -400,7 +401,7 @@ const confirmDelete = async () => {
   if (deleteConfigIndex.value === null) return;
   
   const config = settings.exportConfigs[deleteConfigIndex.value];
-  console.log(`🗑️ 删除导出格式配置: ${config.name}`);
+  debugLog('Export config deleted:', config.name);
   
   // 删除对应的资源文件夹
   const formatStylesPath = path.posix.join(
@@ -451,7 +452,7 @@ const addNewExportConfig = async () => {
   }
   createFormatAssetStructure(styleDirAbs, selectedFormat.value);
   
-  console.log(`➕ 添加新导出格式配置: ${newConfig.name}`);
+  debugLog('New export config added:', newConfig.name);
   settings.exportConfigs.push(newConfig);
   debouncedSave();
 };

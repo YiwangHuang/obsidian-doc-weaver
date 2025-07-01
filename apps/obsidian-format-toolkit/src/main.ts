@@ -82,37 +82,6 @@ export default class MyPlugin extends Plugin {
 	onunload() {
 	}
 
-    // 查找所有 Markdown 文件，备用
-    findMarkdownFiles(fileName: string): TFile[] {
-        const allFiles = this.app.vault.getAllLoadedFiles();
-        return allFiles.filter(file => 
-            file instanceof TFile && 
-            file.extension === 'md' && 
-            file.name.includes(fileName)
-        ) as TFile[];
-    }
-
-    // 查找所有图片文件，备用
-    findImageFiles(fileName: string): TFile[] {
-        const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'svg'];
-        const allFiles = this.app.vault.getAllLoadedFiles();
-        return allFiles.filter(file => 
-            file instanceof TFile && 
-            imageExtensions.includes(file.extension) &&
-            file.name.includes(fileName)
-        ) as TFile[];
-    }
-
-    // 按文件类型查找，备用
-    findFilesByType(fileName: string, extension: string): TFile[] {
-        const allFiles = this.app.vault.getAllLoadedFiles();
-        return allFiles.filter(file => 
-            file instanceof TFile && 
-            file.extension === extension &&
-            file.name.includes(fileName)
-        ) as TFile[];
-    }
-
     // 获取文件file的附件的默认存储位置，备用
     public getAttachmentDirRel(file: TFile): string {
         if (file.extension !== 'md') {
@@ -176,8 +145,6 @@ export class AlternativeSettingTab extends PluginSettingTab {
     
     // 定义所有可用的设置选项卡
     private readonly moduleSettings: SettingsRegistry[];
-    // 测试模式开关 - 设置为true时使用Vue组件
-    private readonly useVueMode: boolean = true;
 
     constructor(app: App, plugin: MyPlugin, settingTab: initSettingTab) {
         super(app, plugin);
@@ -189,14 +156,7 @@ export class AlternativeSettingTab extends PluginSettingTab {
     display(): void {
         const {containerEl} = this;
         containerEl.empty();
-
-        if (this.useVueMode) {
-            this.renderVueComponent(containerEl);
-        } else {
-        this.createTabContainer(containerEl);
-        this.createContentContainer(containerEl);
-        this.addTabStyles();
-        }
+        this.renderVueComponent(containerEl);
     }
 
     private renderVueComponent(containerEl: HTMLElement): void {
@@ -211,85 +171,6 @@ export class AlternativeSettingTab extends PluginSettingTab {
         
         // 挂载Vue应用
         this.vueApp.mount(mountPoint);
-    }
-
-    private createTabContainer(containerEl: HTMLElement): void {
-        const tabContainer = containerEl.createEl('div', { cls: 'setting-tabs' });
-        
-        this.moduleSettings.forEach(setting => {
-            const tabButton = this.createTabButton(tabContainer, setting);
-            if (setting.description) {
-                tabButton.setAttribute('aria-label', setting.description);
-            }
-        });
-    }
-
-    private createTabButton(container: HTMLElement, setting: SettingsRegistry): HTMLElement {
-        const tabButton = container.createEl('button', {
-            text: setting.name,
-            cls: `setting-tab-button ${this.activeTab === setting.name ? 'active' : ''}`
-        });
-
-        tabButton.onclick = () => this.handleTabClick(container, tabButton, setting.name);
-        return tabButton;
-    }
-
-    private handleTabClick(container: HTMLElement, clickedButton: HTMLElement, settingName: string): void {
-        container.findAll('.setting-tab-button').forEach(el => el.removeClass('active'));
-        clickedButton.addClass('active');
-        this.activeTab = settingName;
-
-        const contentEl = container.parentElement?.querySelector('.setting-tab-content');
-        if (contentEl) {
-            this.showActiveTabContent(contentEl as HTMLElement);
-        }
-    }
-
-    private createContentContainer(containerEl: HTMLElement): void {
-        const contentEl = containerEl.createDiv('setting-tab-content');
-        this.showActiveTabContent(contentEl);
-    }
-
-    private showActiveTabContent(containerEl: HTMLElement): void {
-        containerEl.empty();
-        const activeSetting = this.moduleSettings.find(setting => setting.name === this.activeTab);
-        if (activeSetting) {
-            activeSetting.renderSettingTab(containerEl, this.plugin);
-        }
-    }
-
-    private addTabStyles(): void {
-        const style = document.createElement('style');
-        style.textContent = `
-            .setting-tabs {
-                display: flex;
-                border-bottom: 1px solid var(--background-modifier-border);
-                margin-bottom: 16px;
-            }
-            .setting-tab-button {
-                padding: 8px 16px;
-                margin: 0 8px;
-                border: none;
-                background: none;
-                cursor: pointer;
-                color: var(--text-muted);
-                border-bottom: 2px solid transparent;
-            }
-            .setting-tab-button:first-child {
-                margin-left: 0;
-            }
-            .setting-tab-button:hover {
-                color: var(--text-normal);
-            }
-            .setting-tab-button.active {
-                color: var(--text-normal);
-                border-bottom: 2px solid var(--interactive-accent);
-            }
-            .setting-tab-content {
-                padding: 8px 0;
-            }
-        `;
-        document.head.appendChild(style);
     }
 
     hide(): void {

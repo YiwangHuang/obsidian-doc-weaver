@@ -5,7 +5,7 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import { exportToPng, exportToSvg } from '../../lib/excalidrawUtils';
-import { ExportConfig } from '../settings';
+import { ExportConfig } from '../types';
 import * as placeholders from '../../lib/constant';
 import { LinkParser } from './linkParser';
 

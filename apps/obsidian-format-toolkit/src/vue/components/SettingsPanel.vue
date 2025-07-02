@@ -34,23 +34,21 @@
   </SettingsPanel>
 -->
 <template>
-  <div class="settings-panel">
-    <!-- 保存状态指示器 -->
-    <div v-if="saveState.saving || saveState.error" class="status-bar">
-      <div v-if="saveState.saving" class="saving-indicator">
-        <span class="loading-spinner"></span>
-        Saving...
-      </div>
-      <div v-if="saveState.error" class="error-message">
-        <span class="error-icon">⚠️</span>
-        Error: {{ saveState.error }}
-      </div>
+  <!-- 保存状态指示器 -->
+  <div v-if="saveState.saving || saveState.error" class="status-bar">
+    <div v-if="saveState.saving" class="saving-indicator">
+      <span class="loading-spinner"></span>
+      Saving...
     </div>
+    <div v-if="saveState.error" class="error-message">
+      <span class="error-icon">⚠️</span>
+      Error: {{ saveState.error }}
+    </div>
+  </div>
 
-    <!-- 设置内容区域 -->
-    <div class="settings-content">
-      <slot></slot>
-    </div>
+  <!-- 设置内容区域 -->
+  <div class="settings-content">
+    <slot></slot>
   </div>
 </template>
 
@@ -66,9 +64,6 @@ defineProps<SettingsPanelProps>();
 </script>
 
 <style scoped>
-.settings-panel {
-  padding: 8px 0;
-}
 
 .status-bar {
   margin-bottom: 16px;

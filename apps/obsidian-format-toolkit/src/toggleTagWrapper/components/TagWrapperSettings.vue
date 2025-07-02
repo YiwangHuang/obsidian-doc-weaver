@@ -21,12 +21,12 @@
   <div class="tag-wrapper-settings">
     <div class="module-section no-border">
       <div class="module-header">
-        <h3><LocalizedText en="Tag Wrapper Settings" zh="标签包装器设置" /></h3>
+        <h3>{{ getLocalizedText({ en: "Tag Wrapper Settings", zh: "标签包装器设置" }) }}</h3>
         <p class="module-description">
-          <LocalizedText 
-            en="Configure tag wrapper commands, wrap selected text with custom tags, drag to reorder"
-            zh="配置标签包装器命令，将选中文本包装在自定义标签中，可拖拽排序"
-          />
+          {{ getLocalizedText({
+            en: "Configure tag wrapper commands, wrap selected text with custom tags",
+            zh: "配置标签包装器命令，将选中文本包装在自定义标签中"
+          }) }}
         </p>
       </div>
 
@@ -57,7 +57,7 @@
               <template #column-1>
                 <span class="tag-preview">
                   <code>{{ tag.prefix }}</code>
-                  <span class="tag-separator">...</span>
+                  <span class="tag-separator">{{ getLocalizedText({ en: "Text", zh: "文本" }) }}</span>
                   <code>{{ tag.suffix }}</code>
                 </span>
               </template>
@@ -103,10 +103,10 @@
     >
       <div v-if="editingTag" class="tag-modal-form">
         <h2 class="modal-title">
-          <LocalizedText en="Edit Tag Configuration" zh="编辑标签配置" />: {{ editingTag.name }}
+          {{ getLocalizedText({ en: "Edit Tag Configuration", zh: "编辑标签配置" }) }}: {{ editingTag.name }}
         </h2>
         <div class="form-group">
-          <label><LocalizedText en="Tag Name" zh="标签名称" />：</label>
+          <label>{{ getLocalizedText({ en: "Tag Name", zh: "标签名称" }) }}：</label>
           <TextInput
             v-model="editingTag.name"
             placeholder="Enter tag name..."
@@ -116,7 +116,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label><LocalizedText en="Start Tag" zh="开始标签" />：</label>
+            <label>{{ getLocalizedText({ en: "Start Tag", zh: "开始标签" }) }}：</label>
             <TextInput
               v-model="editingTag.prefix"
               placeholder="e.g. <div>, **, <!--"
@@ -125,7 +125,7 @@
           </div>
 
           <div class="form-group">
-            <label><LocalizedText en="End Tag" zh="结束标签" />：</label>
+            <label>{{ getLocalizedText({ en: "End Tag", zh: "结束标签" }) }}：</label>
             <TextInput
               v-model="editingTag.suffix"
               placeholder="e.g. </div>, **, -->"
@@ -135,10 +135,10 @@
         </div>
         
         <div class="preview-section">
-          <h4><LocalizedText en="Preview" zh="预览" /></h4>
+          <h4>{{ getLocalizedText({ en: "Preview", zh: "预览" }) }}</h4>
           <div class="preview-example">
             <code>{{ editingTag.prefix }}</code>
-            <span class="selected-text"><LocalizedText en="Selected Text" zh="选中的文本" /></span>
+            <span class="selected-text">{{ getLocalizedText({ en: "Selected Text", zh: "选中的文本" }) }}</span>
             <code>{{ editingTag.suffix }}</code>
           </div>
         </div>
@@ -155,10 +155,18 @@
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        <LocalizedText en="Add Tag Configuration" zh="添加标签配置" />
+        {{ getLocalizedText({ en: "Add Tag Configuration", zh: "添加标签配置" }) }}
       </Button>
     </div>
 
+    <div class="module-section no-border">
+      <p class="module-description">
+        {{ getLocalizedText({
+          en: "This feature is still under development, and changes to tag configurations require a restart of Obsidian to take effect",
+          zh: "该功能仍待完善，目前增减标签配置需要重启obsidian应用后才能生效"
+        }) }}
+      </p>  
+    </div>
     <!-- 删除确认弹窗 -->
     <ConfirmDialog
       v-model:visible="deleteConfirmVisible"
@@ -166,8 +174,8 @@
       :onConfirm="confirmDelete"
       :onCancel="cancelDelete"
     >
-      <h2 class="modal-title"><LocalizedText en="Confirm Delete Tag Configuration" zh="确认删除标签配置" /></h2>
-      <p><LocalizedText en="Are you sure you want to delete this tag configuration?" zh="确认要删除此标签配置吗？" /></p>
+      <h2 class="modal-title">{{ getLocalizedText({ en: "Confirm Delete Tag Configuration", zh: "确认删除标签配置" }) }}</h2>
+      <p>{{ getLocalizedText({ en: "Are you sure you want to delete this tag configuration?", zh: "确认要删除此标签配置吗？" }) }}</p>
     </ConfirmDialog>
   </div>
 </template>
@@ -189,10 +197,10 @@ import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
 import TextInput from '../../vue/components/TextInput.vue';
 import Button from '../../vue/components/Button.vue';
-import LocalizedText from '../../vue/components/LocalizedText.vue';
-import MultiColumn from '../../vue/components/MultiColumn.vue';
-import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
-import { debugLog } from '../../lib/testUtils';
+  import MultiColumn from '../../vue/components/MultiColumn.vue';
+  import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
+  import { debugLog } from '../../lib/testUtils';
+  import { getLocalizedText } from '../../lib/textUtils';
 // TODO: 目前启用禁用标签，需要重启obsidian应用后才能生效，需要改为实时生效
 // 定义Props
 interface TagWrapperSettingsProps {

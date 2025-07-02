@@ -24,6 +24,7 @@ export interface SettingsRegistry {
     name: string;
     description: string;
     defaultSettings: object;
+    settingTabName: string; // 设置页面中显示的标签名
     component?: any; // Vue组件，可选字段
 }
 

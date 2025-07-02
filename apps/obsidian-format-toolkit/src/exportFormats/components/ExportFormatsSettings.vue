@@ -21,12 +21,12 @@
   <div class="export-formats-settings">
     <div class="module-section no-border">
       <div class="module-header">
-        <h3><LocalizedText en="Export Formats Settings" zh="导出格式设置" /></h3>
+        <h3>{{ getLocalizedText({ en: "Export Formats Settings", zh: "导出格式设置" }) }}</h3>
         <p class="module-description">
-          <LocalizedText 
-            en="Configure export format commands, support various output formats, drag to reorder"
-            zh="配置导出格式命令，支持多种输出格式，可拖拽排序"
-          />
+          {{ getLocalizedText({
+            en: "Configure export format commands, support various output formats",
+            zh: "配置导出格式命令，支持多种输出格式"
+          }) }}
         </p>
       </div>
 
@@ -111,10 +111,10 @@
     >
       <div v-if="editingConfig" class="export-modal-form">
         <h2 class="modal-title">
-          <LocalizedText en="Edit Export Format" zh="编辑导出格式" />: {{ editingConfig.name }}
+          {{ getLocalizedText({ en: "Edit Export Format", zh: "编辑导出格式" }) }}: {{ editingConfig.name }}
         </h2>
         <div class="form-group">
-          <label><LocalizedText en="Format Name" zh="格式名称" />：</label>
+          <label>{{ getLocalizedText({ en: "Format Name", zh: "格式名称" }) }}：</label>
           <TextInput
             v-model="editingConfig.name"
             placeholder="Enter format name..."
@@ -124,7 +124,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label><LocalizedText en="Output Directory" zh="输出目录" />：</label>
+            <label>{{ getLocalizedText({ en: "Output Directory", zh: "输出目录" }) }}：</label>
             <TextInput
               v-model="editingConfig.output_dir"
               :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR"
@@ -133,7 +133,7 @@
           </div>
 
           <div class="form-group">
-            <label><LocalizedText en="Output Filename" zh="输出文件名" />：</label>
+            <label>{{ getLocalizedText({ en: "Output Filename", zh: "输出文件名" }) }}：</label>
             <TextInput
               v-model="editingConfig.output_base_name"
               :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
@@ -143,7 +143,7 @@
         </div>
 
         <div class="form-group">
-          <label><LocalizedText en="YAML Configuration" zh="YAML配置" />：</label>
+          <label>{{ getLocalizedText({ en: "YAML Configuration", zh: "YAML配置" }) }}：</label>
           <TextArea
             v-model="editingConfig.yaml"
             placeholder="Enter export format YAML configuration..."
@@ -154,7 +154,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label><LocalizedText en="Excalidraw Export Type" zh="Excalidraw导出类型" />：</label>
+            <label>{{ getLocalizedText({ en: "Excalidraw Export Type", zh: "Excalidraw导出类型" }) }}：</label>
             <Dropdown
               v-model="editingConfig.excalidraw_export_type"
               :options="excalidrawExportOptions"
@@ -163,7 +163,7 @@
           </div>
 
           <div v-if="editingConfig.excalidraw_export_type === 'png'" class="form-group">
-            <label><LocalizedText en="PNG Scale" zh="PNG缩放比例" />：{{ editingConfig.excalidraw_png_scale }}</label>
+            <label>{{ getLocalizedText({ en: "PNG Scale", zh: "PNG缩放比例" }) }}：{{ editingConfig.excalidraw_png_scale }}</label>
             <input
               type="range"
               v-model="editingConfig.excalidraw_png_scale"
@@ -177,10 +177,10 @@
         </div>
         
         <div class="preview-section">
-          <h4><LocalizedText en="Preview" zh="预览" /></h4>
+          <h4>{{ getLocalizedText({ en: "Preview", zh: "预览" }) }}</h4>
           <div class="export-preview">
-            <p><strong><LocalizedText en="Format" zh="格式" />：</strong>{{ editingConfig.format }}</p>
-            <p><strong><LocalizedText en="Output Path" zh="输出路径" />：</strong><code>{{ getPreviewPath(editingConfig) }}</code></p>
+            <p><strong>{{ getLocalizedText({ en: "Format", zh: "格式" }) }}：</strong>{{ editingConfig.format }}</p>
+            <p><strong>{{ getLocalizedText({ en: "Output Path", zh: "输出路径" }) }}：</strong><code>{{ getPreviewPath(editingConfig) }}</code></p>
             <p><strong>Excalidraw：</strong>{{ editingConfig.excalidraw_export_type }} 
               <span v-if="editingConfig.excalidraw_export_type === 'png'">({{ editingConfig.excalidraw_png_scale }}x)</span>
             </p>
@@ -206,7 +206,7 @@
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          <LocalizedText en="Add Export Format" zh="添加导出格式" />
+          {{ getLocalizedText({ en: "Add Export Format", zh: "添加导出格式" }) }}
         </Button>
       </div>
     </div>
@@ -218,8 +218,8 @@
       :onConfirm="confirmDelete"
       :onCancel="cancelDelete"
     >
-      <h2 class="modal-title"><LocalizedText en="Confirm Delete Export Format" zh="确认删除导出格式" /></h2>
-      <p><LocalizedText en="Are you sure you want to delete this export format?" zh="确认要删除此导出格式吗？" /></p>
+      <h2 class="modal-title">{{ getLocalizedText({ en: "Confirm Delete Export Format", zh: "确认删除导出格式" }) }}</h2>
+      <p>{{ getLocalizedText({ en: "Are you sure you want to delete this export format?", zh: "确认要删除此导出格式吗？" }) }}</p>
     </ConfirmDialog>
   </div>
 </template>
@@ -252,10 +252,10 @@ import TextInput from '../../vue/components/TextInput.vue';
 import TextArea from '../../vue/components/TextArea.vue';
 import Button from '../../vue/components/Button.vue';
 import Dropdown from '../../vue/components/Dropdown.vue';
-import LocalizedText from '../../vue/components/LocalizedText.vue';
-import MultiColumn from '../../vue/components/MultiColumn.vue';
-import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
-import { debugLog } from '../../lib/testUtils';
+  import MultiColumn from '../../vue/components/MultiColumn.vue';
+  import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
+  import { debugLog } from '../../lib/testUtils';
+  import { getLocalizedText } from '../../lib/textUtils';
 
 // 定义Props
 interface ExportFormatsSettingsProps {

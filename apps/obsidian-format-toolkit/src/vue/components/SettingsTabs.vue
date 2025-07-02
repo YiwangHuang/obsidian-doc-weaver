@@ -11,19 +11,20 @@
   
   配置项：
   Props:
-  - tabs: 标签页数组，类型为包含name和description的对象数组
+  - tabs: 标签页数组，类型为包含name、settingTabName和description的对象数组
   - activeTab: 当前活动标签页名称 (string)
   - onTabChange: 标签页切换回调函数
   
   Tab对象结构：
-  - name: 标签页名称 (string) 必需
+  - name: 标签页内部名称 (string) 必需
+  - settingTabName: 标签页显示名称 (string) 必需
   - description: 标签页描述，用于tooltip显示 (string) 可选
   
   使用示例：
   <SettingsTabs
     :tabs="[
-      { name: '基础设置', description: '基本功能配置' },
-      { name: '高级设置', description: '高级功能配置' }
+      { name: 'basic', settingTabName: '基础设置', description: '基本功能配置' },
+      { name: 'advanced', settingTabName: '高级设置', description: '高级功能配置' }
     ]"
     :active-tab="currentTab"
     :on-tab-change="handleTabChange"
@@ -38,7 +39,7 @@
       @click="handleTabClick(tab.name)"
       :title="tab.description"
     >
-      {{ tab.name }}
+      {{ tab.settingTabName }}
     </button>
   </div>
 </template>
@@ -59,7 +60,6 @@ const handleTabClick = (tabName: string) => {
 .settings-tabs {
   display: flex;
   border-bottom: 1px solid var(--background-modifier-border);
-  margin-bottom: 16px;
 }
 
 .setting-tab-button {

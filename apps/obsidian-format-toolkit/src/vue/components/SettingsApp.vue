@@ -13,34 +13,32 @@
   - moduleSettings: 模块设置数组，包含Vue组件映射
 -->
 <template>
-  <div class="settings-container">
-    <h2>Doc Weaver</h2>
+  <h2 style="margin-bottom: 9px;">Doc Weaver</h2>
+  
+  <!-- 标签页导航 -->
+  <SettingsTabs
+    :tabs="allTabs"
+    :active-tab="activeTab"
+    :on-tab-change="switchTab"
+  />
+  
+  <!-- 设置面板内容 -->
+  <SettingsPanel :save-state="saveState">
+    <!-- 动态组件渲染 -->
+    <div v-if="currentComponent" class="module-content">
+      <component 
+        :is="currentComponent"
+        :plugin="plugin"
+        @settings-changed="handleSettingsChanged"
+      />
+    </div>
     
-    <!-- 标签页导航 -->
-    <SettingsTabs
-      :tabs="allTabs"
-      :active-tab="activeTab"
-      :on-tab-change="switchTab"
-    />
-    
-    <!-- 设置面板内容 -->
-    <SettingsPanel :save-state="saveState">
-      <!-- 动态组件渲染 -->
-      <div v-if="currentComponent" class="module-content">
-        <component 
-          :is="currentComponent"
-          :plugin="plugin"
-          @settings-changed="handleSettingsChanged"
-        />
-      </div>
-      
-      <!-- 未找到组件时的占位符 -->
-      <div v-else class="module-placeholder">
-        <h3>{{ activeTab }}</h3>
-        <p>No component found for this tab</p>
-      </div>
-    </SettingsPanel>
-  </div>
+    <!-- 未找到组件时的占位符 -->
+    <div v-else class="module-placeholder">
+      <h3>{{ activeTab }}</h3>
+      <p>No component found for this tab</p>
+    </div>
+  </SettingsPanel>
 </template>
 
 <script setup lang="ts">
@@ -51,7 +49,8 @@ import SettingsTabs from './SettingsTabs.vue';
 import SettingsPanel from './SettingsPanel.vue';
 import DemoModalComponent from './DemoModalComponent.vue';
 import '../shared-styles.css';
-import { debugLog } from '../../lib/testUtils';
+import { DEBUG, debugLog } from '../../lib/testUtils';
+
 
 // 定义Props
 const props = defineProps<SettingsAppProps>();
@@ -62,6 +61,7 @@ const { settings, saveState } = useSettingsState(props.plugin);
 // Demo标签页配置（仅在此组件内定义）
 const demoTab = {
   name: 'modalDemo',
+  settingTabName: 'Demo',
   description: 'Vue弹窗组件演示',
   defaultSettings: {},
   component: DemoModalComponent
@@ -70,7 +70,7 @@ const demoTab = {
 // 合并所有标签页（模块标签页 + demo标签页）
 const allTabs = computed(() => [
   ...props.moduleSettings,
-  demoTab
+  ...(DEBUG ? [demoTab] : [])
 ]);
 
 // 当前活跃的标签页
@@ -104,12 +104,10 @@ const handleSettingsChanged = (newSettings: any) => {
 </script>
 
 <style scoped>
-.settings-container {
-  padding: 16px;
-}
+@import '../shared-styles.css';
 
 .module-content {
-  padding: 16px 0;
+  padding: 0;
 }
 
 .module-placeholder {
@@ -127,15 +125,5 @@ const handleSettingsChanged = (newSettings: any) => {
 .module-placeholder p {
   margin: 0;
   color: var(--text-muted);
-}
-
-@media (max-width: 768px) {
-  .settings-container {
-    padding: 12px;
-  }
-  
-  .module-content {
-    padding: 12px 0;
-  }
 }
 </style> 

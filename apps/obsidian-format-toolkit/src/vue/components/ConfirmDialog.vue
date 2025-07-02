@@ -32,13 +32,13 @@
           variant="primary"
           @click="handleConfirm"
         >
-          <LocalizedText en="Confirm" zh="确认" />
+          {{ getLocalizedText({ en: "Confirm", zh: "确认" }) }}
         </Button>
         <Button
           variant="secondary"
           @click="handleCancel"
         >
-          <LocalizedText en="Cancel" zh="取消" />
+          {{ getLocalizedText({ en: "Cancel", zh: "取消" }) }}
         </Button>
       </div>
     </div>
@@ -47,10 +47,10 @@
 
 <script setup lang="ts">
 import { App } from 'obsidian';
-import { ref, watch, nextTick, onUnmounted } from 'vue';
+import { ref, watch, nextTick, onUnmounted, computed } from 'vue';
 import ObsidianVueModal from './ObsidianVueModal.vue';
 import Button from './Button.vue';
-import LocalizedText from './LocalizedText.vue';
+import { getLocalizedText } from '../../lib/textUtils';
 import '../shared-styles.css';
 import { debugLog } from '../../lib/testUtils';
 

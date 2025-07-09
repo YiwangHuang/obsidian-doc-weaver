@@ -125,14 +125,31 @@ export class AdvancedConverter extends BaseConverter{
     /**
      * replacePlaceholders方法，替换模板中的占位符为实际值
      * @param template 包含占位符的字符串模板
+     * @param content 处理后的笔记内容（可选参数），用于处理含占位符的模板；若无此参数则仅处理含占位符的路径
      * @returns 替换后的字符串
      */
-    public replacePlaceholders(template: string): string {
-        // 替换模板中的占位符
-        return placeholders.replaceDatePlaceholders(template
+    public replacePlaceholders(template: string, content?: string): string {
+        // 先替换基础占位符（日期、路径等）
+        let result = placeholders.replaceDatePlaceholders(template
             .replaceAll(placeholders.VAR_VAULT_DIR, this.plugin.VAULT_ABS_PATH)
             .replaceAll(placeholders.VAR_NOTE_DIR, path.dirname(this.plugin.getPathAbs(this.entryNote.path)))
             .replaceAll(placeholders.VAR_NOTE_NAME, this.entryNote.basename));
+        
+        // 如果提供了content参数，处理模板与内容的整合
+        if (content !== undefined) {
+            // 检查模板中是否包含{{content}}占位符
+            const hasContentPlaceholder = result.includes(placeholders.VAR_CONTENT);
+            
+            if (hasContentPlaceholder) {
+                // 模板中有{{content}}占位符，直接替换
+                result = result.replaceAll(placeholders.VAR_CONTENT, content);
+            } else {
+                // 模板中没有{{content}}占位符，将内容追加到模板后面
+                result = result + '\n' + content;
+            }
+        }
+        
+        return result;
     }
 
     public async convert(text: string, format?: OutputFormat): Promise<string> {

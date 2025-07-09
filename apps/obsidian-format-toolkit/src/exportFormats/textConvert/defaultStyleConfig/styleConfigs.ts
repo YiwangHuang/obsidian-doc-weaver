@@ -1,5 +1,6 @@
 import typstConfig from "./typst/config.typ?raw";
 import typstCustomFormat from "./typst/custom_format.typ?raw";
+import typstDemo from "./typst/demo.typ?raw";
 import type { OutputFormat } from "../textConverter";
 import * as path from 'path';
 import * as fs from 'fs';
@@ -29,6 +30,10 @@ const typstStyleConfig: StyleConfig = {
     {
       relative_path: "custom_format.typ",
       content: typstCustomFormat
+    },
+    {
+      relative_path: "demo.typ",
+      content: typstDemo
     }
   ],
   yaml: `#import "config.typ": *

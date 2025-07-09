@@ -4,12 +4,28 @@
 
 #let underline = underline.with(show_content: false)
 
+// 自定义callout版本，预设hidden_types为包含更多隐藏类型
+#let callout = callout.with(hidden_types: ("todo"))
+
 #let conf(
   title: none,
   author: (),
   doc,
 ) = {
-  set text(font: "LXGW WenKai", lang: "zh", size: 10.8pt) //这里设置字体与语言
+  set text(
+    font: (
+      "LXGW WenKai",          // 主字体：霞鹜文楷
+      "Noto Sans CJK SC",     // 备用字体1：思源黑体简体中文
+      "Source Han Sans SC",   // 备用字体2：思源黑体简体中文（别名）
+      "Microsoft YaHei",      // 备用字体3：微软雅黑（Windows系统）
+      "PingFang SC",          // 备用字体4：苹方简体（macOS系统）
+      "SimHei",               // 备用字体5：黑体（Windows系统）
+      "DejaVu Sans",          // 备用字体6：通用西文字体
+      "Arial"                 // 备用字体7：系统默认字体
+    ), 
+    lang: "zh", 
+    size: 10.8pt
+  )
   set grid(gutter: 1em)  // 设置分栏(grid)的默认间距
   // set page(margin: (
   // top: 1.2cm,

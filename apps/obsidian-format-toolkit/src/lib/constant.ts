@@ -22,6 +22,7 @@ export const VAR_DATE = "{{date: YYYY-MM-DD}}";      // 日期
 export const VAR_VAULT_DIR = "{{vaultDir}}";         // 仓库目录
 export const VAR_NOTE_DIR = "{{noteDir}}";          // 笔记所在目录
 export const VAR_NOTE_NAME = "{{noteName}}";         // 笔记名称
+export const VAR_CONTENT = "{{content}}";            // 主要内容占位符
 export const VAR_FORMAT = "{{format}}";              // 导出格式
 // export const VAR_PARENT_DIR = "${parent}";          // 父目录
 // export const VAR_ORIGINAL_NAME = "${originalname}";  // 原始文件名

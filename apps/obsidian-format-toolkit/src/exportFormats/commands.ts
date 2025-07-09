@@ -56,24 +56,26 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         const styleDirAbs = path.posix.join(plugin.PLUGIN_ABS_PATH, item.style_dir);
         const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir)); // 跨平台路径处理
         const outputFullName = `${converter.replacePlaceholders(item.output_base_name)}.${extensionNameOfFormat[item.format]}`;
-        // 处理 YAML 配置
-        const yamlInfo = converter.replacePlaceholders(item.yaml);
 
         // 创建目标目录
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir, { recursive: true });
         }
         
-        // 拷贝样式文件
+        // 拷贝样式文件，过滤掉demo.typ文件
         if (fs.existsSync(styleDirAbs)) {
-            copyFilesRecursively(styleDirAbs, outputDir);
+            copyFilesRecursively(styleDirAbs, outputDir, (fileName) => fileName !== 'demo.typ');
         }
         
         converter.resetLinkParser(); // 每次导出前重置linkParser，避免重复写入链接信息
 
-        // 处理主要内容与YAML
+        // 处理主要内容
         const exportContent = await converter.convert(sourceContent, item.format);
-        fs.writeFileSync(path.posix.join(outputDir,outputFullName), yamlInfo+'\n'+exportContent);
+        
+        // 使用重构后的replacePlaceholders方法，直接处理模板和内容的整合
+        const finalContent = converter.replacePlaceholders(item.yaml, exportContent);
+        
+        fs.writeFileSync(path.posix.join(outputDir, outputFullName), finalContent);
         
         // 拷贝附件
         converter.copyAttachment(outputDir);

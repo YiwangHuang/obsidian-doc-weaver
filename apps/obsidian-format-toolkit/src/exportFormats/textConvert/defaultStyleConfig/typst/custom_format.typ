@@ -1,10 +1,7 @@
 #import "@preview/octique:0.1.0": * //支持Octicons图标,https://primer.style/octicons/
 
 // 定义 callout 格式, collapse 属性备用
-#let callout(type: "note", title: none, collapse: none, body) = {
-  // 定义哪些类型应该被隐藏
-  let hidden_types = ("hidden", "hide", "none")
-  
+#let callout(type: "note", title: none, collapse: none, hidden_types: (), body) = {
   // 如果type在hidden_types中，返回空内容
   if type in hidden_types { return [] }
 

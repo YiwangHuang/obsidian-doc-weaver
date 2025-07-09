@@ -6,6 +6,14 @@
   doc,
 )
 
+#callout(
+type: "todo",
+collapse: false,
+title: [隐藏],
+[
+隐藏内容
+]
+)
 
 #callout(
 type: "tip",

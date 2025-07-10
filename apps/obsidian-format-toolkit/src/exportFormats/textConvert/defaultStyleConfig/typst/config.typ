@@ -2,7 +2,7 @@
 #import "@preview/tablem:0.1.0": tablem // 支持Markdown表格
 #import "custom_format.typ": *
 
-#let underline = underline.with(show_content: false)
+#let underline = underline.with(show_content: true)
 
 // 自定义callout版本，预设hidden_types为包含更多隐藏类型
 #let callout = callout.with(hidden_types: ("todo"))
@@ -43,7 +43,20 @@
 
   set align(center) // 设置标题居中
   text(17pt, weight: "bold")[#title]
-
+  
+  // 显示作者信息
+  if author != () {
+    v(0.5em) // 添加标题和作者之间的垂直间距
+    text(12pt, weight: "medium")[
+      #if type(author) == "array" {
+        author.join("   ") // 如果是多个作者，用空格分隔
+      } else {
+        author // 单个作者直接显示
+      }
+    ]
+  }
+  
+  v(1em) // 添加作者和正文之间的垂直间距
   set align(left) // 设置正文靠左对齐
   columns(1,doc) // 在这里修改全文的分栏数，1表示单栏，2表示双栏
 }

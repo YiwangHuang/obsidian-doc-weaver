@@ -1,74 +1,87 @@
 #import "config.typ": *
 
 #show: doc => conf(
-  title: "Test",
-  author: "Your name",
+  title: "Typst 格式演示 / Typst Format Demo",
+  author: ("张三", "李四"),
   doc,
 )
 
+= 自定义格式演示 / Custom Format Demo
+
+== Callout 语法演示 / Callout Syntax Demo
+
 #callout(
-type: "todo",
-collapse: false,
-title: [隐藏],
-[
-隐藏内容
-]
+  type: "tip",
+  title: [学习提示 / Learning Tip],
+  [
+    这是一个提示框，支持多种类型：note、tip、info、question、done、danger 等。
+    This is a callout that supports multiple types: note, tip, info, question, done, danger, etc.
+  ]
 )
 
 #callout(
-type: "tip",
-collapse: false,
-title: [等效重力场],
-[
-带电体在重力场和匀强电场中受到的力都是恒力，可以将这两个场合成一个场来看，*带电体在这个场中的运动*类似于*物体在重力场中的运动*。我们把合成后的场称为“等效重力场”，相应的有等效重力加速度 #mi[`g'`] 和等效重力 #mi[`mg'`]。
-
-]
+  type: "done",
+  title: [任务完成 / Task Completed],
+  [
+    ✅ 配置完成！/ Configuration completed!
+  ]
 )
 
+// 这个 todo 类型不会显示，因为在 config.typ 中被隐藏
+// This todo type won't display because it's hidden in config.typ
 #callout(
-type: "done",
-collapse: true,
-title: [答案],
-[
-*问题 1*
+  type: "todo",
+  title: [待办事项 / Todo],
+  [
+    这个内容不会显示 / This content won't show
+  ]
+)
 
+== Underline 语法演示 / Underline Syntax Demo
 
-#mitex[`mgl\cos \theta - qE(l+l\sin \theta)=0\Rightarrow E=\frac{mg\cos \theta}{q(1+\sin \theta)}=\frac{mg}{\sqrt{ 3 }q}`]
-*问题 2*
+这是#underline[基础下划线]和#underline(show_content: false)[　　　　]挖空效果的例子。
+This is an example of #underline[basic underline] and #underline(show_content: false)[　　　　] blank fill effect.
 
+== 配置文件控制 / Configuration File Control
 
-#mitex[`\begin{cases}
-mgl-qEl=\frac{1}{2}mv_{2}^{2} \\
-F-mg = m\frac{v_{2}^{2}}{l}
-\end{cases}
-\Rightarrow F = 3mg - \frac{2mg}{\sqrt{ 3 }}`]
-*问题 3*
+在 `config.typ` 中可以通过以下语句精细控制格式：
+You can fine-tune the formatting with these statements in `config.typ`:
 
+```typst
+// 设置 callout 的隐藏类型
+#let callout = callout.with(hidden_types: ("todo"))
 
-#mitex[`g'=\frac{g}{\cos \theta}=\frac{2}{\sqrt{ 3 }}g`]
+// 设置 underline 的默认显示内容
+#let underline = underline.with(show_content: true)
+
+// 设置字体和样式
+set text(font: ("LXGW WenKai", "Arial"), size: 10.8pt)
+
+// 自定义 strong 文本样式
+show strong: it => text(weight: "bold", fill: red.darken(20%), it.body)
+```
+
+通过修改这些设置，可以全局控制文档的格式和行为。
+By modifying these settings, you can globally control the document's formatting and behavior.
+
+= 推荐第三方包 / Recommended Third-Party Packages
+
+== Latex 公式支持 / Latex Formula Support
 
 #mitex[`\begin{cases}
 mg'\frac{l}{2}=\frac{1}{2}mv_{3}^{2} \\
 F_{m}-mg' = m\frac{v_{3}^{2}}{l}
 \end{cases}
 \Rightarrow F_{m} = 2mg'=\frac{4}{\sqrt{ 3 }}mg`]
-*问题 4*
+
 
 记小球在等效重力场中做圆周运动速度最小值为 #mi[`v'`]，#mi[`A`] 点的临界初速度为 #mi[`v_{4}`]
 
+== Markdown 表格支持 / Markdown Table Support
 
-#mitex[`\begin{cases}
-m\frac{v'^{2}}{l}=mg' \\
-mg'\frac{3}{2}l=\frac{1}{2}m(v_{4}^{2}-v'^{2})
-\end{cases}
-\Rightarrow v'^{2}=4g'l \Rightarrow v'=2\sqrt{ \frac{2gl}{\sqrt{ 3 }} }`]
-*问题 5*
-
-记小球在等效重力场中刚好运动到与圆心等高时，在 #mi[`A`] 点的临界速度为 #mi[`v_{5}`]
-
-
-#mitex[`mg'\frac{l}{2}=mv_{5}^{2}\Rightarrow v_{5}=\sqrt{ g'l }=\sqrt{ \frac{2gl}{\sqrt{ 3 }} }`]
-#mi[`A`] 应具备的初速度 #mi[`v_{A}`] 应满足 #mi[`v_{A}<\sqrt{ \frac{2gl}{\sqrt{ 3 }} }`] 或 #mi[`v_{A}>2\sqrt{ \frac{2gl}{\sqrt{ 3 }} }`]
-
+#tablem[
+  | 列1 | 列2 | 列3 |
+  | --- | --- | --- |
+  | 数据1 | 数据2 | 数据3 |
+  | 数据4 | 数据5 | 数据6 |
 ]
-)

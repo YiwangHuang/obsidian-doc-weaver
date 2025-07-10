@@ -142,6 +142,12 @@
           </div>
         </div>
 
+        <!-- 路径预览 - 单行滚动显示 -->
+        <div class="path-preview">
+          <!-- <span class="path-preview-label">{{ getLocalizedText({ en: "Preview", zh: "预览" }) }}：</span> -->
+          <code class="path-preview-code">{{ getPreviewPath(editingConfig) }}</code>
+        </div>
+
         <div class="form-group">
           <label>{{ getLocalizedText({ en: "YAML Configuration", zh: "YAML配置" }) }}：</label>
           <TextArea
@@ -176,16 +182,7 @@
           </div>
         </div>
         
-        <div class="preview-section">
-          <h4>{{ getLocalizedText({ en: "Preview", zh: "预览" }) }}</h4>
-          <div class="export-preview">
-            <p><strong>{{ getLocalizedText({ en: "Format", zh: "格式" }) }}：</strong>{{ editingConfig.format }}</p>
-            <p><strong>{{ getLocalizedText({ en: "Output Path", zh: "输出路径" }) }}：</strong><code>{{ getPreviewPath(editingConfig) }}</code></p>
-            <p><strong>Excalidraw：</strong>{{ editingConfig.excalidraw_export_type }} 
-              <span v-if="editingConfig.excalidraw_export_type === 'png'">({{ editingConfig.excalidraw_png_scale }}x)</span>
-            </p>
-          </div>
-        </div>
+
       </div>
     </ObsidianVueModal>
 
@@ -252,10 +249,12 @@ import TextInput from '../../vue/components/TextInput.vue';
 import TextArea from '../../vue/components/TextArea.vue';
 import Button from '../../vue/components/Button.vue';
 import Dropdown from '../../vue/components/Dropdown.vue';
-  import MultiColumn from '../../vue/components/MultiColumn.vue';
-  import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
-  import { debugLog } from '../../lib/testUtils';
-  import { getLocalizedText } from '../../lib/textUtils';
+import MultiColumn from '../../vue/components/MultiColumn.vue';
+import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
+import { debugLog } from '../../lib/testUtils';
+import { getLocalizedText } from '../../lib/textUtils';
+// 路径预览功能
+import { TextConverter } from '../textConvert';
 
 // 定义Props
 interface ExportFormatsSettingsProps {
@@ -289,12 +288,30 @@ const formatOptions = FORMAT_OPTIONS;
 const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
 
 /**
- * 获取预览路径
+ * 获取预览路径（支持占位符替换）
  */
 const getPreviewPath = (config: ExportConfig): string => {
   const outputDir = config.output_dir || EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR;
   const outputName = config.output_base_name || EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME;
-  return `${outputDir}/${outputName}.${getExtensionByFormat(config.format)}`;
+  const pathTemplate = `${outputDir}/${outputName}.${getExtensionByFormat(config.format)}`;
+  
+  // 获取当前活动文件
+  const activeFile = props.plugin.app.workspace.getActiveFile();
+  
+  // 如果没有活动文件，返回原始模板（显示占位符）
+  if (!activeFile) {
+    return pathTemplate;
+  }
+  
+  try {
+    // 创建TextConverter实例并使用replacePlaceholders方法
+    const converter = new TextConverter(props.plugin, activeFile); //考虑在打开弹窗时创建实例，提升性能
+    return converter.replacePlaceholders(pathTemplate);
+  } catch (error) {
+    debugLog('Error replacing placeholders in preview path:', error);
+    // 如果出现错误，返回原始模板
+    return pathTemplate;
+  }
 };
 
 /**
@@ -350,6 +367,14 @@ const handleExportEnabledChange = (index: number, enabled: boolean) => {
 const openExportModal = (index: number) => {
   editingConfig.value = settings.exportConfigs[index];
   modalVisible.value = true;
+  
+  // 在弹窗打开后，确保预览路径滚动到最右侧
+  setTimeout(() => {
+    const previewElement = document.querySelector('.path-preview-code') as HTMLElement;
+    if (previewElement) {
+      previewElement.scrollLeft = previewElement.scrollWidth;
+    }
+  }, 100); // 给弹窗一点时间来渲染
 };
 
 /**
@@ -371,18 +396,25 @@ const openAssetsFolder = (config: ExportConfig) => {
     props.plugin.PLUGIN_ABS_PATH,
     config.style_dir
   );
-  
+
   // 如果文件夹不存在，先创建它
   if (!fs.existsSync(formatStylesPath)) {
     fs.mkdirSync(formatStylesPath, { recursive: true });
   }
   
   // 使用系统默认程序打开文件夹
-  const command = process.platform === 'win32'
-    ? `explorer "${formatStylesPath}"`
-    : process.platform === 'darwin'
-      ? `open "${formatStylesPath}"`
-      : `xdg-open "${formatStylesPath}"`;
+  // 在Windows下需要将路径转换为Windows格式（使用反斜杠）
+  let command: string;
+  if (process.platform === 'win32') {
+    const windowsPath = path.win32.normalize(formatStylesPath.replace(/\//g, '\\'));
+    command = `explorer "${windowsPath}"`;
+  } else if (process.platform === 'darwin') {
+    command = `open "${formatStylesPath}"`;
+  } else {
+    command = `xdg-open "${formatStylesPath}"`;
+  }
+  
+  debugLog('Opening folder with command:', command);
   child_process.exec(command);
 };
 
@@ -433,8 +465,8 @@ const addNewExportConfig = async () => {
     id: hexId,
     style_dir: path.posix.join('styles', hexId),
     name: `${hexId}`,
-    output_dir: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR,
-    output_base_name: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + hexId,
+    output_dir: path.posix.join(EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
+    output_base_name: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
     yaml: getDefaultYAML(selectedFormat.value) || '',
     enabled: true,
     format: selectedFormat.value,
@@ -599,6 +631,56 @@ const onModalVisibilityChange = (visible: boolean) => {
   cursor: pointer;
   border-radius: 50%;
   border: none;
+}
+
+/* 路径预览样式 - 单行滚动显示 */
+.path-preview {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background-color: var(--background-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.path-preview-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-right: 8px;
+  font-weight: 500;
+}
+
+.path-preview-code {
+  flex: 1;
+  font-family: var(--font-monospace);
+  font-size: 12px;
+  color: var(--text-normal);
+  background: transparent;
+  border: none;
+  white-space: nowrap;
+  overflow-x: auto;
+  /* 隐藏滚动条但保持滚动功能 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-bg) transparent;
+}
+
+.path-preview-code::-webkit-scrollbar {
+  height: 4px;
+}
+
+.path-preview-code::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.path-preview-code::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb-bg);
+  border-radius: 2px;
+}
+
+.path-preview-code::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-bg-hover);
 }
 
 /* 响应式布局 */

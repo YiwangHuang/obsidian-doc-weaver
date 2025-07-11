@@ -159,14 +159,6 @@
       </Button>
     </div>
 
-    <div class="module-section no-border">
-      <p class="module-description">
-        {{ getLocalizedText({
-          en: "This feature is still under development, and changes to tag configurations require a restart of Obsidian to take effect",
-          zh: "该功能仍待完善，目前增减标签配置需要重启obsidian应用后才能生效"
-        }) }}
-      </p>  
-    </div>
     <!-- 删除确认弹窗 -->
     <ConfirmDialog
       v-model:visible="deleteConfirmVisible"
@@ -201,7 +193,8 @@ import Button from '../../vue/components/Button.vue';
   import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
   import { debugLog } from '../../lib/testUtils';
   import { getLocalizedText } from '../../lib/textUtils';
-// TODO: 目前启用禁用标签，需要重启obsidian应用后才能生效，需要改为实时生效
+  import { tagWrapperSetting } from '../index';
+
 // 定义Props
 interface TagWrapperSettingsProps {
   plugin: MyPlugin;
@@ -215,8 +208,6 @@ interface TagWrapperSettingsEmits {
 const props = defineProps<TagWrapperSettingsProps>();
 const emit = defineEmits<TagWrapperSettingsEmits>();
 
-
-
 // 初始化设置
 const settings = reactive<TagWrapperSettings>({
   tags: [...(props.plugin.settingList.tagWrapper as TagWrapperSettings || DEFAULT_TAG_WRAPPER_SETTINGS).tags]
@@ -229,20 +220,17 @@ const deleteConfirmVisible = ref(false);
 const deleteTagIndex = ref<number | null>(null);
 
 /**
- * 保存设置到插件
+ * 保存设置到插件并触发动态命令更新
  */
 const saveSettings = async () => {
   try {
-    // 更新插件设置
-    props.plugin.settingList.tagWrapper = { ...settings };
+    // 调用主插件的设置变更方法，这会触发动态命令更新
+    await props.plugin.onSettingsChange(tagWrapperSetting.name, { ...settings });
     
-    // 保存到磁盘
-    await props.plugin.saveData(props.plugin.settingList);
-    
-    // 发出设置变更事件
+    // 发出设置变更事件（向后兼容）
     emit('settings-changed', settings);
     
-    debugLog('Tag wrapper settings saved');
+    debugLog('Tag wrapper settings saved and commands updated');
   } catch (error) {
     debugLog('Failed to save tag wrapper settings:', error);
   }

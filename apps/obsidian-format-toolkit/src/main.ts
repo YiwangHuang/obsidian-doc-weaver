@@ -15,7 +15,7 @@ import {
 } from './exportFormats/index';	
 
 import { 
-    addGetTagWrapperCommands,
+    DynamicCommandManager,
     tagWrapperSetting
 } from './toggleTagWrapper/index';
 
@@ -28,6 +28,24 @@ export interface SettingsRegistry {
     component?: any; // Vue组件，可选字段
 }
 
+// 定义模块更新处理器接口
+export interface ModuleUpdateHandler {
+    (newSettings: any): void;
+}
+
+// 模块更新处理器注册表
+const MODULE_UPDATE_HANDLERS: Record<string, ModuleUpdateHandler> = {
+    [tagWrapperSetting.name]: (newSettings) => {
+        DynamicCommandManager.updateCommands(newSettings);
+        console.log('Tag wrapper commands updated due to settings change');
+    },
+    // 可扩展其他模块
+    // [exportFormatsSetting.name]: (newSettings) => {
+    //     ExportFormatsManager.updateCommands(newSettings);
+    //     console.log('Export formats commands updated due to settings change');
+    // },
+};
+
 export default class MyPlugin extends Plugin {
 	private vaultAdapter: DataAdapter;	
 	VAULT_ABS_PATH: string;
@@ -35,6 +53,9 @@ export default class MyPlugin extends Plugin {
     settingList: { [key: string]: object } = {};
     moduleSettings: SettingsRegistry[] = [];
     commandCache: { [key: string]: object } = {};// 命令缓存
+    
+    // 动态命令管理器
+    private tagWrapperCommandManager: DynamicCommandManager | null = null;
 
 	async onload() {
 		this.vaultAdapter = this.app.vault.adapter;
@@ -67,9 +88,14 @@ export default class MyPlugin extends Plugin {
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
 
 		// 注册所有命令
-		// TODO: 新建命令后不能及时更新，需要重新加载插件，解决该问题
+		// 使用新的动态命令管理系统
+        this.tagWrapperCommandManager = DynamicCommandManager.initialize(this);
+        this.tagWrapperCommandManager.initialize(this.settingList[tagWrapperSetting.name] as any);
+        
+        // 注册其他命令（保持原有方式）
         addExportFormatsCommands(this);
-		addGetTagWrapperCommands(this);
+        
+        console.log('Plugin loaded with dynamic command management');
 	}
 
     /**
@@ -83,7 +109,44 @@ export default class MyPlugin extends Plugin {
         }
     }
 
+    /**
+     * 设置变更通知 - 由设置界面调用
+     * 完全通用的设置更新处理，不依赖具体模块
+     * @param settingName 设置名称
+     * @param newSettings 新的设置值
+     */
+    async onSettingsChange(settingName: string, newSettings: any): Promise<void> {
+        // 更新内部设置
+        this.settingList[settingName] = newSettings;
+        
+        // 保存到磁盘
+        await this.saveData(this.settingList);
+        
+        // 查找并调用对应的模块更新处理器
+        const updateHandler = MODULE_UPDATE_HANDLERS[settingName];
+        if (updateHandler) {
+            updateHandler(newSettings);
+        } else {
+            console.log(`No update handler found for setting: ${settingName}`);
+        }
+    }
+
+    /**
+     * 获取指定模块的设置
+     * @param settingName 设置名称
+     */
+    getSettings<T>(settingName: string): T {
+        return this.settingList[settingName] as T;
+    }
+
 	onunload() {
+        // 清理动态命令管理器
+        if (this.tagWrapperCommandManager) {
+            DynamicCommandManager.cleanup();
+            this.tagWrapperCommandManager = null;
+        }
+        
+        console.log('Plugin unloaded, commands cleaned up');
 	}
 
     // 获取文件file的附件的默认存储位置，备用

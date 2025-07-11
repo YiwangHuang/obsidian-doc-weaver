@@ -1,7 +1,5 @@
 /**
  * Toggle Tag Wrapper模块的类型定义
- * 
- * 包含标签包装器配置的所有类型定义和默认设置
  */
 
 /**
@@ -34,21 +32,21 @@ export interface TagWrapperSettings {
 export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
     tags: [
         {
-            id: 'toggle-underline',
+            id: 'doc-weaver-toggle-underline',
             name: 'Toggle Underline',
             prefix: '<u>',
             suffix: '</u>',
             enabled: true
         },
         {
-            id: 'toggle-bold',
+            id: 'doc-weaver-toggle-bold',
             name: 'Toggle Bold',
             prefix: '**',
             suffix: '**',
             enabled: true
         },
         {
-            id: 'toggle-italic',
+            id: 'doc-weaver-toggle-italic',
             name: 'Toggle Italic',
             prefix: '*',
             suffix: '*',
@@ -58,20 +56,7 @@ export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
 };
 
 /**
- * 标签包装器相关的常量定义
- */
-export const TAG_WRAPPER_CONSTANTS = {
-    /** 新标签的默认前缀 */
-    DEFAULT_TAG_PREFIX: '<u>',
-    /** 新标签的默认后缀 */
-    DEFAULT_TAG_SUFFIX: '</u>',
-    /** 新标签的默认启用状态 */
-    DEFAULT_ENABLED: true,
-} as const;
-
-/**
- * 生成5位16进制随机ID
- * @returns string 格式如：'a1b2c'
+ * 生成6位16进制随机ID
  */
 export function generateHexId(): string {
     return Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, '0');
@@ -79,10 +64,6 @@ export function generateHexId(): string {
 
 /**
  * 创建新的标签配置
- * @param name 标签名称（可选）
- * @param prefix 前缀（可选）
- * @param suffix 后缀（可选）
- * @returns 新的标签配置对象
  */
 export function createNewTagConfig(
     name?: string,
@@ -91,39 +72,10 @@ export function createNewTagConfig(
 ): TagConfig {
     const hexId = generateHexId();
     return {
-        id: `tag-${hexId}`,
+        id: `doc-weaver-tag-${hexId}`,
         name: name || `tag-${hexId}`,
-        prefix: prefix || TAG_WRAPPER_CONSTANTS.DEFAULT_TAG_PREFIX,
-        suffix: suffix || TAG_WRAPPER_CONSTANTS.DEFAULT_TAG_SUFFIX,
-        enabled: TAG_WRAPPER_CONSTANTS.DEFAULT_ENABLED
+        prefix: prefix || '<u>',
+        suffix: suffix || '</u>',
+        enabled: true
     };
-}
-
-/**
- * 验证标签配置是否有效
- * @param tag 标签配置
- * @returns 是否有效
- */
-export function isValidTagConfig(tag: TagConfig): boolean {
-    return !!(
-        tag.id &&
-        tag.name &&
-        typeof tag.prefix === 'string' &&
-        typeof tag.suffix === 'string' &&
-        typeof tag.enabled === 'boolean'
-    );
-}
-
-/**
- * 验证标签包装器设置是否有效
- * @param settings 标签包装器设置
- * @returns 是否有效
- */
-export function isValidTagWrapperSettings(settings: TagWrapperSettings): boolean {
-    return !!(
-        settings.tags &&
-        Array.isArray(settings.tags) &&
-        settings.tags.length > 0 &&
-        settings.tags.every(isValidTagConfig)
-    );
 } 

@@ -153,12 +153,44 @@
           </div>
         </div>
         
-        <div class="preview-section">
-          <h4>{{ getLocalizedText({ en: "Tag Preview", zh: "标签预览" }) }}</h4>
-          <div class="preview-example">
-            <code>{{ editingTag.prefix }}</code>
-            <span class="selected-text">{{ getLocalizedText({ en: "Selected Text", zh: "选中的文本" }) }}</span>
-            <code>{{ editingTag.suffix }}</code>
+        <div class="live-preview-section">
+          <h4>{{ getLocalizedText({ en: "Live Preview", zh: "实时预览" }) }}</h4>
+          <div class="live-preview-container">
+            <div class="source-code-section">
+              <div class="section-label">
+                {{ getLocalizedText({ en: "Source Code", zh: "源码" }) }}
+              </div>
+              <div class="source-code-content">
+                <code v-if="previewSourceCode">
+                  <span class="tag-highlight">{{ previewSourceCode.prefix }}</span><span class="text-content">{{ previewSourceCode.text }}</span><span class="tag-highlight">{{ previewSourceCode.suffix }}</span>
+                </code>
+              </div>
+            </div>
+            
+            <div class="preview-arrow">
+              <svg width="24" height="16" viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 1l6 7-6 7M2 8h18"/>
+              </svg>
+            </div>
+            
+            <div class="rendered-result-section">
+              <div class="section-label">
+                {{ getLocalizedText({ en: "Rendered Result", zh: "渲染样式" }) }}
+              </div>
+              <div class="rendered-result-content" ref="livePreviewRef">
+                <span 
+                  class="live-preview-text"
+                  :style="previewTextStyle"
+                  v-html="previewHtml"
+                ></span>
+              </div>
+            </div>
+          </div>
+          <div class="live-preview-note">
+            {{ getLocalizedText({ 
+              en: "Shows source code and how it renders with applied CSS styles",
+              zh: "显示源码以及应用CSS样式后的渲染效果"
+            }) }}
           </div>
         </div>
       </div>
@@ -192,7 +224,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref, computed, watch, nextTick } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
 import type { 
@@ -238,6 +270,44 @@ const modalVisible = ref(false);
 const editingTag = ref<TagConfig | null>(null);
 const deleteConfirmVisible = ref(false);
 const deleteTagIndex = ref<number | null>(null);
+
+// 实时预览相关
+const livePreviewRef = ref<HTMLElement | null>(null);
+const previewStyleElement = ref<HTMLStyleElement | null>(null);
+
+// 固定的示例文本
+const sampleText = getLocalizedText({ 
+  en: "Sample text", 
+  zh: "示例文本" 
+});
+
+// 计算源码内容（标签包装后的原始文本，带标签高亮）
+const previewSourceCode = computed(() => {
+  if (!editingTag.value) return '';
+  return {
+    prefix: editingTag.value.prefix,
+    text: sampleText,
+    suffix: editingTag.value.suffix
+  };
+});
+
+// 计算预览HTML内容（用于渲染）
+const previewHtml = computed(() => {
+  if (!editingTag.value) return '';
+  return `${editingTag.value.prefix}${sampleText}${editingTag.value.suffix}`;
+});
+
+// 预览文本样式
+const previewTextStyle = computed(() => {
+  return {
+    fontSize: '14px',
+    lineHeight: '1.5',
+    padding: '8px',
+    minHeight: '40px',
+    display: 'inline-block',
+    wordBreak: 'break-word' as const
+  };
+});
 
 /**
  * 保存设置到插件并触发动态命令更新
@@ -324,15 +394,74 @@ const addNewTag = () => {
 };
 
 /**
+ * 更新实时预览CSS
+ */
+const updatePreviewCSS = () => {
+  if (!editingTag.value || !editingTag.value.cssSnippet?.trim()) {
+    // 移除预览样式
+    if (previewStyleElement.value) {
+      previewStyleElement.value.remove();
+      previewStyleElement.value = null;
+    }
+    return;
+  }
+
+  // 创建或更新预览样式
+  if (!previewStyleElement.value) {
+    previewStyleElement.value = document.createElement('style');
+    previewStyleElement.value.id = 'tag-wrapper-live-preview-style';
+    document.head.appendChild(previewStyleElement.value);
+  }
+
+  // 应用CSS到预览容器
+  const cssContent = `
+    /* Live Preview CSS for Tag Wrapper */
+    .live-preview-content ${editingTag.value.cssSnippet}
+  `;
+  
+  previewStyleElement.value.textContent = cssContent;
+  debugLog('Preview CSS updated:', editingTag.value.name);
+};
+
+/**
  * 处理弹窗可见性变更
  */
 const onModalVisibilityChange = (visible: boolean) => {
   if (!visible) {
-    // 弹窗关闭时，清理状态
+    // 弹窗关闭时，清理状态和预览样式
     editingTag.value = null;
+    if (previewStyleElement.value) {
+      previewStyleElement.value.remove();
+      previewStyleElement.value = null;
+    }
     debouncedSave();
+  } else {
+    // 弹窗打开时，初始化预览
+    nextTick(() => {
+      updatePreviewCSS();
+    });
   }
 };
+
+// 监听editingTag的CSS变化，实时更新预览
+watch(() => editingTag.value?.cssSnippet, () => {
+  if (modalVisible.value && editingTag.value) {
+    nextTick(() => {
+      updatePreviewCSS();
+    });
+  }
+}, { deep: true });
+
+// 监听前缀和后缀变化，触发预览更新
+watch(() => [editingTag.value?.prefix, editingTag.value?.suffix], () => {
+  if (modalVisible.value && editingTag.value) {
+    // 前缀后缀变化时，预览HTML会自动更新（computed属性）
+    // 这里只需要确保CSS是最新的
+    nextTick(() => {
+      updatePreviewCSS();
+    });
+  }
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -416,24 +545,7 @@ const onModalVisibilityChange = (visible: boolean) => {
   gap: 16px;
 }
 
-.preview-example {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  font-family: var(--font-monospace);
-  font-size: 13px;
-}
 
-.selected-text {
-  color: var(--text-normal);
-  background: #e3f2fd;
-  padding: 2px 4px;
-  border-radius: 3px;
-}
 
 /* CSS 帮助文本样式 */
 .css-help-text {
@@ -445,6 +557,113 @@ const onModalVisibilityChange = (visible: boolean) => {
   font-size: 12px;
   color: var(--text-muted);
   line-height: 1.4;
+}
+
+/* 实时预览样式 */
+.live-preview-section {
+  margin-top: 20px;
+  border-top: 1px solid var(--background-modifier-border);
+  padding-top: 20px;
+}
+
+.live-preview-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.live-preview-container {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+}
+
+.source-code-section,
+.rendered-result-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-label {
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.source-code-content {
+  padding: 16px;
+  background: var(--background-primary);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-monospace);
+  font-size: 13px;
+  color: var(--text-normal);
+  word-break: break-all;
+}
+
+.source-code-content code {
+  background: none;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+  color: inherit;
+}
+
+.tag-highlight {
+  color: var(--text-accent);
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.text-content {
+  color: var(--text-normal);
+}
+
+.rendered-result-content {
+  padding: 16px;
+  background: var(--background-primary);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  background: var(--background-secondary);
+  border-left: 1px solid var(--background-modifier-border);
+  border-right: 1px solid var(--background-modifier-border);
+  color: var(--text-accent);
+}
+
+.live-preview-text {
+  max-width: 100%;
+  text-align: center;
+}
+
+.live-preview-note {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
 }
 
 /* 图标按钮样式 */

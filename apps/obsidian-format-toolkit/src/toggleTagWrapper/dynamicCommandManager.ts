@@ -99,21 +99,38 @@ export class DynamicCommandManager {
             stylesToRemove.forEach(tagId => this.removeCSS(tagId));
         }
         
-        // 添加新的命令和样式
+        // 添加新的命令和更新CSS样式
         enabledTags.forEach(tag => {
+            // 处理命令注册
             if (!this.registeredCommands.has(tag.id)) {
                 debugLog('Adding command:', tag.name);
                 this.registerCommand(tag);
             }
             
-            if (!this.injectedStyles.has(tag.id) && tag.cssSnippet && tag.cssSnippet.trim()) {
-                debugLog('Adding CSS:', tag.name);
-                this.injectCSS(tag);
+            // 处理CSS注入和更新
+            if (tag.cssSnippet && tag.cssSnippet.trim()) {
+                const existingStyle = this.injectedStyles.get(tag.id);
+                const newCssContent = `/* Doc Weaver CSS Snippet for: ${tag.name} */\n${tag.cssSnippet}`;
+                
+                // 检查CSS是否需要更新
+                if (!existingStyle) {
+                    // 没有现有样式，直接注入
+                    debugLog('Adding CSS:', tag.name);
+                    this.injectCSS(tag);
+                } else if (existingStyle.textContent !== newCssContent) {
+                    // CSS内容发生变化，重新注入
+                    debugLog('Updating CSS:', tag.name);
+                    this.removeCSS(tag.id);
+                    this.injectCSS(tag);
+                }
+            } else if (this.injectedStyles.has(tag.id)) {
+                // 如果CSS被清空，移除现有样式
+                debugLog('Removing empty CSS:', tag.name);
+                this.removeCSS(tag.id);
             }
         });
 
         debugLog(`Update complete: ${this.registeredCommands.size} commands, ${this.injectedStyles.size} CSS snippets`);
-        this.logObsidianCommands();
     }
 
     /**
@@ -171,21 +188,7 @@ export class DynamicCommandManager {
         }
     }
 
-    /**
-     * 调试 Obsidian 内部命令状态
-     */
-    private logObsidianCommands(): void {
-        try {
-            const app = this.plugin.app as any;
-            if (app.commands?.commands) {
-                const allCommands = Object.keys(app.commands.commands);
-                const ourCommands = allCommands.filter(id => id.startsWith('doc-weaver-'));
-                debugLog('Doc Weaver commands in Obsidian:', ourCommands);
-            }
-        } catch (error) {
-            debugLog('Could not access Obsidian commands:', error);
-        }
-    }
+
 
     /**
      * 注入 CSS 片段到 Obsidian

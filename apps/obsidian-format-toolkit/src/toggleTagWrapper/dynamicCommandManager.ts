@@ -2,18 +2,21 @@
  * 动态命令管理器
  * 
  * 完全独立的标签包装器命令管理模块，与主插件解耦
+ * 支持命令和 CSS 片段的动态热插拔
  */
 
 import { Editor, MarkdownView, Command } from "obsidian";
 import type MyPlugin from "../main";
 import type { TagConfig, TagWrapperSettings } from "./types";
+import { debugLog } from "../lib/testUtils";
 
 /**
  * 动态命令管理器
  */
 export class DynamicCommandManager {
     private plugin: MyPlugin;
-    private registeredCommands = new Set<string>();
+    private registeredCommands = new Map<string, Command>();
+    private injectedStyles = new Map<string, HTMLStyleElement>();
 
     // 静态实例管理
     private static instance: DynamicCommandManager | null = null;
@@ -72,32 +75,79 @@ export class DynamicCommandManager {
     }
 
     /**
-     * 更新命令
+     * 更新命令和 CSS 样式
      */
     updateCommands(settings: TagWrapperSettings): void {
-        // 清理现有命令
-        this.cleanup();
+        debugLog('Starting command update');
+        debugLog('Current commands:', Array.from(this.registeredCommands.keys()));
         
-        // 注册启用的命令
-        settings.tags
-            .filter(tag => tag.enabled)
-            .forEach(tag => this.registerCommand(tag));
+        const enabledTags = settings.tags.filter(tag => tag.enabled);
+        const newCommandIds = new Set(enabledTags.map(tag => tag.id));
+        debugLog('Enabled tags:', enabledTags.map(t => t.name));
+        
+        // 移除不再需要的命令
+        const toRemove = Array.from(this.registeredCommands.keys()).filter(id => !newCommandIds.has(id));
+        if (toRemove.length > 0) {
+            debugLog('Removing commands:', toRemove);
+            toRemove.forEach(commandId => this.removeCommand(commandId));
+        }
+        
+        // 移除不再需要的CSS
+        const stylesToRemove = Array.from(this.injectedStyles.keys()).filter(id => !newCommandIds.has(id));
+        if (stylesToRemove.length > 0) {
+            debugLog('Removing styles:', stylesToRemove);
+            stylesToRemove.forEach(tagId => this.removeCSS(tagId));
+        }
+        
+        // 添加新的命令和样式
+        enabledTags.forEach(tag => {
+            if (!this.registeredCommands.has(tag.id)) {
+                debugLog('Adding command:', tag.name);
+                this.registerCommand(tag);
+            }
+            
+            if (!this.injectedStyles.has(tag.id) && tag.cssSnippet && tag.cssSnippet.trim()) {
+                debugLog('Adding CSS:', tag.name);
+                this.injectCSS(tag);
+            }
+        });
 
-        console.log(`Dynamic commands updated: ${this.registeredCommands.size} commands registered`);
+        debugLog(`Update complete: ${this.registeredCommands.size} commands, ${this.injectedStyles.size} CSS snippets`);
+        this.logObsidianCommands();
     }
 
     /**
-     * 清理所有命令
+     * 清理所有命令和 CSS 样式
      */
     cleanup(): void {
-        this.registeredCommands.forEach(commandId => {
-            try {
-                (this.plugin.app as any).commands.removeCommand(commandId);
-            } catch (error) {
-                console.error(`Failed to remove command: ${commandId}`, error);
-            }
+        debugLog('Starting cleanup');
+        
+        // 清理所有命令
+        Array.from(this.registeredCommands.keys()).forEach(commandId => {
+            this.removeCommand(commandId);
         });
-        this.registeredCommands.clear();
+        
+        // 清理所有CSS样式
+        Array.from(this.injectedStyles.keys()).forEach(tagId => {
+            this.removeCSS(tagId);
+        });
+        
+        debugLog('Cleanup complete');
+    }
+
+    /**
+     * 移除单个命令
+     * @param commandId 命令ID
+     */
+    private removeCommand(commandId: string): void {
+        try {
+            this.plugin.removeCommand(commandId);
+            this.registeredCommands.delete(commandId);
+            debugLog('Command removed:', commandId);
+            
+        } catch (error) {
+            debugLog('Failed to remove command:', commandId, error);
+        }
     }
 
     /**
@@ -114,9 +164,62 @@ export class DynamicCommandManager {
 
         try {
             this.plugin.addCommand(command);
-            this.registeredCommands.add(tag.id);
+            this.registeredCommands.set(tag.id, command);
+            debugLog('Command registered:', tag.name);
         } catch (error) {
-            console.error(`Failed to register command: ${tag.id}`, error);
+            debugLog('Failed to register command:', tag.id, error);
+        }
+    }
+
+    /**
+     * 调试 Obsidian 内部命令状态
+     */
+    private logObsidianCommands(): void {
+        try {
+            const app = this.plugin.app as any;
+            if (app.commands?.commands) {
+                const allCommands = Object.keys(app.commands.commands);
+                const ourCommands = allCommands.filter(id => id.startsWith('doc-weaver-'));
+                debugLog('Doc Weaver commands in Obsidian:', ourCommands);
+            }
+        } catch (error) {
+            debugLog('Could not access Obsidian commands:', error);
+        }
+    }
+
+    /**
+     * 注入 CSS 片段到 Obsidian
+     * @param tag 标签配置
+     */
+    private injectCSS(tag: TagConfig): void {
+        if (!tag.cssSnippet?.trim()) {
+            return;
+        }
+
+        try {
+            const styleElement = document.createElement('style');
+            styleElement.id = `doc-weaver-css-${tag.id}`;
+            styleElement.textContent = `/* Doc Weaver CSS Snippet for: ${tag.name} */\n${tag.cssSnippet}`;
+            
+            document.head.appendChild(styleElement);
+            this.injectedStyles.set(tag.id, styleElement);
+            
+            debugLog('CSS injected:', tag.name);
+        } catch (error) {
+            debugLog('Failed to inject CSS:', tag.id, error);
+        }
+    }
+
+    /**
+     * 移除指定标签的 CSS 片段
+     * @param tagId 标签ID
+     */
+    private removeCSS(tagId: string): void {
+        const styleElement = this.injectedStyles.get(tagId);
+        if (styleElement?.parentNode) {
+            styleElement.parentNode.removeChild(styleElement);
+            this.injectedStyles.delete(tagId);
+            debugLog('CSS removed:', tagId);
         }
     }
 

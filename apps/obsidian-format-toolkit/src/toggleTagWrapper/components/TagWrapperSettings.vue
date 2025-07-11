@@ -134,8 +134,27 @@
           </div>
         </div>
         
+        <div class="form-group">
+          <label>{{ getLocalizedText({ en: "CSS Snippet", zh: "CSS 片段" }) }}：</label>
+          <TextArea
+            v-model="editingTag.cssSnippet"
+            :placeholder="getLocalizedText({ 
+              en: 'Enter CSS styles that will be injected when this tag is enabled...\nExample:\n.my-tag {\n  color: red;\n  font-weight: bold;\n}',
+              zh: '输入启用此标签时将注入的 CSS 样式...\n示例：\n.my-tag {\n  color: red;\n  font-weight: bold;\n}'
+            })"
+            :rows="8"
+            @update:model-value="debouncedSave"
+          />
+          <div class="css-help-text">
+            {{ getLocalizedText({ 
+              en: "💡 This CSS will be automatically injected when the tag is enabled and removed when disabled.",
+              zh: "💡 这些 CSS 样式将在标签启用时自动注入，禁用时移除。"
+            }) }}
+          </div>
+        </div>
+        
         <div class="preview-section">
-          <h4>{{ getLocalizedText({ en: "Preview", zh: "预览" }) }}</h4>
+          <h4>{{ getLocalizedText({ en: "Tag Preview", zh: "标签预览" }) }}</h4>
           <div class="preview-example">
             <code>{{ editingTag.prefix }}</code>
             <span class="selected-text">{{ getLocalizedText({ en: "Selected Text", zh: "选中的文本" }) }}</span>
@@ -188,6 +207,7 @@ import { debounce } from '../../vue/utils';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
 import TextInput from '../../vue/components/TextInput.vue';
+import TextArea from '../../vue/components/TextArea.vue';
 import Button from '../../vue/components/Button.vue';
   import MultiColumn from '../../vue/components/MultiColumn.vue';
   import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
@@ -413,6 +433,18 @@ const onModalVisibilityChange = (visible: boolean) => {
   background: #e3f2fd;
   padding: 2px 4px;
   border-radius: 3px;
+}
+
+/* CSS 帮助文本样式 */
+.css-help-text {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 /* 图标按钮样式 */

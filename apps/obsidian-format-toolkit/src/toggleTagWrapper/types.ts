@@ -16,6 +16,8 @@ export interface TagConfig {
     suffix: string;
     /** 是否启用此标签配置 */
     enabled: boolean;
+    /** CSS 片段，会根据启用状态热插拔到 Obsidian */
+    cssSnippet: string;
 }
 
 /**
@@ -36,22 +38,9 @@ export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
             name: 'Toggle Underline',
             prefix: '<u>',
             suffix: '</u>',
-            enabled: true
+            enabled: true,
+            cssSnippet: '/* 下划线样式 */\nu {\n  text-decoration: underline;\n  text-decoration-color: var(--text-accent);\n}'
         },
-        {
-            id: 'doc-weaver-toggle-bold',
-            name: 'Toggle Bold',
-            prefix: '**',
-            suffix: '**',
-            enabled: true
-        },
-        {
-            id: 'doc-weaver-toggle-italic',
-            name: 'Toggle Italic',
-            prefix: '*',
-            suffix: '*',
-            enabled: true
-        }
     ]
 };
 
@@ -68,7 +57,8 @@ export function generateHexId(): string {
 export function createNewTagConfig(
     name?: string,
     prefix?: string,
-    suffix?: string
+    suffix?: string,
+    cssSnippet?: string
 ): TagConfig {
     const hexId = generateHexId();
     return {
@@ -76,6 +66,13 @@ export function createNewTagConfig(
         name: name || `tag-${hexId}`,
         prefix: prefix || '<u>',
         suffix: suffix || '</u>',
-        enabled: true
+        enabled: true,
+        cssSnippet: cssSnippet || `u {
+    color: blue;
+    cursor: pointer; /* 鼠标悬停显示为手型 */
+    text-decoration: none; /* 去掉默认的下划线 */
+    border-bottom: 1px solid black; /* 使用边框模拟下划线 */
+    position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
+}`
     };
 } 

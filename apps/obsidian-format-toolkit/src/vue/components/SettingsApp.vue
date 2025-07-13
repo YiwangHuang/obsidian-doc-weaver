@@ -48,8 +48,8 @@ import { useSettingsState } from '../utils';
 import SettingsTabs from './SettingsTabs.vue';
 import SettingsPanel from './SettingsPanel.vue';
 import DemoModalComponent from './DemoModalComponent.vue';
-import '../shared-styles.css';
 import { DEBUG, debugLog } from '../../lib/testUtils';
+import '../shared-styles.css';
 
 
 // 定义Props

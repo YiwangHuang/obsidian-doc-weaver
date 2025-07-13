@@ -28,15 +28,10 @@ export interface SettingsRegistry {
     component?: any; // Vue组件，可选字段
 }
 
-// 定义模块更新处理器接口
-export interface ModuleUpdateHandler {
-    (newSettings: any): void;
-}
-
 // 模块更新处理器注册表
-const MODULE_UPDATE_HANDLERS: Record<string, ModuleUpdateHandler> = {
-    [tagWrapperSetting.name]: (newSettings) => {
-        DynamicCommandManager.updateCommands(newSettings);
+const MODULE_UPDATE_HANDLERS: Record<string, (newModuleConfig: any) => void> = {
+    [tagWrapperSetting.name]: (newModuleConfig) => {
+        DynamicCommandManager.updateCommands(newModuleConfig);
         console.log('Tag wrapper commands updated due to settings change');
     },
     // 可扩展其他模块
@@ -81,11 +76,11 @@ export default class MyPlugin extends Plugin {
         // 创建设置标签页
         this.addSettingTab(new AlternativeSettingTab(this.app, this));
 
-		// 在左侧功能区创建一个图标按钮
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Doc Weaver', (evt: MouseEvent) => {
-			new Notice('This is a notice!');
-		});
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		// // 在左侧功能区创建一个图标按钮
+		// const ribbonIconEl = this.addRibbonIcon('dice', 'Doc Weaver', (evt: MouseEvent) => {
+		// 	new Notice('This is a notice!');
+		// });
+		// ribbonIconEl.addClass('my-plugin-ribbon-class');
 
 		// 注册所有命令
 		// 使用新的动态命令管理系统
@@ -112,22 +107,22 @@ export default class MyPlugin extends Plugin {
     /**
      * 设置变更通知 - 由设置界面调用
      * 完全通用的设置更新处理，不依赖具体模块
-     * @param settingName 设置名称
-     * @param newSettings 新的设置值
+     * @param moduleName 设置名称
+     * @param newModuleConfig 新的设置值
      */
-    async onSettingsChange(settingName: string, newSettings: any): Promise<void> {
+    async onSettingsChange(moduleName: string, newModuleConfig: any): Promise<void> {
         // 更新内部设置
-        this.settingList[settingName] = newSettings;
+        this.settingList[moduleName] = newModuleConfig;
         
         // 保存到磁盘
         await this.saveData(this.settingList);
         
         // 查找并调用对应的模块更新处理器
-        const updateHandler = MODULE_UPDATE_HANDLERS[settingName];
+        const updateHandler = MODULE_UPDATE_HANDLERS[moduleName];
         if (updateHandler) {
-            updateHandler(newSettings);
+            updateHandler(newModuleConfig);
         } else {
-            console.log(`No update handler found for setting: ${settingName}`);
+            console.log(`No update handler found for setting: ${moduleName}`);
         }
     }
 

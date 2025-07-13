@@ -80,9 +80,7 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         // 拷贝附件
         converter.copyAttachment(outputDir);
 
-        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 0); // 打印导出信息
-        
-        // TODO: 双语支持导出信息
+        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 2000); // 打印导出信息
 
         converter.exportConfig = null;
 

@@ -6,6 +6,7 @@ import { generateHexId } from "../../lib/idGenerator";
 import { getHeadingText } from '../../lib/noteResloveUtils';
 import type { OutputFormat } from "./textConverter";
 import type { Token, StateBlock } from "markdown-it";
+import { getLocalizedText } from '../../lib/textUtils';
 
 // import type StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 // import type Token from 'markdown-it/lib/token.mjs';
@@ -334,14 +335,14 @@ export class LinkParser {
         
         // 添加输出路径信息
         if (outputPath) {
-            lines.push(`Export path: ${outputPath}`);
+            lines.push(`${getLocalizedText({en: 'Export path', zh: '导出路径'})}: ${outputPath}`);
         }
         
         const totalLinks = this.linkMap.size;
         
         // 添加嵌入笔记统计
         if (this.embedNoteCount > 0) {
-            lines.push(`\nEmbedded notes: ${this.embedNoteCount}`);
+            lines.push(`\n${getLocalizedText({en: 'Embedded notes count', zh: '嵌入笔记数量'})}: ${this.embedNoteCount}`);
         }
         
         // 如果有链接，统计并显示详细分类
@@ -366,7 +367,7 @@ export class LinkParser {
                 linkStats[category] = (linkStats[category] || 0) + 1;
             }
             
-            lines.push(`\nAttachments (${totalLinks}):`);
+            lines.push(`\n${getLocalizedText({en: 'Attachments count', zh: '附件数量'})}: ${totalLinks}`);
             
             // 按扩展名排序显示
             const categories = Object.entries(linkStats).sort(([a], [b]) => a.localeCompare(b));
@@ -428,7 +429,7 @@ LinkParser.registerRule({
     description: "处理媒体链接",
     priority: 'ext_name',
     shouldProcess: (linkPart) => {
-        const mediaExtList = mediaExtensions.map(ext => '.' + ext); //TODO: 删除外部的imageExtensions，在该注册规则中定义image适配的扩展名
+        const mediaExtList = mediaExtensions.map(ext => '.' + ext);
         return mediaExtList.some(ext => linkPart.toLowerCase().endsWith(ext));
     },
     processors: [

@@ -12,5 +12,6 @@ export const exportFormatsSetting: SettingsRegistry = {
     component: ExportFormatsSettings // Vue组件
 };
 
+export { ExportFormatsManager } from './exportFormatsManager';
 // Export commands
 export * from './commands';

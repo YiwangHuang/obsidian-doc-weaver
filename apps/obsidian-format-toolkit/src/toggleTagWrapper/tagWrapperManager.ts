@@ -79,7 +79,7 @@ export class TagWrapperManager {
         }
     }
 
-
+    // TODO: 需要增加防抖机制，避免频繁触发
     watchConfig(tag: TagConfig): void {
         watch(() => tag.enabled, (newVal, oldVal) => {
             if (newVal) {
@@ -88,6 +88,12 @@ export class TagWrapperManager {
             } else {
                 this.removeTagCommand(tag);
                 this.removeCSS(tag);
+            }
+        });
+        watch(() => tag.name, (newVal, oldVal) => {
+            if (tag.enabled) {
+                this.removeTagCommand(tag);
+                this.addTagCommand(tag);
             }
         });
         watch(() => tag.cssSnippet, (newVal, oldVal) => {

@@ -1,0 +1,71 @@
+import type MyPlugin from "../main";
+import path from "path";
+import fs from "fs";
+import { DEFAULT_EXPORT_FORMATS_SETTINGS, ExportManagerSetting, ExportConfig } from "./types";
+import { exportFormatsSetting } from "./index";
+import { generateTimestamp } from "../lib/idGenerator";
+import { OutputFormat } from "./textConvert/textConverter";
+import { getDefaultYAML, createFormatAssetStructure } from './textConvert/defaultStyleConfig/styleConfigs';
+import { debugLog } from "../lib/testUtils";
+import { EXPORT_FORMATS_CONSTANTS } from "./types";
+
+export class ExportFormatsManager {
+    private plugin: MyPlugin;
+    public config: ExportManagerSetting;
+
+    constructor(plugin: MyPlugin) {
+        this.plugin = plugin;
+        this.config = this.plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;
+        this.initialize();
+    }
+
+    initialize(): void {
+        if (!this.config) {
+            this.config = DEFAULT_EXPORT_FORMATS_SETTINGS;
+        }
+    }
+
+    /**
+     * 添加新导出格式配置
+     */
+    addExportFormatItem(format: OutputFormat): void {
+        const hexId = generateTimestamp("hex");
+        const newConfig: ExportConfig = {
+        id: hexId,
+        style_dir: path.posix.join('styles', hexId),
+        name: `${hexId}`,
+        output_dir: path.posix.join(EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
+        output_base_name: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
+        yaml: getDefaultYAML(format) || '',
+        enabled: true,
+        format: format,
+        excalidraw_export_type: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
+        excalidraw_png_scale: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE
+        };
+    
+        // 创建对应的资源文件夹
+        const styleDirAbs = path.posix.join(
+        this.plugin.PLUGIN_ABS_PATH,
+        newConfig.style_dir
+        );
+        if (!fs.existsSync(styleDirAbs)) {
+        fs.mkdirSync(styleDirAbs, { recursive: true });
+        }
+        createFormatAssetStructure(styleDirAbs, format);
+        
+        debugLog('New export config added:', newConfig.name);
+        this.config.exportConfigs.push(newConfig);
+    }
+
+    deleteExportFormatItem(exportFormatIndex: number): void {
+        const item = this.config.exportConfigs[exportFormatIndex];
+        const styleDirAbs = path.posix.join(
+            this.plugin.PLUGIN_ABS_PATH,
+            item.style_dir
+        );
+        if (fs.existsSync(styleDirAbs)) {
+            fs.rmSync(styleDirAbs, { recursive: true, force: true });
+        }
+        this.config.exportConfigs.splice(exportFormatIndex, 1);
+    }
+}

@@ -11,6 +11,7 @@ import { debugLog } from './lib/testUtils';
 
 import {
 	exportFormatsSetting,
+    ExportFormatsManager,
     // exportToFormats,
     addExportFormatsCommands
 } from './exportFormats/index';	
@@ -38,7 +39,7 @@ export default class MyPlugin extends Plugin {
     moduleSettings: SettingsRegistry[] = [];
     commandCache: { [key: string]: object } = {};// 命令缓存
     tagWrapperManager: TagWrapperManager;
-    
+    exportFormatsManager: ExportFormatsManager;
     
     // 用于控制是否启用自动保存，避免初始化时触发保存
     private enableAutoSave = false;
@@ -53,24 +54,17 @@ export default class MyPlugin extends Plugin {
         const savedData = await this.loadData();
 
         this.settingList = reactive(savedData);
-        // if (savedData) {
-        //     // 合并保存的设置和默认设置
-        //     Object.keys(this.settingList).forEach(key => {
-        //         this.settingList[key] = {
-        //             ...this.settingList[key],  // 默认设置
-        //             ...(savedData[key] || {})  // 保存的设置
-        //         };
-        //     });
-        // }
         
         debugLog('settingList', savedData);
 
         this.tagWrapperManager = new TagWrapperManager(this);
+        this.exportFormatsManager = new ExportFormatsManager(this);
         
         this.registerSettings(exportFormatsSetting);
         this.registerSettings(tagWrapperSetting);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存
+        // TODO: 需要增加防抖机制，避免频繁触发
         watch(() => this.settingList, async (newVal, oldVal) => {
             if (this.enableAutoSave) {
                 debugLog('Settings changed, auto-saving...');

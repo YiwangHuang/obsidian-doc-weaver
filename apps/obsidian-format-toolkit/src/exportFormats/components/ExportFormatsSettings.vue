@@ -118,7 +118,6 @@
           <TextInput
             v-model="editingConfig.name"
             placeholder="Enter format name..."
-            @update:model-value="debouncedSave"
           />
         </div>
 
@@ -128,7 +127,6 @@
             <TextInput
               v-model="editingConfig.output_dir"
               :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR"
-              @update:model-value="debouncedSave"
             />
           </div>
 
@@ -137,7 +135,6 @@
             <TextInput
               v-model="editingConfig.output_base_name"
               :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
-              @update:model-value="debouncedSave"
             />
           </div>
         </div>
@@ -154,7 +151,6 @@
             v-model="editingConfig.yaml"
             placeholder="Enter export format YAML configuration..."
             :rows="8"
-            @update:model-value="debouncedSave"
           />
         </div>
 
@@ -177,7 +173,6 @@
               max="9"
               step="1"
               class="png-scale-slider"
-              @input="debouncedSave"
             />
           </div>
         </div>
@@ -196,7 +191,7 @@
         />
         <Button
           variant="primary"
-          @click="addNewExportConfig"
+          @click="props.plugin.exportFormatsManager.addExportFormatItem(selectedFormat)"
           class="add-button"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -272,9 +267,11 @@ const emit = defineEmits<ExportFormatsSettingsEmits>();
 
 
 // 初始化设置
-const settings = reactive<ExportManagerSetting>({
-  exportConfigs: [...(props.plugin.settingList.exportFormats as ExportManagerSetting || DEFAULT_EXPORT_FORMATS_SETTINGS).exportConfigs]
-});
+// const settings = reactive<ExportManagerSetting>({
+//   exportConfigs: [...(props.plugin.settingList.exportFormats as ExportManagerSetting || DEFAULT_EXPORT_FORMATS_SETTINGS).exportConfigs]
+// });
+
+const settings = props.plugin.exportFormatsManager.config;
 
 // 弹窗状态
 const modalVisible = ref(false);
@@ -321,35 +318,34 @@ const getExtensionByFormat = (format: OutputFormat): string => {
   return EXTENSION_MAP[format] || 'txt';
 };
 
-/**
- * 保存设置到插件
- */
-const saveSettings = async () => {
-  try {
-    // 更新插件设置
-    props.plugin.settingList.exportFormats = { ...settings };
+// /**
+//  * 保存设置到插件
+//  */
+// const saveSettings = async () => {
+//   try {
+//     // 更新插件设置
+//     props.plugin.settingList.exportFormats = { ...settings };
     
-    // 保存到磁盘
-    await props.plugin.saveData(props.plugin.settingList);
+//     // 保存到磁盘
+//     await props.plugin.saveData(props.plugin.settingList);
     
-    // 发出设置变更事件
-    emit('settings-changed', settings);
+//     // 发出设置变更事件
+//     emit('settings-changed', settings);
     
-    debugLog('Export formats settings saved');
-  } catch (error) {
-    debugLog('Failed to save export formats settings:', error);
-  }
-};
+//     debugLog('Export formats settings saved');
+//   } catch (error) {
+//     debugLog('Failed to save export formats settings:', error);
+//   }
+// };
 
 // 创建防抖保存函数
-const debouncedSave = debounce(saveSettings, 500);
+// const debouncedSave = debounce(saveSettings, 500);
 
 /**
  * 保存设置并处理拖拽结束
  */
 const handleDragEnd = () => {
   debugLog('Drag ended, order saved');
-  debouncedSave();
 };
 
 /**
@@ -358,7 +354,6 @@ const handleDragEnd = () => {
 const handleExportEnabledChange = (index: number, enabled: boolean) => {
   debugLog(`Export format ${index} enabled:`, enabled);
   settings.exportConfigs[index].enabled = enabled;
-  debouncedSave();
 };
 
 /**
@@ -385,7 +380,6 @@ const handleExcalidrawTypeChange = () => {
   if (editingConfig.value?.excalidraw_export_type === 'png' && !editingConfig.value.excalidraw_png_scale) {
     editingConfig.value.excalidraw_png_scale = EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE;
   }
-  debouncedSave();
 };
 
 /**
@@ -431,22 +425,8 @@ const showDeleteConfirm = (index: number) => {
  */
 const confirmDelete = async () => {
   if (deleteConfigIndex.value === null) return;
-  
-  const config = settings.exportConfigs[deleteConfigIndex.value];
-  debugLog('Export config deleted:', config.name);
-  
-  // 删除对应的资源文件夹
-  const formatStylesPath = path.posix.join(
-    props.plugin.PLUGIN_ABS_PATH,
-    config.style_dir
-  );
-  if (fs.existsSync(formatStylesPath)) {
-    fs.rmSync(formatStylesPath, { recursive: true, force: true });
-  }
-  
-  settings.exportConfigs.splice(deleteConfigIndex.value, 1);
+  props.plugin.exportFormatsManager.deleteExportFormatItem(deleteConfigIndex.value);
   deleteConfigIndex.value = null;
-  debouncedSave();
 };
 
 /**
@@ -457,46 +437,12 @@ const cancelDelete = () => {
 };
 
 /**
- * 添加新导出格式配置
- */
-const addNewExportConfig = async () => {
-  const hexId = generateTimestamp("hex");
-  const newConfig: ExportConfig = {
-    id: hexId,
-    style_dir: path.posix.join('styles', hexId),
-    name: `${hexId}`,
-    output_dir: path.posix.join(EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
-    output_base_name: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
-    yaml: getDefaultYAML(selectedFormat.value) || '',
-    enabled: true,
-    format: selectedFormat.value,
-    excalidraw_export_type: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
-    excalidraw_png_scale: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE
-  };
-
-  // 创建对应的资源文件夹
-  const styleDirAbs = path.posix.join(
-    props.plugin.PLUGIN_ABS_PATH,
-    newConfig.style_dir
-  );
-  if (!fs.existsSync(styleDirAbs)) {
-    fs.mkdirSync(styleDirAbs, { recursive: true });
-  }
-  createFormatAssetStructure(styleDirAbs, selectedFormat.value);
-  
-  debugLog('New export config added:', newConfig.name);
-  settings.exportConfigs.push(newConfig);
-  debouncedSave();
-};
-
-/**
  * 处理弹窗可见性变更
  */
 const onModalVisibilityChange = (visible: boolean) => {
   if (!visible) {
     // 弹窗关闭时，清理状态
     editingConfig.value = null;
-    debouncedSave();
   }
 };
 </script>

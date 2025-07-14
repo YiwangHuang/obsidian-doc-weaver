@@ -110,7 +110,6 @@
           <TextInput
             v-model="editingTag.name"
             placeholder="Enter tag name..."
-            @update:model-value="debouncedSave"
           />
         </div>
 
@@ -120,7 +119,6 @@
             <TextInput
               v-model="editingTag.prefix"
               placeholder="e.g. <div>, **, <!--"
-              @update:model-value="debouncedSave"
             />
           </div>
 
@@ -129,7 +127,6 @@
             <TextInput
               v-model="editingTag.suffix"
               placeholder="e.g. </div>, **, -->"
-              @update:model-value="debouncedSave"
             />
           </div>
         </div>
@@ -143,7 +140,6 @@
               zh: '输入启用此标签时将注入的 CSS 样式...\n示例：\n.my-tag {\n  color: red;\n  font-weight: bold;\n}'
             })"
             :rows="8"
-            @update:model-value="debouncedSave"
           />
           <div class="css-help-text">
             {{ getLocalizedText({ 
@@ -231,7 +227,6 @@ import type {
   TagConfig, 
   TagWrapperSettings
 } from '../types';
-import { debounce } from '../../vue/utils';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
 import TextInput from '../../vue/components/TextInput.vue';
@@ -306,32 +301,11 @@ const previewTextStyle = computed(() => {
 });
 
 /**
- * 保存设置到插件并触发动态命令更新
- */
-const saveSettings = async () => {
-  try {
-    // 调用主插件的设置变更方法，这会触发动态命令更新
-    // await props.plugin.onSettingsChange(tagWrapperSetting.name, { ...configs });
-    
-    // 发出设置变更事件（向后兼容）
-    emit('settings-changed', configs);
-    
-    debugLog('Tag wrapper settings saved and commands updated');
-  } catch (error) {
-    debugLog('Failed to save tag wrapper settings:', error);
-  }
-};
-
-// 创建防抖保存函数
-const debouncedSave = debounce(saveSettings, 500);
-
-/**
  * 保存设置并处理拖拽结束
  */
 const handleDragEnd = () => {
   debugLog('Drag ended, order saved');
   // 拖拽结束后自动保存
-  debouncedSave();
 };
 
 /**
@@ -340,7 +314,6 @@ const handleDragEnd = () => {
 const handleTagEnabledChange = (index: number, enabled: boolean) => {
   debugLog(`Tag ${index} enabled:`, enabled);
   configs.tags[index].enabled = enabled;
-  debouncedSave();
 };
 
 /**
@@ -418,7 +391,6 @@ const onModalVisibilityChange = (visible: boolean) => {
       previewStyleElement.value.remove();
       previewStyleElement.value = null;
     }
-    debouncedSave();
   } else {
     // 弹窗打开时，初始化预览
     nextTick(() => {

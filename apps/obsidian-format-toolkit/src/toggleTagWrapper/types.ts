@@ -43,36 +43,3 @@ export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
         },
     ]
 };
-
-/**
- * 生成6位16进制随机ID
- */
-export function generateHexId(): string {
-    return Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, '0');
-}
-
-/**
- * 创建新的标签配置
- */
-export function createNewTagConfig(
-    name?: string,
-    prefix?: string,
-    suffix?: string,
-    cssSnippet?: string
-): TagConfig {
-    const hexId = generateHexId();
-    return {
-        id: `doc-weaver-tag-${hexId}`,
-        name: name || `tag-${hexId}`,
-        prefix: prefix || '<u>',
-        suffix: suffix || '</u>',
-        enabled: true,
-        cssSnippet: cssSnippet || `u {
-    color: blue;
-    cursor: pointer; /* 鼠标悬停显示为手型 */
-    text-decoration: none; /* 去掉默认的下划线 */
-    border-bottom: 1px solid black; /* 使用边框模拟下划线 */
-    position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
-}`
-    };
-} 

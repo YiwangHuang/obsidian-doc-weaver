@@ -17,7 +17,7 @@ export const tagWrapperSetting: SettingsRegistry = {
 };
 
 // 导出动态命令管理器（作为主要接口）
-export { DynamicCommandManager } from './dynamicCommandManager';
+export { TagWrapperManager } from './tagWrapperManager';
 
 // 导出类型
 export type { TagConfig, TagWrapperSettings } from './types';

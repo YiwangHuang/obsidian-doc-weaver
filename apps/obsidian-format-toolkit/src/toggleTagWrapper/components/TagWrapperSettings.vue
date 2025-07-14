@@ -32,7 +32,7 @@
 
       <!-- 可拖拽的标签配置列表 -->
       <draggable
-        v-model="settings.tags"
+        v-model="configs.tags"
         item-key="id"
         ghost-class="ghost"
         @end="handleDragEnd()"
@@ -200,7 +200,7 @@
     <div class="module-section" style="display: flex; justify-content: center;">
       <Button
         variant="primary"
-        @click="addNewTag"
+        @click="props.plugin.tagWrapperManager.addTagItem()"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -224,16 +224,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, watch, nextTick } from 'vue';
+import { reactive, ref, toRef, computed, watch, nextTick } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
 import type { 
   TagConfig, 
   TagWrapperSettings
-} from '../types';
-import { 
-  DEFAULT_TAG_WRAPPER_SETTINGS,
-  createNewTagConfig
 } from '../types';
 import { debounce } from '../../vue/utils';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
@@ -261,9 +257,9 @@ const props = defineProps<TagWrapperSettingsProps>();
 const emit = defineEmits<TagWrapperSettingsEmits>();
 
 // 初始化设置
-const settings = reactive<TagWrapperSettings>({
-  tags: [...(props.plugin.settingList.tagWrapper as TagWrapperSettings || DEFAULT_TAG_WRAPPER_SETTINGS).tags]
-});
+const configs = props.plugin.settingList[tagWrapperSetting.name] as TagWrapperSettings;
+
+// toRef(props.plugin.settingList[tagWrapperSetting.name] as TagWrapperSettings, "tags") ;
 
 // 弹窗状态
 const modalVisible = ref(false);
@@ -315,10 +311,10 @@ const previewTextStyle = computed(() => {
 const saveSettings = async () => {
   try {
     // 调用主插件的设置变更方法，这会触发动态命令更新
-    await props.plugin.onSettingsChange(tagWrapperSetting.name, { ...settings });
+    // await props.plugin.onSettingsChange(tagWrapperSetting.name, { ...configs });
     
     // 发出设置变更事件（向后兼容）
-    emit('settings-changed', settings);
+    emit('settings-changed', configs);
     
     debugLog('Tag wrapper settings saved and commands updated');
   } catch (error) {
@@ -343,7 +339,7 @@ const handleDragEnd = () => {
  */
 const handleTagEnabledChange = (index: number, enabled: boolean) => {
   debugLog(`Tag ${index} enabled:`, enabled);
-  settings.tags[index].enabled = enabled;
+  configs.tags[index].enabled = enabled;
   debouncedSave();
 };
 
@@ -351,7 +347,7 @@ const handleTagEnabledChange = (index: number, enabled: boolean) => {
  * 打开标签编辑弹窗
  */
 const openTagModal = (index: number) => {
-  editingTag.value = settings.tags[index];
+  editingTag.value = configs.tags[index];
   modalVisible.value = true;
 };
 
@@ -369,10 +365,9 @@ const showDeleteConfirm = (index: number) => {
 const confirmDelete = () => {
   if (deleteTagIndex.value === null) return;
   
-  debugLog('Tag deleted:', settings.tags[deleteTagIndex.value].name);
-  settings.tags.splice(deleteTagIndex.value, 1);
+  props.plugin.tagWrapperManager.deleteTagItem(deleteTagIndex.value);
   deleteTagIndex.value = null;
-  debouncedSave();
+  // debouncedSave();
 };
 
 /**
@@ -380,17 +375,6 @@ const confirmDelete = () => {
  */
 const cancelDelete = () => {
   deleteTagIndex.value = null;
-};
-
-/**
- * 添加新标签配置
- */
-const addNewTag = () => {
-  const newTag = createNewTagConfig();
-  
-  debugLog('New tag added:', newTag.name);
-  settings.tags.push(newTag);
-  debouncedSave();
 };
 
 /**

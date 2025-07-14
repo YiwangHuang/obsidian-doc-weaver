@@ -1,176 +1,37 @@
-/**
- * 动态命令管理器
- * 
- * 完全独立的标签包装器命令管理模块，与主插件解耦
- * 支持命令和 CSS 片段的动态热插拔
- */
-
-import { Editor, MarkdownView, Command } from "obsidian";
 import type MyPlugin from "../main";
-import type { TagConfig, TagWrapperSettings } from "./types";
+import { Editor, MarkdownView, Command } from "obsidian";
+import { watch } from "vue";
+import { DEFAULT_TAG_WRAPPER_SETTINGS, TagConfig, TagWrapperSettings } from "./types";
+import { tagWrapperSetting } from "./index";
+import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/testUtils";
 
-/**
- * 动态命令管理器
- */
-export class DynamicCommandManager {
+export class TagWrapperManager {
     private plugin: MyPlugin;
-    private registeredCommands = new Map<string, Command>();
+    private config: TagWrapperSettings;
     private injectedStyles = new Map<string, HTMLStyleElement>();
-
-    // 静态实例管理
-    private static instance: DynamicCommandManager | null = null;
 
     constructor(plugin: MyPlugin) {
         this.plugin = plugin;
+        this.config = this.plugin.settingList[tagWrapperSetting.name] as TagWrapperSettings;
+        this.initialize();
     }
 
-    /**
-     * 初始化全局管理器实例
-     * @param plugin 插件实例
-     */
-    static initialize(plugin: MyPlugin): DynamicCommandManager {
-        if (DynamicCommandManager.instance) {
-            DynamicCommandManager.instance.cleanup();
+    initialize(): void {
+        if (!this.config) {
+            this.config = DEFAULT_TAG_WRAPPER_SETTINGS;
         }
-        
-        DynamicCommandManager.instance = new DynamicCommandManager(plugin);
-        return DynamicCommandManager.instance;
-    }
-
-    /**
-     * 获取全局管理器实例
-     */
-    static getInstance(): DynamicCommandManager | null {
-        return DynamicCommandManager.instance;
-    }
-
-    /**
-     * 静态方法：更新命令（外部调用）
-     * @param settings 新的设置
-     */
-    static updateCommands(settings: TagWrapperSettings): void {
-        const instance = DynamicCommandManager.getInstance();
-        if (instance) {
-            instance.updateCommands(settings);
-        }
-    }
-
-    /**
-     * 静态方法：清理所有命令（外部调用）
-     */
-    static cleanup(): void {
-        const instance = DynamicCommandManager.getInstance();
-        if (instance) {
-            instance.cleanup();
-            DynamicCommandManager.instance = null;
-        }
-    }
-
-    /**
-     * 初始化并注册命令
-     */
-    initialize(settings: TagWrapperSettings): void {
-        this.updateCommands(settings);
-    }
-
-    /**
-     * 更新命令和 CSS 样式
-     */
-    updateCommands(settings: TagWrapperSettings): void {
-        debugLog('Starting command update');
-        debugLog('Current commands:', Array.from(this.registeredCommands.keys()));
-        
-        const enabledTags = settings.tags.filter(tag => tag.enabled);
-        const newCommandIds = new Set(enabledTags.map(tag => tag.id));
-        debugLog('Enabled tags:', enabledTags.map(t => t.name));
-        
-        // 移除不再需要的命令
-        const toRemove = Array.from(this.registeredCommands.keys()).filter(id => !newCommandIds.has(id));
-        if (toRemove.length > 0) {
-            debugLog('Removing commands:', toRemove);
-            toRemove.forEach(commandId => this.removeCommand(commandId));
-        }
-        
-        // 移除不再需要的CSS
-        const stylesToRemove = Array.from(this.injectedStyles.keys()).filter(id => !newCommandIds.has(id));
-        if (stylesToRemove.length > 0) {
-            debugLog('Removing styles:', stylesToRemove);
-            stylesToRemove.forEach(tagId => this.removeCSS(tagId));
-        }
-        
-        // 添加新的命令和更新CSS样式
+        const enabledTags = this.config.tags.filter(tag => tag.enabled);
         enabledTags.forEach(tag => {
-            // 处理命令注册
-            if (!this.registeredCommands.has(tag.id)) {
-                debugLog('Adding command:', tag.name);
-                this.registerCommand(tag);
-            }
-            
-            // 处理CSS注入和更新
-            if (tag.cssSnippet && tag.cssSnippet.trim()) {
-                const existingStyle = this.injectedStyles.get(tag.id);
-                const newCssContent = `/* Doc Weaver CSS Snippet for: ${tag.name} */\n${tag.cssSnippet}`;
-                
-                // 检查CSS是否需要更新
-                if (!existingStyle) {
-                    // 没有现有样式，直接注入
-                    debugLog('Adding CSS:', tag.name);
-                    this.injectCSS(tag);
-                } else if (existingStyle.textContent !== newCssContent) {
-                    // CSS内容发生变化，重新注入
-                    debugLog('Updating CSS:', tag.name);
-                    this.removeCSS(tag.id);
-                    this.injectCSS(tag);
-                }
-            } else if (this.injectedStyles.has(tag.id)) {
-                // 如果CSS被清空，移除现有样式
-                debugLog('Removing empty CSS:', tag.name);
-                this.removeCSS(tag.id);
-            }
+            this.addTagCommand(tag);
+            this.injectCSS(tag);
         });
-
-        debugLog(`Update complete: ${this.registeredCommands.size} commands, ${this.injectedStyles.size} CSS snippets`);
-    }
-
-    /**
-     * 清理所有命令和 CSS 样式
-     */
-    cleanup(): void {
-        debugLog('Starting cleanup');
-        
-        // 清理所有命令
-        Array.from(this.registeredCommands.keys()).forEach(commandId => {
-            this.removeCommand(commandId);
+        this.config.tags.forEach(tag => {
+            this.watchConfig(tag);
         });
-        
-        // 清理所有CSS样式
-        Array.from(this.injectedStyles.keys()).forEach(tagId => {
-            this.removeCSS(tagId);
-        });
-        
-        debugLog('Cleanup complete');
     }
-
-    /**
-     * 移除单个命令
-     * @param commandId 命令ID
-     */
-    private removeCommand(commandId: string): void {
-        try {
-            this.plugin.removeCommand(commandId);
-            this.registeredCommands.delete(commandId);
-            debugLog('Command removed:', commandId);
-            
-        } catch (error) {
-            debugLog('Failed to remove command:', commandId, error);
-        }
-    }
-
-    /**
-     * 注册单个命令
-     */
-    private registerCommand(tag: TagConfig): void {
+    
+    addTagCommand(tag: TagConfig): void {
         const command: Command = {
             id: tag.id,
             name: tag.name,
@@ -178,16 +39,12 @@ export class DynamicCommandManager {
                 this.executeTagWrapper(editor, view, tag.prefix, tag.suffix);
             }
         };
-
-        try {
-            this.plugin.addCommand(command);
-            this.registeredCommands.set(tag.id, command);
-            debugLog('Command registered:', tag.name);
-        } catch (error) {
-            debugLog('Failed to register command:', tag.id, error);
-        }
+        this.plugin.addCommand(command);
     }
-
+    
+    removeTagCommand(tag: TagConfig): void {
+        this.plugin.removeCommand(tag.id);
+    }
 
 
     /**
@@ -201,7 +58,7 @@ export class DynamicCommandManager {
 
         try {
             const styleElement = document.createElement('style');
-            styleElement.id = `doc-weaver-css-${tag.id}`;
+            styleElement.id = tag.id;
             styleElement.textContent = `/* Doc Weaver CSS Snippet for: ${tag.name} */\n${tag.cssSnippet}`;
             
             document.head.appendChild(styleElement);
@@ -213,18 +70,80 @@ export class DynamicCommandManager {
         }
     }
 
-    /**
-     * 移除指定标签的 CSS 片段
-     * @param tagId 标签ID
-     */
-    private removeCSS(tagId: string): void {
-        const styleElement = this.injectedStyles.get(tagId);
+    private removeCSS(tag: TagConfig): void {
+        const styleElement = this.injectedStyles.get(tag.id);
         if (styleElement?.parentNode) {
             styleElement.parentNode.removeChild(styleElement);
-            this.injectedStyles.delete(tagId);
-            debugLog('CSS removed:', tagId);
+            this.injectedStyles.delete(tag.id);
+            debugLog('CSS removed:', tag.id);
         }
     }
+
+
+    watchConfig(tag: TagConfig): void {
+        watch(() => tag.enabled, (newVal, oldVal) => {
+            if (newVal) {
+                this.addTagCommand(tag);
+                this.injectCSS(tag);
+            } else {
+                this.removeTagCommand(tag);
+                this.removeCSS(tag);
+            }
+        });
+        watch(() => tag.cssSnippet, (newVal, oldVal) => {
+            if (tag.enabled) {
+                this.removeCSS(tag);
+                this.injectCSS(tag);
+            }
+        });
+    }
+    
+    addTagItem(): void {
+        const tags = this.config.tags;
+        tags.push(this.generateTagItem());
+        this.addTagCommand(tags[tags.length - 1]);
+        this.injectCSS(tags[tags.length - 1]);
+        this.watchConfig(tags[tags.length - 1]);
+    }
+
+    deleteTagItem(tagIndex: number): void {
+        const tag = this.config.tags[tagIndex];
+        this.removeTagCommand(tag);
+        this.removeCSS(tag);
+        this.config.tags.splice(tagIndex, 1);
+    }
+
+    cleanup(): void {
+        this.config.tags.forEach(tag => {
+            this.removeTagCommand(tag);
+            this.removeCSS(tag);
+        });
+        this.injectedStyles.clear();
+    }
+
+    generateTagItem(
+        name?: string,
+        prefix?: string,
+        suffix?: string,
+        cssSnippet?: string
+    ): TagConfig {
+        const hexId = generateTimestamp();
+        return {
+            id: `doc-weaver-tag-${hexId}`,
+            name: name || `tag-${hexId}`,
+            prefix: prefix || '<u>',
+            suffix: suffix || '</u>',
+            enabled: true,
+            cssSnippet: cssSnippet || `u {
+    color: blue;
+    cursor: pointer; /* 鼠标悬停显示为手型 */
+    text-decoration: none; /* 去掉默认的下划线 */
+    border-bottom: 1px solid black; /* 使用边框模拟下划线 */
+    position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
+}`
+        };
+    }
+
 
     /**
      * 执行标签包装逻辑
@@ -328,4 +247,4 @@ export class DynamicCommandManager {
             }
         }
     }
-} 
+}

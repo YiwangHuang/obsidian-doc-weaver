@@ -1,7 +1,8 @@
 import { App, DataAdapter, FileSystemAdapter, Notice, Plugin, PluginSettingTab, TFile } from 'obsidian';
 import path from 'path';
-import { createApp, App as VueApp } from 'vue';
+import { createApp, App as VueApp, reactive, watch } from 'vue';
 import SettingsApp from './vue/components/SettingsApp.vue';
+import { debugLog } from './lib/testUtils';
 
 // import { 
 // 	addGetCreateNoteCommands,
@@ -15,7 +16,7 @@ import {
 } from './exportFormats/index';	
 
 import { 
-    DynamicCommandManager,
+    TagWrapperManager,
     tagWrapperSetting
 } from './toggleTagWrapper/index';
 
@@ -28,50 +29,57 @@ export interface SettingsRegistry {
     component?: any; // Vue组件，可选字段
 }
 
-// 模块更新处理器注册表
-const MODULE_UPDATE_HANDLERS: Record<string, (newModuleConfig: any) => void> = {
-    [tagWrapperSetting.name]: (newModuleConfig) => {
-        DynamicCommandManager.updateCommands(newModuleConfig);
-        console.log('Tag wrapper commands updated due to settings change');
-    },
-    // 可扩展其他模块
-    // [exportFormatsSetting.name]: (newSettings) => {
-    //     ExportFormatsManager.updateCommands(newSettings);
-    //     console.log('Export formats commands updated due to settings change');
-    // },
-};
-
 export default class MyPlugin extends Plugin {
 	private vaultAdapter: DataAdapter;	
 	VAULT_ABS_PATH: string;
 	PLUGIN_ABS_PATH: string;
-    settingList: { [key: string]: object } = {};
+    // 将settingList改成响应式对象，支持深度监听嵌套对象的变化
+    settingList: { [key: string]: object } = reactive({});
     moduleSettings: SettingsRegistry[] = [];
     commandCache: { [key: string]: object } = {};// 命令缓存
+    tagWrapperManager: TagWrapperManager;
     
-    // 动态命令管理器
-    private tagWrapperCommandManager: DynamicCommandManager | null = null;
+    
+    // 用于控制是否启用自动保存，避免初始化时触发保存
+    private enableAutoSave = false;
 
 	async onload() {
 		this.vaultAdapter = this.app.vault.adapter;
 		this.VAULT_ABS_PATH = this.vaultAdapter instanceof FileSystemAdapter ? this.vaultAdapter.getBasePath() : '';
 		this.PLUGIN_ABS_PATH = path.join(this.VAULT_ABS_PATH, this.manifest.dir || '');
-		
         // 注册所有设置模块
-        this.registerSettings(exportFormatsSetting);
-        this.registerSettings(tagWrapperSetting);
         
         // 加载保存的设置
         const savedData = await this.loadData();
-        if (savedData) {
-            // 合并保存的设置和默认设置
-            Object.keys(this.settingList).forEach(key => {
-                this.settingList[key] = {
-                    ...this.settingList[key],  // 默认设置
-                    ...(savedData[key] || {})  // 保存的设置
-                };
-            });
-        }
+
+        this.settingList = reactive(savedData);
+        // if (savedData) {
+        //     // 合并保存的设置和默认设置
+        //     Object.keys(this.settingList).forEach(key => {
+        //         this.settingList[key] = {
+        //             ...this.settingList[key],  // 默认设置
+        //             ...(savedData[key] || {})  // 保存的设置
+        //         };
+        //     });
+        // }
+        
+        debugLog('settingList', savedData);
+
+        this.tagWrapperManager = new TagWrapperManager(this);
+        
+        this.registerSettings(exportFormatsSetting);
+        this.registerSettings(tagWrapperSetting);
+
+        // 设置watch监听器，监听settingList的深层变化并自动保存
+        watch(() => this.settingList, async (newVal, oldVal) => {
+            if (this.enableAutoSave) {
+                debugLog('Settings changed, auto-saving...');
+                await this.saveData(this.settingList);
+            }
+        }, { deep: true }); // 深度监听，能够监听嵌套对象的变化
+        
+        // 初始化完成后启用自动保存
+        this.enableAutoSave = true;
         
         // 创建设置标签页
         this.addSettingTab(new AlternativeSettingTab(this.app, this));
@@ -84,13 +92,13 @@ export default class MyPlugin extends Plugin {
 
 		// 注册所有命令
 		// 使用新的动态命令管理系统
-        this.tagWrapperCommandManager = DynamicCommandManager.initialize(this);
-        this.tagWrapperCommandManager.initialize(this.settingList[tagWrapperSetting.name] as any);
+        // this.tagWrapperCommandManager = DynamicCommandManager.initialize(this);
+        // this.tagWrapperCommandManager.initialize(this.settingList[tagWrapperSetting.name] as any);
         
         // 注册其他命令（保持原有方式）
         addExportFormatsCommands(this);
         
-        console.log('Plugin loaded with dynamic command management');
+        console.log('Plugin loaded with dynamic command management and reactive settings');
 	}
 
     /**
@@ -105,25 +113,15 @@ export default class MyPlugin extends Plugin {
     }
 
     /**
-     * 设置变更通知 - 由设置界面调用
+     * 设置变更通知 - 由设置界面调用//TODO: 完全删除这个函数
      * 完全通用的设置更新处理，不依赖具体模块
+     * 现在通过响应式对象和watch监听器自动保存，无需手动调用saveData
      * @param moduleName 设置名称
      * @param newModuleConfig 新的设置值
      */
     async onSettingsChange(moduleName: string, newModuleConfig: any): Promise<void> {
-        // 更新内部设置
+        // 更新内部设置 - 由于settingList是响应式对象，watch监听器会自动触发保存
         this.settingList[moduleName] = newModuleConfig;
-        
-        // 保存到磁盘
-        await this.saveData(this.settingList);
-        
-        // 查找并调用对应的模块更新处理器
-        const updateHandler = MODULE_UPDATE_HANDLERS[moduleName];
-        if (updateHandler) {
-            updateHandler(newModuleConfig);
-        } else {
-            console.log(`No update handler found for setting: ${moduleName}`);
-        }
     }
 
     /**
@@ -135,12 +133,9 @@ export default class MyPlugin extends Plugin {
     }
 
 	onunload() {
-        // 清理动态命令管理器
-        if (this.tagWrapperCommandManager) {
-            DynamicCommandManager.cleanup();
-            this.tagWrapperCommandManager = null;
+        if (this.tagWrapperManager) {
+            this.tagWrapperManager.cleanup();
         }
-        
         console.log('Plugin unloaded, commands cleaned up');
 	}
 

@@ -3,6 +3,7 @@ import path from 'path';
 import { createApp, App as VueApp, reactive, watch } from 'vue';
 import SettingsApp from './vue/components/SettingsApp.vue';
 import { debugLog } from './lib/testUtils';
+import { debounce } from 'lodash';
 
 // import { 
 // 	addGetCreateNoteCommands,
@@ -64,13 +65,13 @@ export default class MyPlugin extends Plugin {
         this.registerSettings(tagWrapperSetting);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存
-        // TODO: 需要增加防抖机制，避免频繁触发
-        watch(() => this.settingList, async (newVal, oldVal) => {
+        // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积
+        watch(() => this.settingList, debounce(async (newVal, oldVal) => {
             if (this.enableAutoSave) {
                 debugLog('Settings changed, auto-saving...');
                 await this.saveData(this.settingList);
             }
-        }, { deep: true }); // 深度监听，能够监听嵌套对象的变化
+        }, 500), { deep: true }); // 深度监听，能够监听嵌套对象的变化
         
         // 初始化完成后启用自动保存
         this.enableAutoSave = true;

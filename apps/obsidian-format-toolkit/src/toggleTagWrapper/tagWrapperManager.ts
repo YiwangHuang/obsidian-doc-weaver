@@ -5,6 +5,7 @@ import { DEFAULT_TAG_WRAPPER_SETTINGS, TagConfig, TagWrapperSettings } from "./t
 import { tagWrapperSetting } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/testUtils";
+import { debounce } from 'lodash';
 
 export class TagWrapperManager {
     private plugin: MyPlugin;
@@ -89,19 +90,19 @@ export class TagWrapperManager {
                 this.removeTagCommand(tag);
                 this.removeCSS(tag);
             }
-        });
-        watch(() => tag.name, (newVal, oldVal) => {
+        });           
+        watch(() => tag.name, debounce((newVal, oldVal) => {
             if (tag.enabled) {
                 this.removeTagCommand(tag);
                 this.addTagCommand(tag);
             }
-        });
-        watch(() => tag.cssSnippet, (newVal, oldVal) => {
+        }, 500));
+        watch(() => tag.cssSnippet, debounce((newVal, oldVal) => {
             if (tag.enabled) {
                 this.removeCSS(tag);
                 this.injectCSS(tag);
             }
-        });
+        }, 500));
     }
     
     addTagItem(): void {

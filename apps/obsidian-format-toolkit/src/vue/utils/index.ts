@@ -20,6 +20,7 @@ export function debounce<T extends (...args: any[]) => void>(
 }
 
 /**
+ * TODO: 简化这部分实现
  * 设置状态管理组合式函数
  * @param plugin 插件实例
  * @returns 设置状态和相关操作函数

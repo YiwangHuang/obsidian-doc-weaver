@@ -43,6 +43,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import type { SettingsRegistry } from '../../main';
 import type { SettingsAppProps } from '../types';
 import { useSettingsState } from '../utils';
 import SettingsTabs from './SettingsTabs.vue';
@@ -59,11 +60,11 @@ const props = defineProps<SettingsAppProps>();
 const { settings, saveState } = useSettingsState(props.plugin);
 
 // Demo标签页配置（仅在此组件内定义）
-const demoTab = {
+const demoTab: SettingsRegistry = {
   name: 'modalDemo',
   settingTabName: 'Demo',
   description: 'Vue弹窗组件演示',
-  defaultSettings: {},
+  defaultConfigs: {},
   component: DemoModalComponent
 };
 

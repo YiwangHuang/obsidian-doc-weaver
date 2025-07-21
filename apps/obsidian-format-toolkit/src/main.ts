@@ -5,6 +5,10 @@ import SettingsApp from './vue/components/SettingsApp.vue';
 import { debugLog } from './lib/testUtils';
 import { debounce } from 'lodash';
 
+// Vuetify
+import 'vuetify/styles'
+import { vuetify } from './vue/plugins/vuetify'
+
 // import { 
 // 	addGetCreateNoteCommands,
 // 	createNoteSetting
@@ -26,7 +30,7 @@ import {
 export interface SettingsRegistry {
     name: string;
     description: string;
-    defaultSettings: object;
+    defaultConfigs: object;
     settingTabName: string; // 设置页面中显示的标签名
     component?: any; // Vue组件，可选字段
 }
@@ -103,7 +107,7 @@ export default class MyPlugin extends Plugin {
         this.moduleSettings.push(setting);
         // 初始化模块设置
         if (!this.settingList[setting.name]) {
-            this.settingList[setting.name] = setting.defaultSettings;
+            this.settingList[setting.name] = setting.defaultConfigs;
         }
     }
 
@@ -177,13 +181,16 @@ export class AlternativeSettingTab extends PluginSettingTab {
     private renderVueComponent(containerEl: HTMLElement): void {
         // 创建Vue应用挂载点
         const mountPoint = containerEl.createDiv('vue-settings-container');
-        
+
         // 创建Vue应用实例
         this.vueApp = createApp(SettingsApp, {
             plugin: this.plugin,
             moduleSettings: this.plugin.moduleSettings
         });
         
+        // 使用Vuetify插件
+        this.vueApp.use(vuetify);
+
         // 挂载Vue应用
         this.vueApp.mount(mountPoint);
     }

@@ -8,7 +8,7 @@ export const exportFormatsSetting: SettingsRegistry = {
     name: 'exportFormats',
     settingTabName: getLocalizedText({ en: "Export Config", zh: "导出配置" }),
     description: 'Settings for export formats',
-    defaultSettings: DEFAULT_EXPORT_FORMATS_SETTINGS,
+    defaultConfigs: DEFAULT_EXPORT_FORMATS_SETTINGS,
     component: ExportFormatsSettings // Vue组件
 };
 

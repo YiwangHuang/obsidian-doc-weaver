@@ -69,7 +69,7 @@ const activeTab = ref(allTabs.value[0]?.name || 'tagWrapper');
 <!-- <style scoped>   -->
 <style>
 .v-btn {
-  background-color: var(--text-accent) !important;
+  /* background-color: var(--interactive-accent) !important; */
 }
 
 .v-btn:hover {

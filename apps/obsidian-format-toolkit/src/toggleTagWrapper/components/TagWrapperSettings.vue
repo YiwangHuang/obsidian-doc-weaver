@@ -52,17 +52,17 @@
                     @update:model-value="handleTagEnabledChange(index, $event)"
                     density="compact"
                     hide-details
-                    class="me-3"
+                    class="me-2"
                   />
                   <VBtnObsidianIcon 
                     icon="gear"
-                    size="x-small"
+                    size="small"
                     @click="openTagModal(index)"
                     class="me-1"
                   />
                   <VBtnObsidianIcon 
                     icon="trash-2"
-                    size="x-small"
+                    size="small"
                     @click="showDeleteConfirm(index)"
                   />
                 </div>
@@ -246,6 +246,7 @@ const cancelDelete = () => {
 </script>
 
 <style scoped>
+@import '../../vue/shared-styles.css';
 /* 拖拽状态样式 */
 .v-card--dragging {
   border: 2px solid var(--interactive-accent) !important;

@@ -318,29 +318,6 @@ const getExtensionByFormat = (format: OutputFormat): string => {
   return EXTENSION_MAP[format] || 'txt';
 };
 
-// /**
-//  * 保存设置到插件
-//  */
-// const saveSettings = async () => {
-//   try {
-//     // 更新插件设置
-//     props.plugin.settingList.exportFormats = { ...settings };
-    
-//     // 保存到磁盘
-//     await props.plugin.saveData(props.plugin.settingList);
-    
-//     // 发出设置变更事件
-//     emit('settings-changed', settings);
-    
-//     debugLog('Export formats settings saved');
-//   } catch (error) {
-//     debugLog('Failed to save export formats settings:', error);
-//   }
-// };
-
-// 创建防抖保存函数
-// const debouncedSave = debounce(saveSettings, 500);
-
 /**
  * 保存设置并处理拖拽结束
  */

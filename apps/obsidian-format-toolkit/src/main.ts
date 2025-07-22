@@ -26,6 +26,11 @@ import {
     tagWrapperSetting
 } from './toggleTagWrapper/index';
 
+import {
+    QuickTemplateManager,
+    quickTemplateSettingTab
+} from './quickTemplate/index';
+
 // 定义设置注册接口
 export interface SettingsRegistry {
     name: string;
@@ -45,6 +50,7 @@ export default class MyPlugin extends Plugin {
     commandCache: { [key: string]: object } = {};// 命令缓存
     tagWrapperManager: TagWrapperManager;
     exportFormatsManager: ExportFormatsManager;
+    quickTemplateManager: QuickTemplateManager;
     
     // 用于控制是否启用自动保存，避免初始化时触发保存
     private enableAutoSave = false;
@@ -64,9 +70,11 @@ export default class MyPlugin extends Plugin {
 
         this.tagWrapperManager = new TagWrapperManager(this);
         this.exportFormatsManager = new ExportFormatsManager(this);
+        this.quickTemplateManager = new QuickTemplateManager(this);
         
         this.registerSettings(exportFormatsSetting);
         this.registerSettings(tagWrapperSetting);
+        this.registerSettings(quickTemplateSettingTab);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存
         // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积
@@ -134,6 +142,9 @@ export default class MyPlugin extends Plugin {
 	onunload() {
         if (this.tagWrapperManager) {
             this.tagWrapperManager.cleanup();
+        }
+        if (this.quickTemplateManager) {
+            this.quickTemplateManager.cleanup();
         }
         console.log('Plugin unloaded, commands cleaned up');
 	}

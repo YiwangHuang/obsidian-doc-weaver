@@ -3,7 +3,7 @@
 -->
 <template>
   <div>
-    <h2 style="margin-bottom: 9px;">Doc Weaver</h2>
+    <h1 class="mt-0 pt-0">Doc Weaver</h1>
     <!-- TODO: 使用CSS变量来设置颜色 -->
       <v-tabs 
         v-model="activeTab" 
@@ -24,7 +24,7 @@
           :key="tab.name" 
           :value="tab.name"
         >
-          <v-container fluid class="pa-4">
+          <v-container fluid class="pa-2">
             <component 
               v-if="tab.component"
               :is="tab.component"

@@ -4,9 +4,9 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <div class="mb-6">
-      <h3 class="text-h5 mb-2">{{ getLocalizedText({ en: "Quick Template Settings", zh: "快捷模板设置" }) }}</h3>
-      <p class="text-medium-emphasis">
+    <div>
+      <h3 class="my-2">{{ getLocalizedText({ en: "Quick Template Settings", zh: "快捷模板设置" }) }}</h3>
+      <p class="text-medium-emphasis my-2">
         {{ getLocalizedText({
           en: "Configure quick template commands, insert templates with placeholders for selected text",
           zh: "配置快捷模板命令，为选中文本插入带占位符的模板"
@@ -88,7 +88,7 @@
       :obsidian-app="props.plugin.app"
     >
       <div v-if="editingTemplate">
-        <h3>
+        <h3 class="pt-0 mt-0">
           {{ getLocalizedText({ en: "Edit Template Configuration", zh: "编辑模板配置" }) }}: {{ editingTemplate.name }}
         </h3>
         

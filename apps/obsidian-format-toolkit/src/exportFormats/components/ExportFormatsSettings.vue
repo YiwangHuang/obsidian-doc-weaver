@@ -20,9 +20,9 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <div class="mb-6">
-      <h3 class="text-h5 mb-2">{{ getLocalizedText({ en: "Export Formats Settings", zh: "导出格式设置" }) }}</h3>
-      <p class="text-medium-emphasis">
+    <div>
+      <h3 class="my-2">{{ getLocalizedText({ en: "Export Formats Settings", zh: "导出格式设置" }) }}</h3>
+      <p class="text-medium-emphasis my-2">
         {{ getLocalizedText({
           en: "Configure export format commands, support various output formats",
           zh: "配置导出格式命令，支持多种输出格式"
@@ -112,11 +112,10 @@
           hide-details
         />
         <v-btn
-          color="primary"
           @click="props.plugin.exportFormatsManager.addExportFormatItem(selectedFormat)"
           :disabled="!selectedFormat"
         >
-          <v-icon start>mdi-plus</v-icon>
+          <!-- <v-icon start>mdi-plus</v-icon> -->
           {{ getLocalizedText({ en: "Add Export Format", zh: "添加导出格式" }) }}
         </v-btn>
       </div>
@@ -129,7 +128,7 @@
       @update:visible="onModalVisibilityChange"
     >
       <div v-if="editingConfig" class="export-modal-form">
-        <h3 class="text-h5 mb-4">
+        <h3 class="mt-0 pt-0">
           {{ getLocalizedText({ en: "Edit Export Format", zh: "编辑导出格式" }) }}: {{ editingConfig.name }}
         </h3>
         
@@ -165,17 +164,10 @@
         </v-row>
 
         <!-- 路径预览 -->
-        <v-alert
-          type="info"
-          variant="tonal"
-          class="mb-3"
-          density="compact"
-        >
-          <div class="text-caption">
-            {{ getLocalizedText({ en: "Preview", zh: "预览" }) }}: 
-            <code class="text-primary">{{ getPreviewPath(editingConfig) }}</code>
-          </div>
-        </v-alert>
+        <PreviewPanel
+          :title="getLocalizedText({ en: 'Preview', zh: '预览' })"
+          :content="getPreviewPath(editingConfig)"
+        />
 
         <!-- YAML配置 -->
         <v-textarea
@@ -270,6 +262,7 @@ import { generateTimestamp } from '../../lib/idGenerator';
 import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defaultStyleConfig/styleConfigs';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
+import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 import { debugLog } from '../../lib/testUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 // 路径预览功能

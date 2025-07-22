@@ -4,12 +4,14 @@
   功能说明：
   - 将Vue组件内容渲染到Obsidian原生Modal中
   - 支持双向绑定的可见性控制
+  - 支持自定义弹窗宽度
   - 最简单的实现，无额外功能
   
   配置项：
   Props:
   - visible: 弹窗可见状态 (boolean) 必需
   - obsidianApp: Obsidian应用实例 (App) 必需
+  - width: 弹窗宽度，支持数字(px)或字符串，默认 '500px'
   
   Events:
   - update:visible: 可见状态变化时发出
@@ -19,20 +21,21 @@
 -->
 <template>
   <Teleport to="body" v-if="visible">
-    <div ref="modalContainer" style="display: none;">
-      <slot></slot>
+    <div ref="modalContainer" style="display: none;" class="modal-content" :style="contentStyle">
+        <slot></slot>
     </div>
   </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onUnmounted } from 'vue';
+import { ref, watch, nextTick, onUnmounted, computed } from 'vue';
 import { Modal, App as ObsidianApp } from 'obsidian';
 
 // Props定义
 interface ObsidianVueModalProps {
   visible: boolean;
   obsidianApp: ObsidianApp;
+  width?: string | number;
 }
 
 // Events定义
@@ -40,8 +43,21 @@ interface ObsidianVueModalEmits {
   (e: 'update:visible', value: boolean): void;
 }
 
-const props = defineProps<ObsidianVueModalProps>();
+const props = withDefaults(defineProps<ObsidianVueModalProps>(), {
+  width: '600px'
+});
+
 const emit = defineEmits<ObsidianVueModalEmits>();
+
+// 计算样式
+const contentStyle = computed(() => {
+  const width = typeof props.width === 'number' ? `${props.width}px` : props.width;
+  return {
+    width,
+    maxWidth: '100%',
+    margin: '0 auto'
+  };
+});
 
 // 引用
 const modalContainer = ref<HTMLElement>();
@@ -124,7 +140,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.vue-modal-content {
+.modal-content {
   min-height: 100px;
+  box-sizing: border-box;
 }
 </style> 

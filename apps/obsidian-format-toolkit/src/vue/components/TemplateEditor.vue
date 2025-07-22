@@ -54,16 +54,6 @@
         }) }}
       </p>
     </div>
-
-    <!-- 预览区域 -->
-    <div v-if="showPreview">
-      <h4 class="text-subtitle-2 mb-2">
-        {{ getLocalizedText({ en: "Preview", zh: "预览" }) }}
-      </h4>
-      <div class="pa-3" style="background: var(--background-modifier-border); border-radius: 4px;">
-        <pre style="margin: 0; font-family: var(--font-monospace); font-size: 0.9em; white-space: pre-wrap;">{{ getTemplatePreview(modelValue || '') }}</pre>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -81,7 +71,6 @@ interface Props {
   label?: string;
   placeholder?: string;
   placeholders?: PlaceholderConfig[];
-  showPreview?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -94,8 +83,7 @@ const props = withDefaults(defineProps<Props>(), {
     { value: '{{type}}', description: 'Content type or category' },
     { value: '{{title}}', description: 'Title or heading text' },
     { value: '{{date: HH:mm}}', description: 'Current time' }
-  ],
-  showPreview: true
+  ]
 });
 
 const modelValue = defineModel<string>();
@@ -169,25 +157,6 @@ const insertPlaceholder = (placeholder: string) => {
     // 最后的备用方案：追加到末尾
     modelValue.value = (modelValue.value || '') + placeholder;
   }
-};
-
-/**
- * 获取模板预览文本
- * 将占位符替换为示例文本，便于用户理解效果
- * @param template 原始模板内容
- * @returns 预览文本
- */
-const getTemplatePreview = (template: string): string => {
-  return template
-    // 替换常见占位符为示例文本
-    .replace(/\{\{selectedText\}\}/g, 'Selected Text')
-    .replace(/\{\{date:\s*([^}]+)\}\}/g, '2024-01-01') // 简化日期预览
-    .replace(/\{\{language\}\}/g, 'javascript')
-    .replace(/\{\{type\}\}/g, 'note')
-    .replace(/\{\{title\}\}/g, 'Example Title')
-    .replace(/\{\{time\}\}/g, '14:30')
-    // 处理其他占位符
-    .replace(/\{\{(\w+)\}\}/g, '$1');
 };
 </script>
 

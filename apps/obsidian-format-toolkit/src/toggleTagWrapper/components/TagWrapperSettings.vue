@@ -4,9 +4,9 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <div class="mb-6">
-      <h3 class="text-h5 mb-2">{{ getLocalizedText({ en: "Tag Wrapper Settings", zh: "标签包装器设置" }) }}</h3>
-      <p class="text-medium-emphasis">
+    <div>
+      <h3 class="my-2">{{ getLocalizedText({ en: "Tag Wrapper Settings", zh: "标签包装器设置" }) }}</h3>
+      <p class="text-medium-emphasis my-2">
         {{ getLocalizedText({
           en: "Configure tag wrapper commands, wrap selected text with custom tags",
           zh: "配置标签包装器命令，将选中文本包装在自定义标签中"
@@ -31,21 +31,21 @@
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
               <!-- 标签名称 -->
-              <v-col cols="3">
+              <v-col cols="3.5">
                 <div class="text-subtitle-2 font-weight-medium">{{ tag.name }}</div>
               </v-col>
 
               <!-- 预览 -->
-              <v-col cols="5">
+              <v-col cols="4.5">
                 <div class="text-caption text-medium-emphasis d-flex align-center">
-                  <span>{{ tag.prefix }}</span>
+                  <span style="color: var(--text-accent);">{{ tag.prefix }}</span>
                   <span>{{ getLocalizedText({ en: "Text", zh: "文本" }) }}</span>
-                  <span>{{ tag.suffix }}</span>
+                  <span style="color: var(--text-accent);">{{ tag.suffix }}</span>
                 </div>
               </v-col>
               
               <!-- 操作按钮 -->
-              <v-col cols="4">
+              <v-col cols="5">
                 <div class="d-flex align-center justify-end">
                   <v-switch
                     v-model="tag.enabled"
@@ -90,7 +90,7 @@
       :obsidian-app="props.plugin.app"
     >
       <div v-if="editingTag">
-        <h3>
+        <h3 class="pt-0 mt-0">
           {{ getLocalizedText({ en: "Edit Tag Configuration", zh: "编辑标签配置" }) }}: {{ editingTag.name }}
         </h3>
         
@@ -100,6 +100,7 @@
           :label="getLocalizedText({ en: 'Tag Name', zh: '标签名称' })"
           variant="outlined"
           density="compact"
+          class="mb-3"
         />
 
         <!-- 开始和结束标签 -->
@@ -110,6 +111,7 @@
             placeholder="e.g. <div>, **, <!--"
             variant="outlined"
             density="compact"
+            class="mb-3"
           />
           <v-text-field
             v-model="editingTag.suffix"
@@ -117,6 +119,7 @@
             placeholder="e.g. </div>, **, -->"
             variant="outlined"
             density="compact"
+            class="mb-3"
           />
         </div>
         
@@ -131,17 +134,18 @@
           variant="outlined"
           rows="6"
           density="compact"
+          class="mb-3"
         />
 
         <!-- 预览 -->
-        <div style="margin-top: 16px;">
-          <h4>{{ getLocalizedText({ en: "Live Preview", zh: "实时预览" }) }}</h4>
-          <code v-if="previewSourceCode">
-            <span class="text-primary">{{ previewSourceCode.prefix }}</span>
-            <span>{{ previewSourceCode.text }}</span>
-            <span class="text-primary">{{ previewSourceCode.suffix }}</span>
-          </code>
-        </div>
+        <PreviewPanel
+          v-if="previewSourceCode"
+          :title="getLocalizedText({ en: 'Live Preview', zh: '实时预览' })"
+        >
+          <span class="text-primary">{{ previewSourceCode.prefix }}</span>
+          <span>{{ previewSourceCode.text }}</span>
+          <span class="text-primary">{{ previewSourceCode.suffix }}</span>
+        </PreviewPanel>
       </div>
     </ObsidianVueModal>
 
@@ -178,6 +182,7 @@ import { getLocalizedText } from '../../lib/textUtils';
 import { tagWrapperSetting } from '../index';
 import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
+import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 
 interface TagWrapperSettingsProps {
   plugin: MyPlugin;

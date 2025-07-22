@@ -172,8 +172,6 @@ const editingTemplate = ref<TemplateConfig | null>(null);
 const deleteConfirmVisible = ref(false);
 const deleteTemplateIndex = ref<number | null>(null);
 
-// templateTextarea 引用已移动到 TemplateEditor 组件中
-
 // 模板占位符配置
 const templatePlaceholders = [
   { value: '{{selectedText}}', description: getLocalizedText({en:'Selected text content', zh:'选中文本'}) },
@@ -198,7 +196,7 @@ const handleTemplateEnabledChange = (index: number, enabled: boolean) => {
 };
 
 const openTemplateModal = (index: number) => {
-  editingTemplate.value = { ...configs.templates[index] }; // 创建副本避免直接修改
+  editingTemplate.value = configs.templates[index]; // 直接引用原始对象，实时保存
   modalVisible.value = true;
 };
 
@@ -206,8 +204,6 @@ const addNewTemplate = () => {
   props.plugin.quickTemplateManager.addTemplateItem();
   openTemplateModal(configs.templates.length - 1);
 };
-
-// insertPlaceholder 函数已移动到 TemplateEditor 组件中
 
 const showDeleteConfirm = (index: number) => {
   deleteTemplateIndex.value = index;
@@ -225,26 +221,6 @@ const cancelDelete = () => {
   deleteTemplateIndex.value = null;
   deleteConfirmVisible.value = false;
 };
-
-// 保存编辑结果
-const saveTemplate = () => {
-  if (editingTemplate.value) {
-    const index = configs.templates.findIndex(t => t.id === editingTemplate.value!.id);
-    if (index !== -1) {
-      configs.templates[index] = { ...editingTemplate.value };
-    }
-  }
-  modalVisible.value = false;
-  editingTemplate.value = null;
-};
-
-// 监听模态框关闭，自动保存
-import { watch } from 'vue';
-watch(modalVisible, (newVal) => {
-  if (!newVal && editingTemplate.value) {
-    saveTemplate();
-  }
-});
 </script>
 
 <style scoped>

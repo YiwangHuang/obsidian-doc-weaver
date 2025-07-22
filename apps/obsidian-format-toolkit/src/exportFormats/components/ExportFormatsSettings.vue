@@ -142,26 +142,28 @@
         />
 
         <!-- 输出目录和文件名 -->
-        <v-row class="mb-3">
-          <v-col cols="6">
-            <v-text-field
-              v-model="editingConfig.output_dir"
-              :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
-              :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR"
-              variant="outlined"
-              density="compact"
-            />
-          </v-col>
-          <v-col cols="6">
-            <v-text-field
-              v-model="editingConfig.output_base_name"
-              :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
-              :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
-              variant="outlined"
-              density="compact"
-            />
-          </v-col>
-        </v-row>
+        <TemplateEditor :placeholders="pathPlaceholders">
+          <v-row class="mb-3">
+            <v-col cols="6">
+              <v-text-field
+                v-model="editingConfig.output_dir"
+                :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
+                :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                v-model="editingConfig.output_base_name"
+                :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
+                :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
+                variant="outlined"
+                density="compact"
+              />
+            </v-col>
+          </v-row>
+        </TemplateEditor>
 
         <!-- 路径预览 -->
         <PreviewPanel
@@ -170,15 +172,17 @@
         />
 
         <!-- YAML配置 -->
-        <v-textarea
-          v-model="editingConfig.yaml"
-          :label="getLocalizedText({ en: 'YAML Configuration', zh: 'YAML配置' })"
-          placeholder="Enter export format YAML configuration..."
-          variant="outlined"
-          rows="8"
-          density="compact"
-          class="mb-3"
-        />
+        <TemplateEditor :placeholders="yamlPlaceholders">
+          <v-textarea
+            v-model="editingConfig.yaml"
+            :label="getLocalizedText({ en: 'YAML Configuration', zh: 'YAML配置' })"
+            placeholder="Enter export format YAML configuration..."
+            variant="outlined"
+            rows="8"
+            density="compact"
+            class="mb-3"
+          />
+        </TemplateEditor>
 
         <!-- Excalidraw设置 -->
         <v-row class="mb-3">
@@ -267,6 +271,7 @@ import { debugLog } from '../../lib/testUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 // 路径预览功能
 import { TextConverter } from '../textConvert';
+import TemplateEditor from '../../vue/components/TemplateEditor.vue';
 
 // 定义Props
 interface ExportFormatsSettingsProps {
@@ -427,6 +432,27 @@ const onModalVisibilityChange = (visible: boolean) => {
     editingConfig.value = null;
   }
 };
+
+// 在script部分添加占位符配置
+// 路径相关的占位符
+const pathPlaceholders = [
+  { value: '{{noteName}}', description: getLocalizedText({ en: 'Current note name', zh: '当前笔记名称' }) },
+  { value: '{{noteBasename}}', description: getLocalizedText({ en: 'Note name without extension', zh: '不带扩展名的笔记名称' }) },
+  { value: '{{date:YYYY-MM-DD}}', description: getLocalizedText({ en: 'Current date', zh: '当前日期' }) },
+  { value: '{{time:HH-mm}}', description: getLocalizedText({ en: 'Current time', zh: '当前时间' }) },
+  { value: '{{vaultName}}', description: getLocalizedText({ en: 'Vault name', zh: '库名称' }) }
+];
+
+// YAML配置相关的占位符
+const yamlPlaceholders = [
+  { value: '{{noteName}}', description: getLocalizedText({ en: 'Current note name', zh: '当前笔记名称' }) },
+  { value: '{{noteBasename}}', description: getLocalizedText({ en: 'Note name without extension', zh: '不带扩展名的笔记名称' }) },
+  { value: '{{date:YYYY-MM-DD}}', description: getLocalizedText({ en: 'Current date', zh: '当前日期' }) },
+  { value: '{{time:HH:mm}}', description: getLocalizedText({ en: 'Current time', zh: '当前时间' }) },
+  { value: '{{author}}', description: getLocalizedText({ en: 'Author name', zh: '作者名称' }) },
+  { value: '{{tags}}', description: getLocalizedText({ en: 'Note tags', zh: '笔记标签' }) },
+  { value: '{{category}}', description: getLocalizedText({ en: 'Note category', zh: '笔记分类' }) }
+];
 </script>
 
 <style scoped>

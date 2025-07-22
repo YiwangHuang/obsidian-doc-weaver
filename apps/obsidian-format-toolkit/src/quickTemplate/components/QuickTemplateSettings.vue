@@ -105,15 +105,20 @@
 
         <!-- 模板编辑器组件 -->
         <TemplateEditor
-          v-model="editingTemplate.template"
-          :label="getLocalizedText({ en: 'Template Content', zh: '模板内容' })"
-          :placeholder="getLocalizedText({ 
-            en: 'Enter template content with placeholders...\nExample: > [!{{type}}] {{title}}\\n> {{selectedText}}',
-            zh: '输入带占位符的模板内容...\n示例：> [!{{type}}] {{title}}\\n> {{selectedText}}'
-          })"
           :placeholders="templatePlaceholders"
-          :show-preview="true"
-        />
+        >
+          <v-textarea
+            v-model="editingTemplate.template"
+            :label="getLocalizedText({ en: 'Template Content', zh: '模板内容' })"
+            :placeholder="getLocalizedText({ 
+              en: 'Enter template content with placeholders...\nExample: > [!{{type}}] {{title}}\\n> {{selectedText}}',
+              zh: '输入带占位符的模板内容...\n示例：> [!{{type}}] {{title}}\\n> {{selectedText}}'
+            })"
+            variant="outlined"
+            rows="6"
+            density="compact"
+          />
+        </TemplateEditor>
       </div>
     </ObsidianVueModal>
 

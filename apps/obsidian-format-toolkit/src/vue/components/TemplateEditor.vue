@@ -11,7 +11,6 @@
       :label="label"
       :placeholder="placeholder"
       variant="outlined"
-      hide-details="auto"
       rows="6"
       density="compact"
       class="mb-3"

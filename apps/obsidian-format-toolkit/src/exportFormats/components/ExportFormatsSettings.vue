@@ -1,5 +1,5 @@
 <!--
-  Export Formats模块设置面板
+  Export Formats模块设置面板 - Vuetify版本
   
   功能说明：
   - 管理导出格式的配置列表
@@ -18,89 +18,108 @@
   - settings-changed: 配置变更时发出，传递新的设置对象
 -->
 <template>
-  <div class="export-formats-settings">
-    <div class="module-section no-border">
-      <div class="module-header">
-        <h3>{{ getLocalizedText({ en: "Export Formats Settings", zh: "导出格式设置" }) }}</h3>
-        <p class="module-description">
-          {{ getLocalizedText({
-            en: "Configure export format commands, support various output formats",
-            zh: "配置导出格式命令，支持多种输出格式"
-          }) }}
-        </p>
-      </div>
+  <v-container fluid class="pa-0">
+    <!-- 模块头部 -->
+    <div class="mb-6">
+      <h3 class="text-h5 mb-2">{{ getLocalizedText({ en: "Export Formats Settings", zh: "导出格式设置" }) }}</h3>
+      <p class="text-medium-emphasis">
+        {{ getLocalizedText({
+          en: "Configure export format commands, support various output formats",
+          zh: "配置导出格式命令，支持多种输出格式"
+        }) }}
+      </p>
+    </div>
 
-      <!-- 可拖拽的导出格式配置列表 -->
-      <draggable
-        v-model="settings.exportConfigs"
-        item-key="id"
-        ghost-class="ghost"
-        @end="handleDragEnd()"
-      >
-        <template #item="{ element: config, index }">
-          <div 
-            class="export-item"
-            :class="{ 'export-enabled': config.enabled, 'export-disabled': !config.enabled }"
-            draggable="true"
-          >
-            <MultiColumn :columns="[
-              { width: 1, align: 'left' },   // 格式名称栏
-              { width: 9, align: 'left' },   // 预览栏
-              { width: 1, align: 'right' }   // 操作按钮栏
-            ]">
+    <!-- 可拖拽的导出格式配置列表 -->
+    <draggable
+      v-model="settings.exportConfigs"
+      item-key="id"
+      ghost-class="v-card--dragging"
+      chosen-class="v-card--chosen"
+      @end="handleDragEnd()"
+    >
+      <template #item="{ element: config, index }">
+        <v-card 
+          class="mb-3" 
+          :class="{ 'opacity-60': !config.enabled }"
+          elevation="1"
+        >
+          <v-card-text class="py-3">
+            <v-row align="center" no-gutters>
+              <!-- 格式标签 -->
+              <v-col cols="2">
+                <v-chip 
+                  :color="config.enabled ? 'primary' : 'grey'" 
+                  size="small" 
+                  label
+                >
+                  {{ config.format }}
+                </v-chip>
+              </v-col>
 
-              <!-- 预览栏 -->
-              <template #column-0>
-                  <span class="format-tag">
-                    {{ config.format }}
-                  </span>
-              </template>
-
-              <!-- 格式名称栏 -->
-              <template #column-1>
-                <span class="export-name">{{ config.name }}</span>
-              </template>
-
-              <!-- 操作按钮栏 -->
-              <template #column-2>
-                <span class="horizontal-stack" @mousedown.stop @click.stop>
-                  <ToggleSwitch
+              <!-- 格式名称 -->
+              <v-col cols="4">
+                <div class="text-subtitle-2 font-weight-medium">{{ config.name }}</div>
+              </v-col>
+              
+              <!-- 操作按钮 -->
+              <v-col cols="6">
+                <div class="d-flex align-center justify-end">
+                  <v-switch
                     v-model="config.enabled"
                     @update:model-value="handleExportEnabledChange(index, $event)"
+                    density="compact"
+                    hide-details
+                    class="me-2"
                   />
-                  <Button
-                    variant="secondary"
+                  <VBtnObsidianIcon 
+                    icon="gear"
                     size="small"
                     @click="openExportModal(index)"
-                    description="编辑此导出格式配置"
-                    class="icon-btn"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                  </Button>
-                  <Button
-                    variant="secondary"
+                    class="me-1"
+                  />
+                  <VBtnObsidianIcon 
+                    icon="trash-2"
                     size="small"
                     @click="showDeleteConfirm(index)"
-                    description="删除此导出格式配置"
-                    class="icon-btn"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-trash-2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </Button>
-                  <Button
-                    variant="secondary"
+                    class="me-1"
+                  />
+                  <VBtnObsidianIcon 
+                    icon="folder"
                     size="small"
                     @click="openAssetsFolder(config)"
-                    description="打开资源文件夹"
-                    class="icon-btn"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-folder"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
-                  </Button>
-                </span>
-              </template>
-            </MultiColumn>
-          </div>
-        </template>
-      </draggable>
+                  />
+                </div>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </template>
+    </draggable>
+
+    <!-- 添加新导出格式按钮 -->
+    <div class="text-center mt-4">
+      <div class="d-flex align-center justify-center ga-3">
+        <v-select
+          v-model="selectedFormat"
+          :items="formatOptions"
+          item-title="label"
+          item-value="value"
+          :placeholder="getLocalizedText({ en: 'Select export format...', zh: '选择导出格式...' })"
+          variant="outlined"
+          density="compact"
+          style="max-width: 200px;"
+          hide-details
+        />
+        <v-btn
+          color="primary"
+          @click="props.plugin.exportFormatsManager.addExportFormatItem(selectedFormat)"
+          :disabled="!selectedFormat"
+        >
+          <v-icon start>mdi-plus</v-icon>
+          {{ getLocalizedText({ en: "Add Export Format", zh: "添加导出格式" }) }}
+        </v-btn>
+      </div>
     </div>
 
     <!-- 导出格式编辑弹窗 -->
@@ -110,110 +129,121 @@
       @update:visible="onModalVisibilityChange"
     >
       <div v-if="editingConfig" class="export-modal-form">
-        <h2 class="modal-title">
+        <h3 class="text-h5 mb-4">
           {{ getLocalizedText({ en: "Edit Export Format", zh: "编辑导出格式" }) }}: {{ editingConfig.name }}
-        </h2>
-        <div class="form-group">
-          <label>{{ getLocalizedText({ en: "Format Name", zh: "格式名称" }) }}：</label>
-          <TextInput
-            v-model="editingConfig.name"
-            placeholder="Enter format name..."
-          />
-        </div>
+        </h3>
+        
+        <!-- 格式名称 -->
+        <v-text-field
+          v-model="editingConfig.name"
+          :label="getLocalizedText({ en: 'Format Name', zh: '格式名称' })"
+          variant="outlined"
+          density="compact"
+          class="mb-3"
+        />
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>{{ getLocalizedText({ en: "Output Directory", zh: "输出目录" }) }}：</label>
-            <TextInput
+        <!-- 输出目录和文件名 -->
+        <v-row class="mb-3">
+          <v-col cols="6">
+            <v-text-field
               v-model="editingConfig.output_dir"
+              :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
               :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR"
+              variant="outlined"
+              density="compact"
             />
-          </div>
-
-          <div class="form-group">
-            <label>{{ getLocalizedText({ en: "Output Filename", zh: "输出文件名" }) }}：</label>
-            <TextInput
+          </v-col>
+          <v-col cols="6">
+            <v-text-field
               v-model="editingConfig.output_base_name"
+              :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
               :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
+              variant="outlined"
+              density="compact"
             />
+          </v-col>
+        </v-row>
+
+        <!-- 路径预览 -->
+        <v-alert
+          type="info"
+          variant="tonal"
+          class="mb-3"
+          density="compact"
+        >
+          <div class="text-caption">
+            {{ getLocalizedText({ en: "Preview", zh: "预览" }) }}: 
+            <code class="text-primary">{{ getPreviewPath(editingConfig) }}</code>
           </div>
-        </div>
+        </v-alert>
 
-        <!-- 路径预览 - 单行滚动显示 -->
-        <div class="path-preview">
-          <!-- <span class="path-preview-label">{{ getLocalizedText({ en: "Preview", zh: "预览" }) }}：</span> -->
-          <code class="path-preview-code">{{ getPreviewPath(editingConfig) }}</code>
-        </div>
+        <!-- YAML配置 -->
+        <v-textarea
+          v-model="editingConfig.yaml"
+          :label="getLocalizedText({ en: 'YAML Configuration', zh: 'YAML配置' })"
+          placeholder="Enter export format YAML configuration..."
+          variant="outlined"
+          rows="8"
+          density="compact"
+          class="mb-3"
+        />
 
-        <div class="form-group">
-          <label>{{ getLocalizedText({ en: "YAML Configuration", zh: "YAML配置" }) }}：</label>
-          <TextArea
-            v-model="editingConfig.yaml"
-            placeholder="Enter export format YAML configuration..."
-            :rows="8"
-          />
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>{{ getLocalizedText({ en: "Excalidraw Export Type", zh: "Excalidraw导出类型" }) }}：</label>
-            <Dropdown
+        <!-- Excalidraw设置 -->
+        <v-row class="mb-3">
+          <v-col cols="6">
+            <v-select
               v-model="editingConfig.excalidraw_export_type"
-              :options="excalidrawExportOptions"
+              :items="excalidrawExportOptions"
+              item-title="label"
+              item-value="value"
+              :label="getLocalizedText({ en: 'Excalidraw Export Type', zh: 'Excalidraw导出类型' })"
+              variant="outlined"
+              density="compact"
               @update:model-value="handleExcalidrawTypeChange"
             />
-          </div>
-
-          <div v-if="editingConfig.excalidraw_export_type === 'png'" class="form-group">
-            <label>{{ getLocalizedText({ en: "PNG Scale", zh: "PNG缩放比例" }) }}：{{ editingConfig.excalidraw_png_scale }}</label>
-            <input
-              type="range"
-              v-model="editingConfig.excalidraw_png_scale"
-              min="1"
-              max="9"
-              step="1"
-              class="png-scale-slider"
-            />
-          </div>
-        </div>
-        
-
+          </v-col>
+          <v-col cols="6" v-if="editingConfig.excalidraw_export_type === 'png'">
+            <div>
+              <label class="text-caption text-medium-emphasis mb-2 d-block">
+                {{ getLocalizedText({ en: "PNG Scale", zh: "PNG缩放比例" }) }}: {{ editingConfig.excalidraw_png_scale }}
+              </label>
+              <v-slider
+                v-model="editingConfig.excalidraw_png_scale"
+                min="1"
+                max="9"
+                step="1"
+                show-ticks="always"
+                tick-size="2"
+                density="compact"
+                hide-details
+              />
+            </div>
+          </v-col>
+        </v-row>
       </div>
     </ObsidianVueModal>
 
-    <!-- 添加新导出格式按钮 -->
-    <div class="module-section" style="display: flex; justify-content: center;">
-      <div class="horizontal-stack">
-        <Dropdown
-          v-model="selectedFormat"
-          :options="formatOptions"
-          placeholder="Select export format..."
-        />
-        <Button
-          variant="primary"
-          @click="props.plugin.exportFormatsManager.addExportFormatItem(selectedFormat)"
-          class="add-button"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          {{ getLocalizedText({ en: "Add Export Format", zh: "添加导出格式" }) }}
-        </Button>
-      </div>
-    </div>
-
     <!-- 删除确认弹窗 -->
-    <ConfirmDialog
-      v-model:visible="deleteConfirmVisible"
-      :obsidian-app="plugin.app"
-      :onConfirm="confirmDelete"
-      :onCancel="cancelDelete"
-    >
-      <h2 class="modal-title">{{ getLocalizedText({ en: "Confirm Delete Export Format", zh: "确认删除导出格式" }) }}</h2>
-      <p>{{ getLocalizedText({ en: "Are you sure you want to delete this export format?", zh: "确认要删除此导出格式吗？" }) }}</p>
-    </ConfirmDialog>
-  </div>
+    <v-dialog v-model="deleteConfirmVisible" max-width="400">
+      <v-card>
+        <v-card-title>
+          {{ getLocalizedText({ en: "Confirm Delete Export Format", zh: "确认删除导出格式" }) }}
+        </v-card-title>
+        <v-card-text>
+          {{ getLocalizedText({ en: "Are you sure you want to delete this export format?", zh: "确认要删除此导出格式吗？" }) }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="cancelDelete">
+            {{ getLocalizedText({ en: "Cancel", zh: "取消" }) }}
+          </v-btn>
+          <v-btn color="error" @click="confirmDelete">
+            {{ getLocalizedText({ en: "Delete", zh: "删除" }) }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -239,13 +269,7 @@ import { debounce } from '../../vue/utils';
 import { generateTimestamp } from '../../lib/idGenerator';
 import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defaultStyleConfig/styleConfigs';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
-import ToggleSwitch from '../../vue/components/ToggleSwitch.vue';
-import TextInput from '../../vue/components/TextInput.vue';
-import TextArea from '../../vue/components/TextArea.vue';
-import Button from '../../vue/components/Button.vue';
-import Dropdown from '../../vue/components/Dropdown.vue';
-import MultiColumn from '../../vue/components/MultiColumn.vue';
-import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
+import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
 import { debugLog } from '../../lib/testUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 // 路径预览功能
@@ -264,13 +288,7 @@ interface ExportFormatsSettingsEmits {
 const props = defineProps<ExportFormatsSettingsProps>();
 const emit = defineEmits<ExportFormatsSettingsEmits>();
 
-
-
 // 初始化设置
-// const settings = reactive<ExportManagerSetting>({
-//   exportConfigs: [...(props.plugin.settingList.exportFormats as ExportManagerSetting || DEFAULT_EXPORT_FORMATS_SETTINGS).exportConfigs]
-// });
-
 const settings = props.plugin.exportFormatsManager.config;
 
 // 弹窗状态
@@ -339,14 +357,6 @@ const handleExportEnabledChange = (index: number, enabled: boolean) => {
 const openExportModal = (index: number) => {
   editingConfig.value = settings.exportConfigs[index];
   modalVisible.value = true;
-  
-  // 在弹窗打开后，确保预览路径滚动到最右侧
-  setTimeout(() => {
-    const previewElement = document.querySelector('.path-preview-code') as HTMLElement;
-    if (previewElement) {
-      previewElement.scrollLeft = previewElement.scrollWidth;
-    }
-  }, 100); // 给弹窗一点时间来渲染
 };
 
 /**
@@ -404,6 +414,7 @@ const confirmDelete = async () => {
   if (deleteConfigIndex.value === null) return;
   props.plugin.exportFormatsManager.deleteExportFormatItem(deleteConfigIndex.value);
   deleteConfigIndex.value = null;
+  deleteConfirmVisible.value = false;
 };
 
 /**
@@ -411,6 +422,7 @@ const confirmDelete = async () => {
  */
 const cancelDelete = () => {
   deleteConfigIndex.value = null;
+  deleteConfirmVisible.value = false;
 };
 
 /**
@@ -425,191 +437,37 @@ const onModalVisibilityChange = (visible: boolean) => {
 </script>
 
 <style scoped>
-@import '../../vue/shared-styles.css';
+/* 拖拽状态样式 */
+.v-card--dragging {
+  border: 2px solid var(--interactive-accent) !important;
+  transform: rotate(2deg);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+}
 
-.export-formats-settings {
+.v-card--chosen {
+  cursor: grabbing !important;
+}
+
+/* 自定义样式 */
+.export-modal-form {
   padding: 0;
 }
 
-/* 拖拽时的ghost效果 - 只改变边框颜色 */
-.ghost {
-  border-color: var(--interactive-accent) !important;
-}
-
-.export-item {
-  padding: 9px;
-  margin-bottom: 9px;
-  border-radius: 8px;
-  cursor: grab;
-  transition: all 0.2s ease;
-  user-select: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.export-enabled {
-  background: #ffffff;
-  border: 2px solid #e5e7eb;
-  opacity: 1;
-}
-
-.export-disabled {
-  background: #f9fafb;
-  border: 2px solid #d1d5db;
-  opacity: 0.6;
-}
-
-.export-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-normal);
-}
-
-.export-separator {
-  color: var(--text-muted);
-  margin: 0 8px;
-}
-
-.export-preview {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.output-path {
+/* 路径预览代码样式 */
+code {
   font-family: var(--font-monospace);
-  font-size: 12px;
+  font-size: 0.9em;
+  word-break: break-all;
 }
 
-.export-actions {
-  display: flex;
-  align-items: center;
-  gap: 9px;
+/* 让路径预览在小屏幕上也能正常显示 */
+.v-alert .text-caption {
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
-/* 图标按钮样式 */
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px !important;
-  min-width: 28px;
-  height: 28px;
-}
-
-.icon-btn svg {
-  width: 16px;
-  height: 16px;
-  color: var(--text-normal);
-}
-
-.icon-btn:hover svg {
-  color: var(--text-accent);
-}
-
-/* 弹窗表单样式 */
-.export-modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
-  font-weight: 500;
-  color: var(--text-normal);
-  font-size: 14px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.png-scale-slider {
-  width: 100%;
-  height: 6px;
-  background: var(--background-modifier-border);
-  outline: none;
-  border-radius: 3px;
-}
-
-.png-scale-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: var(--interactive-accent);
-  cursor: pointer;
-  border-radius: 50%;
-}
-
-.png-scale-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: var(--interactive-accent);
-  cursor: pointer;
-  border-radius: 50%;
-  border: none;
-}
-
-/* 路径预览样式 - 单行滚动显示 */
-.path-preview {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-  padding: 8px 12px;
-  background-color: var(--background-secondary);
-  border-radius: 6px;
-  border: 1px solid var(--background-modifier-border);
-}
-
-.path-preview-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  margin-right: 8px;
-  font-weight: 500;
-}
-
-.path-preview-code {
-  flex: 1;
-  font-family: var(--font-monospace);
-  font-size: 12px;
-  color: var(--text-normal);
-  background: transparent;
-  border: none;
-  white-space: nowrap;
-  overflow-x: auto;
-  /* 隐藏滚动条但保持滚动功能 */
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb-bg) transparent;
-}
-
-.path-preview-code::-webkit-scrollbar {
-  height: 4px;
-}
-
-.path-preview-code::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.path-preview-code::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb-bg);
-  border-radius: 2px;
-}
-
-.path-preview-code::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-bg-hover);
-}
-
-/* 响应式布局 */
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
+/* 确保滑块在小屏幕上显示正常 */
+.v-slider {
+  margin-top: 8px;
 }
 </style> 

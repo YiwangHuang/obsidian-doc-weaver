@@ -33,9 +33,10 @@ export const vuetify = createVuetify({
   defaults: {
     // 通过在 SettingsApp.vue 注入非scoped的样式来覆盖Vuetify的默认样式,实现更精细的样式控制
     // VBtn: { variant: 'elevated',},
-    VTextField: { variant: 'outlined', density: 'compact' },
     VCard: { variant: 'elevated' },
     VTabs: { sliderColor: OBSIDIAN_PRIMARY_COLOR},
     VSwitch: { color: OBSIDIAN_PRIMARY_COLOR, inset: true},
+    VTextField: { variant: 'outlined', density: 'compact', hideDetails: 'true' },
+    VTextarea: { hideDetails: 'auto' },
   },
 })

@@ -20,8 +20,8 @@ export interface ExportConfig {
     format: OutputFormat;
     /** 是否启用此配置 */
     enabled: boolean;
-    /** YAML配置内容 */
-    yaml: string;
+    /** 模板内容 */
+    template: string;
     /** 格式名称，用于显示 */
     name: string;
     /** 输出目录路径 */

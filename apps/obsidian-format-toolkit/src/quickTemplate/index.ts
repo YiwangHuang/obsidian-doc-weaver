@@ -3,17 +3,17 @@
  */
 
 import { SettingsRegistry } from '../main';
-import { DEFAULT_QUICK_TEMPLATE_SETTINGS } from './types';
+import { DEFAULT_QUICK_TEMPLATE_SETTINGS, QuickTemplateSettings } from './types';
 import { getLocalizedText } from '../lib/textUtils';
-import QuickTemplateSettings from './components/QuickTemplateSettings.vue';
+import QuickTemplateSettingsComponent from './components/QuickTemplateSettings.vue';
 
 // Quick template settings registry
-export const quickTemplateSettingTab: SettingsRegistry = {
+export const quickTemplateSettingTab: SettingsRegistry<QuickTemplateSettings> = {
     name: 'quickTemplate',
-    settingTabName: getLocalizedText({ en: "Quick Template", zh: "快捷模板" }),
-    description: 'Settings for quick template commands',
+    settingTabName: getLocalizedText({ en: "Quick Template", zh: "快速模板" }),
+    description: 'Settings for quick template',
     defaultConfigs: DEFAULT_QUICK_TEMPLATE_SETTINGS,
-    component: QuickTemplateSettings
+    component: QuickTemplateSettingsComponent
 };
 
 // 导出模板管理器

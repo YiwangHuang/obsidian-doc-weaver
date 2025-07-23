@@ -32,10 +32,10 @@ import {
 } from './quickTemplate/index';
 
 // 定义设置注册接口
-export interface SettingsRegistry {
+export interface SettingsRegistry<T = any> {
     name: string;
     description: string;
-    defaultConfigs: object;
+    defaultConfigs: T;
     settingTabName: string; // 设置页面中显示的标签名
     component?: any; // Vue组件，可选字段
 }
@@ -45,7 +45,7 @@ export default class MyPlugin extends Plugin {
 	VAULT_ABS_PATH: string;
 	PLUGIN_ABS_PATH: string;
     // 将settingList改成响应式对象，支持深度监听嵌套对象的变化
-    settingList: { [key: string]: object } = reactive({});
+    settingList: { [key: string]: any } = reactive({});
     moduleSettings: SettingsRegistry[] = [];
     commandCache: { [key: string]: object } = {};// 命令缓存
     tagWrapperManager: TagWrapperManager;
@@ -114,10 +114,22 @@ export default class MyPlugin extends Plugin {
     /**
      * 注册模块设置
      */
-    registerSettings(setting: SettingsRegistry): void {
+    registerSettings<T extends object>(setting: SettingsRegistry<T>): void {
         this.moduleSettings.push(setting);
-        // 初始化模块设置
-        if (!this.settingList[setting.name]) {
+        
+        // 获取当前设置
+        const currentSettings = this.settingList[setting.name];
+        
+        // 检查设置是否需要重置
+        const needsReset = !currentSettings || 
+            // 检查所有必需的属性是否存在且类型匹配
+            !Object.entries(setting.defaultConfigs).every(([key, value]) => {
+                return currentSettings.hasOwnProperty(key) && 
+                       typeof currentSettings[key] === typeof value;
+            });
+        
+        if (needsReset) {
+            console.log(`Initializing settings for ${setting.name} with type checking`);
             this.settingList[setting.name] = setting.defaultConfigs;
         }
     }

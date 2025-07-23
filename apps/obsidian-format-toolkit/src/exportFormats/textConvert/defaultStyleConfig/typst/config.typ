@@ -10,6 +10,7 @@
 #let conf(
   title: none,
   author: (),
+  date:"",
   doc,
 ) = {
   set text(
@@ -46,7 +47,7 @@
   
   // 显示作者信息
   if author != () {
-    v(0.5em) // 添加标题和作者之间的垂直间距
+    v(0em) // 添加标题和作者之间的垂直间距，为0时起到换行的作用
     text(12pt, weight: "medium")[
       #if type(author) == "array" {
         author.join("   ") // 如果是多个作者，用空格分隔
@@ -55,8 +56,14 @@
       }
     ]
   }
+
+  if date != "" {
+    v(0em) // 添加标题和作者之间的垂直间距，为0时起到换行的作用
+    text(12pt, weight: "medium")[#date]
+  }
   
-  v(1em) // 添加作者和正文之间的垂直间距
+  // v(0.2em) // 添加作者和正文之间的垂直间距
   set align(left) // 设置正文靠左对齐
   columns(1,doc) // 在这里修改全文的分栏数，1表示单栏，2表示双栏
+
 }

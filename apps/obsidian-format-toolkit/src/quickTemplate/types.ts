@@ -32,8 +32,8 @@ export const DEFAULT_QUICK_TEMPLATE_SETTINGS: QuickTemplateSettings = {
         {
             id: 'quick-template-multi-column',
             name: 'Multi Column Template',
-            template: ":::col|width(50%, 50%)\n\n{{selectedText}}\n\n@col\n\n@col\n\n:::\n",
-            enabled: true
+            template: ":::col|width(50%, 50%)\n\n@col\n\n{{selectedText}}\n\n@col\n\n\n:::\n",
+            enabled: true   
         },
         {
             id: 'quick-template-callout',

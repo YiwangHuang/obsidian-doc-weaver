@@ -170,11 +170,11 @@
             :content="getPreviewPath(editingConfig)"
           />
           
-          <!-- YAML配置 -->
+          <!-- 模板配置 -->
           <v-textarea
-            v-model="editingConfig.yaml"
-            :label="getLocalizedText({ en: 'YAML Configuration', zh: 'YAML配置' })"
-            placeholder="Enter export format YAML configuration..."
+            v-model="editingConfig.template"
+            :label="getLocalizedText({ en: 'Template Configuration', zh: '模板配置' })"
+            placeholder="Enter export format template..."
             variant="outlined"
             rows="8"
             density="compact"

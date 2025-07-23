@@ -39,7 +39,7 @@ export class ExportFormatsManager {
         name: `${hexId}`,
         output_dir: path.posix.join(EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
         output_base_name: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
-        yaml: getDefaultYAML(format) || '',
+        template: getDefaultYAML(format) || '',
         enabled: true,
         format: format,
         excalidraw_export_type: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,

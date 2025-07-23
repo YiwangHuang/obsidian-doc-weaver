@@ -73,7 +73,7 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         const exportContent = await converter.convert(sourceContent, item.format);
         
         // 使用重构后的replacePlaceholders方法，直接处理模板和内容的整合
-        const finalContent = converter.replacePlaceholders(item.yaml, exportContent);
+        const finalContent = converter.replacePlaceholders(item.template, exportContent);
         
         fs.writeFileSync(path.posix.join(outputDir, outputFullName), finalContent);
         

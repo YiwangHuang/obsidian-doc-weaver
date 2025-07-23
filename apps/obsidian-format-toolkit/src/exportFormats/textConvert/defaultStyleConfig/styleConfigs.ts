@@ -41,6 +41,7 @@ const typstStyleConfig: StyleConfig = {
 #show: doc => conf(
   title: "{{noteName}}",
   author: "Your name",
+  date: "{{date: YYYY-MM-DD}}",
   doc,
 )`
 };

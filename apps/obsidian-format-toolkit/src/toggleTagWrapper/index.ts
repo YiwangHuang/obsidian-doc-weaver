@@ -3,17 +3,17 @@
  */
 
 import { SettingsRegistry } from '../main';
-import { DEFAULT_TAG_WRAPPER_SETTINGS } from './types';
+import { DEFAULT_TAG_WRAPPER_SETTINGS, TagWrapperSettings as TagWrapperSettingsType } from './types';
 import { getLocalizedText } from '../lib/textUtils';
-import TagWrapperSettings from './components/TagWrapperSettings.vue';
+import TagWrapperSettingsComponent from './components/TagWrapperSettings.vue';
 
 // Tag wrapper settings registry
-export const tagWrapperSetting: SettingsRegistry = {
+export const tagWrapperSetting: SettingsRegistry<TagWrapperSettingsType> = {
     name: 'tagWrapper',
     settingTabName: getLocalizedText({ en: "Tags Config", zh: "标签配置" }),
     description: 'Settings for tag wrapper commands',
     defaultConfigs: DEFAULT_TAG_WRAPPER_SETTINGS,
-    component: TagWrapperSettings
+    component: TagWrapperSettingsComponent
 };
 
 // 导出动态命令管理器（作为主要接口）

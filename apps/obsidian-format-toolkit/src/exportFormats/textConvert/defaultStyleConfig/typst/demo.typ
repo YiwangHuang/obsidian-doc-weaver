@@ -3,6 +3,7 @@
 #show: doc => conf(
   title: "Typst 格式演示 / Typst Format Demo",
   author: ("张三", "李四"),
+  date: "date of today",
   doc,
 )
 
@@ -23,7 +24,7 @@
   type: "done",
   title: [任务完成 / Task Completed],
   [
-    ✅ 配置完成！/ Configuration completed!
+    配置完成！/ Configuration completed!
   ]
 )
 

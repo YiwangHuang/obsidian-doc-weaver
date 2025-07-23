@@ -2,7 +2,7 @@ import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
 import { TagConfig, TagWrapperSettings } from "./types";
-import { tagWrapperSetting } from "./index";
+import { tagWrapperInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/testUtils";
 import { debounce } from 'lodash';
@@ -20,7 +20,7 @@ export class TagWrapperManager {
      * 获取当前配置（始终从响应式settingList中获取最新配置）
      */
     get config(): TagWrapperSettings {
-        return this.plugin.settingList[tagWrapperSetting.name] as TagWrapperSettings;
+        return this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings;
     }
 
     initialize(): void {

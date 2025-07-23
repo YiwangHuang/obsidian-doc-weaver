@@ -38,7 +38,7 @@ export interface ExportConfig {
  * 导出管理器设置接口
  * 包含所有导出格式配置的容器，便于扩展更多设置项
  */
-export interface ExportManagerSetting {
+export interface ExportManagerSettings {
     /** 导出格式配置数组 */
     exportConfigs: ExportConfig[];
 }
@@ -46,7 +46,7 @@ export interface ExportManagerSetting {
 /**
  * 导出格式的默认设置
  */
-export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSetting = {
+export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSettings = {
     exportConfigs: []
 };
 

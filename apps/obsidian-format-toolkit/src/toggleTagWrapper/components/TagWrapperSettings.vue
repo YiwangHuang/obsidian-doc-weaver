@@ -179,7 +179,7 @@ import type MyPlugin from '../../main';
 import type { TagConfig, TagWrapperSettings } from '../types';
 import { debugLog } from '../../lib/testUtils';
 import { getLocalizedText } from '../../lib/textUtils';
-import { tagWrapperSetting } from '../index';
+import { tagWrapperInfo } from '../index';
 import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
@@ -191,7 +191,7 @@ interface TagWrapperSettingsProps {
 const props = defineProps<TagWrapperSettingsProps>();
 
 // 初始化设置
-const configs = props.plugin.settingList[tagWrapperSetting.name] as TagWrapperSettings;
+const configs = props.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings;
 
 // 弹窗状态
 const modalVisible = ref(false);

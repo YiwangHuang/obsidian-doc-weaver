@@ -2,13 +2,13 @@
  * Quick Template 模块入口
  */
 
-import { SettingsRegistry } from '../main';
+import { ModuleInfoRegistry } from '../main';
 import { DEFAULT_QUICK_TEMPLATE_SETTINGS, QuickTemplateSettings } from './types';
 import { getLocalizedText } from '../lib/textUtils';
 import QuickTemplateSettingsComponent from './components/QuickTemplateSettings.vue';
 
 // Quick template settings registry
-export const quickTemplateSettingTab: SettingsRegistry<QuickTemplateSettings> = {
+export const quickTemplateInfo: ModuleInfoRegistry<QuickTemplateSettings> = {
     name: 'quickTemplate',
     settingTabName: getLocalizedText({ en: "Quick Template", zh: "快速模板" }),
     description: 'Settings for quick template',

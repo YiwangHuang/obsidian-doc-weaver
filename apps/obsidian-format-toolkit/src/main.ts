@@ -15,7 +15,7 @@ import { vuetify } from './vue/plugins/vuetify'
 // } from './src/createNote/index';
 
 import {
-	exportFormatsSetting,
+	exportFormatsInfo,
     ExportFormatsManager,
     // exportToFormats,
     addExportFormatsCommands
@@ -23,16 +23,16 @@ import {
 
 import { 
     TagWrapperManager,
-    tagWrapperSetting
+    tagWrapperInfo
 } from './toggleTagWrapper/index';
 
 import {
     QuickTemplateManager,
-    quickTemplateSettingTab
+    quickTemplateInfo
 } from './quickTemplate/index';
 
 // 定义设置注册接口
-export interface SettingsRegistry<T = any> {
+export interface ModuleInfoRegistry<T = any> {
     name: string;
     description: string;
     defaultConfigs: T;
@@ -46,7 +46,7 @@ export default class MyPlugin extends Plugin {
 	PLUGIN_ABS_PATH: string;
     // 将settingList改成响应式对象，支持深度监听嵌套对象的变化
     settingList: { [key: string]: any } = reactive({});
-    moduleSettings: SettingsRegistry[] = [];
+    moduleSettings: ModuleInfoRegistry[] = [];
     commandCache: { [key: string]: object } = {};// 命令缓存
     tagWrapperManager: TagWrapperManager;
     exportFormatsManager: ExportFormatsManager;
@@ -70,9 +70,9 @@ export default class MyPlugin extends Plugin {
         debugLog('settingList', savedData);
 
         // 先注册所有设置模块（确保默认配置被设置到响应式对象中）
-        this.registerSettings(exportFormatsSetting);
-        this.registerSettings(tagWrapperSetting);
-        this.registerSettings(quickTemplateSettingTab);
+        this.registerSettings(exportFormatsInfo);
+        this.registerSettings(tagWrapperInfo);
+        this.registerSettings(quickTemplateInfo);
         
         // 然后初始化管理器（这样它们能获取到正确的响应式配置对象）
         this.tagWrapperManager = new TagWrapperManager(this);
@@ -114,7 +114,7 @@ export default class MyPlugin extends Plugin {
     /**
      * 注册模块设置
      */
-    registerSettings<T extends object>(setting: SettingsRegistry<T>): void {
+    registerSettings<T extends object>(setting: ModuleInfoRegistry<T>): void {
         this.moduleSettings.push(setting);
         
         // 获取当前设置

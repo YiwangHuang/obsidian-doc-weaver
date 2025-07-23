@@ -31,21 +31,21 @@
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
                              <!-- 模板名称 -->
-               <v-col cols="4">
+               <v-col cols="6">
                  <div class="text-subtitle-2 font-weight-medium">{{ template.name }}</div>
                </v-col>
 
               <!-- 模板预览 -->
-              <v-col cols="4">
+              <!-- <v-col cols="4">
                 <div class="text-caption text-medium-emphasis">
                   <code style="background: var(--background-modifier-border); padding: 2px 4px; border-radius: 3px;">
                     {{ getTemplatePreview(template.template) }}
                   </code>
                 </div>
-              </v-col>
+              </v-col> -->
               
               <!-- 操作按钮 -->
-              <v-col cols="4">
+              <v-col cols="6">
                 <div class="d-flex align-center justify-end">
                   <v-switch
                     v-model="template.enabled"
@@ -56,13 +56,13 @@
                   />
                   <VBtnObsidianIcon 
                     icon="gear"
-                    size="x-small"
+                    size="small"
                     @click="openTemplateModal(index)"
                     class="me-1"
                   />
                   <VBtnObsidianIcon 
                     icon="trash-2"
-                    size="x-small"
+                    size="small"
                     @click="showDeleteConfirm(index)"
                   />
                 </div>
@@ -152,7 +152,7 @@ import type MyPlugin from '../../main';
 import type { TemplateConfig, QuickTemplateSettings } from '../types';
 import { debugLog } from '../../lib/testUtils';
 import { getLocalizedText } from '../../lib/textUtils';
-import { quickTemplateSettingTab } from '../index';
+import { quickTemplateInfo } from '../index';
 import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import TemplateEditor from '../../vue/components/TemplateEditor.vue';
@@ -164,7 +164,7 @@ interface QuickTemplateSettingsProps {
 const props = defineProps<QuickTemplateSettingsProps>();
 
 // 初始化设置
-const configs = props.plugin.settingList[quickTemplateSettingTab.name] as QuickTemplateSettings;
+const configs = props.plugin.settingList[quickTemplateInfo.name] as QuickTemplateSettings;
 
 // 弹窗状态
 const modalVisible = ref(false);

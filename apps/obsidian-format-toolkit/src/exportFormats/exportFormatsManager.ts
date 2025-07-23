@@ -1,8 +1,8 @@
 import type MyPlugin from "../main";
 import path from "path";
 import fs from "fs";
-import { ExportManagerSetting, ExportConfig } from "./types";
-import { exportFormatsSetting } from "./index";
+import { ExportManagerSettings, ExportConfig } from "./types";
+import { exportFormatsInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { OutputFormat } from "./textConvert/textConverter";
 import { getDefaultYAML, createFormatAssetStructure } from './textConvert/defaultStyleConfig/styleConfigs';
@@ -20,8 +20,8 @@ export class ExportFormatsManager {
     /**
      * 获取当前配置（始终从响应式settingList中获取最新配置）
      */
-    get config(): ExportManagerSetting {
-        return this.plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;
+    get config(): ExportManagerSettings {
+        return this.plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;
     }
 
     initialize(): void {

@@ -2,8 +2,8 @@ import { Notice, TFile, Editor } from 'obsidian';
 import * as fs from 'fs';
 import * as path from 'path';
 import MyPlugin from '../main';
-import { exportFormatsSetting } from './index';
-import type { ExportManagerSetting } from './types';
+import { exportFormatsInfo } from './index';
+import type { ExportManagerSettings } from './types';
 import { TextConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
 import { getNoteInfo } from '../lib/noteResloveUtils';
@@ -42,7 +42,7 @@ async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<voi
         return;
     }
     const sourceContent = (await getNoteInfo(plugin, sourceFile)).mainContent// 只获取笔记主要内容，暂时用不到笔记属性
-    const settings = plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;// 获取设置
+    const settings = plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;// 获取设置
     const converter = new TextConverter(plugin, sourceFile);
     
     const enabledConfigs = settings.exportConfigs.filter(item => item.enabled);

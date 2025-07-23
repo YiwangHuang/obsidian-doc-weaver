@@ -2,7 +2,7 @@ import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
 import { TemplateConfig, QuickTemplateSettings } from "./types";
-import { quickTemplateSettingTab } from "./index";
+import { quickTemplateInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/testUtils";
 import { replaceDatePlaceholders } from "../lib/constant";
@@ -24,7 +24,7 @@ export class QuickTemplateManager {
      * 获取当前配置（始终从响应式settingList中获取最新配置）
      */
     get config(): QuickTemplateSettings {
-        return this.plugin.settingList[quickTemplateSettingTab.name] as QuickTemplateSettings;
+        return this.plugin.settingList[quickTemplateInfo.name] as QuickTemplateSettings;
     }
 
     /**

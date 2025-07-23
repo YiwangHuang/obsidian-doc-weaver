@@ -249,7 +249,7 @@ import * as child_process from 'child_process';
 import type MyPlugin from '../../main';
 import type { 
   ExportConfig, 
-  ExportManagerSetting
+  ExportManagerSettings
 } from '../types';
 import { 
   EXPORT_FORMATS_CONSTANTS,
@@ -277,7 +277,7 @@ interface ExportFormatsSettingsProps {
 
 // 定义Events
 interface ExportFormatsSettingsEmits {
-  (e: 'settings-changed', settings: ExportManagerSetting): void;
+  (e: 'settings-changed', settings: ExportManagerSettings): void;
 }
 
 const props = defineProps<ExportFormatsSettingsProps>();

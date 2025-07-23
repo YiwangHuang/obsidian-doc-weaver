@@ -42,14 +42,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import type { SettingsRegistry } from '../../main';
+import type { ModuleInfoRegistry } from '../../main';
 import type { SettingsAppProps } from '../types';
 import DemoModalComponent from './DemoModalComponent.vue';
 import { DEBUG, debugLog } from '../../lib/testUtils';
 
 const props = defineProps<SettingsAppProps>();
 
-const demoTab: SettingsRegistry = {
+const demoTab: ModuleInfoRegistry = {
   name: 'modalDemo',
   settingTabName: 'Demo',
   description: 'Vue弹窗组件演示',

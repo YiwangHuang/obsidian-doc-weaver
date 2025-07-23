@@ -52,7 +52,7 @@ export class QuickTemplateManager {
     addTemplateCommand(template: TemplateConfig): void {
         const command: Command = {
             id: template.id,
-            name: template.name,
+            name: `Template-${template.name}`,
             editorCallback: (editor: Editor, view: MarkdownView) => {
                 this.executeTemplateInsertion(editor, view, template);
             }

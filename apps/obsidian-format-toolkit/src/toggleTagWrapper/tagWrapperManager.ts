@@ -38,7 +38,7 @@ export class TagWrapperManager {
     addTagCommand(tag: TagConfig): void {
         const command: Command = {
             id: tag.id,
-            name: tag.name,
+            name: `Tag-${tag.name}`,
             editorCallback: (editor: Editor, view: MarkdownView) => {
                 this.executeTagWrapper(editor, view, tag.prefix, tag.suffix);
             }
@@ -140,7 +140,7 @@ export class TagWrapperManager {
         const hexId = generateTimestamp();
         return {
             id: `doc-weaver-tag-${hexId}`,
-            name: name || `tag-${hexId}`,
+            name: name || `${hexId}`,
             prefix: prefix || '<u>',
             suffix: suffix || '</u>',
             enabled: true,

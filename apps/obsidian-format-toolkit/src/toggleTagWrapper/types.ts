@@ -35,11 +35,18 @@ export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
     tags: [
         {
             id: 'doc-weaver-toggle-underline',
-            name: 'Toggle Underline',
+            name: 'Underline',
             prefix: '<u>',
             suffix: '</u>',
             enabled: true,
-            cssSnippet: '/* 下划线样式 */\nu {\n  text-decoration: underline;\n  text-decoration-color: var(--text-accent);\n}'
+            cssSnippet: `u {
+color: blue; /* 下划线颜色 */
+cursor: pointer; /* 鼠标悬停显示为手型 */
+text-decoration: none; /* 去掉默认的下划线 */
+border-bottom: 1px solid black; /* 使用边框模拟下划线 */
+position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
+}`
         },
     ]
 };
+// '/* 下划线样式 */\nu {\n  text-decoration: underline;\n  text-decoration-color: var(--text-accent);\n}'

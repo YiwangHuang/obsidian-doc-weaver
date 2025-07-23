@@ -30,15 +30,15 @@ export interface QuickTemplateSettings {
 export const DEFAULT_QUICK_TEMPLATE_SETTINGS: QuickTemplateSettings = {
     templates: [
         {
-            id: 'quick-template-code-block',
-            name: 'Code Block Template',
-            template: '```{{language}}\n{{selectedText}}\n```',
+            id: 'quick-template-multi-column',
+            name: 'Multi Column Template',
+            template: ":::col|width(50%, 50%)\n\n{{selectedText}}\n\n@col\n\n@col\n\n:::\n",
             enabled: true
         },
         {
             id: 'quick-template-callout',
             name: 'Callout Template', 
-            template: '> [!{{type}}] {{title}}\n> {{selectedText}}',
+            template: '> [!info] 讲解注释\n> {{selectedText}}',
             enabled: true
         }
     ]

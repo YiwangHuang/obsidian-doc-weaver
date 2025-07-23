@@ -49,7 +49,7 @@
               <!-- 格式标签 -->
               <v-col cols="2">
                 <v-chip 
-                  :color="config.enabled ? 'primary' : 'grey'" 
+                  :color="config.enabled ? OBSIDIAN_PRIMARY_COLOR : 'grey'" 
                   size="small" 
                   label
                 >
@@ -252,14 +252,12 @@ import type {
   ExportManagerSetting
 } from '../types';
 import { 
-  DEFAULT_EXPORT_FORMATS_SETTINGS,
   EXPORT_FORMATS_CONSTANTS,
   FORMAT_OPTIONS,
   EXCALIDRAW_EXPORT_OPTIONS,
   EXTENSION_MAP
 } from '../types';
 import type { OutputFormat } from '../textConvert/textConverter';
-import { debounce } from '../../vue/utils';
 import { generateTimestamp } from '../../lib/idGenerator';
 import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defaultStyleConfig/styleConfigs';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
@@ -270,6 +268,7 @@ import { getLocalizedText } from '../../lib/textUtils';
 // 路径预览功能
 import { TextConverter } from '../textConvert';
 import TemplateEditor from '../../vue/components/TemplateEditor.vue';
+import { OBSIDIAN_PRIMARY_COLOR } from '../../vue/plugins/vuetify';
 
 // 定义Props
 interface ExportFormatsSettingsProps {

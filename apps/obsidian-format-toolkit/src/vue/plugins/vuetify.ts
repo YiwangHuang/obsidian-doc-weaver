@@ -1,9 +1,9 @@
-import styleConfigs from 'src/exportFormats/textConvert/defaultStyleConfig/styleConfigs';
+// import styleConfigs from 'src/exportFormats/textConvert/defaultStyleConfig/styleConfigs';
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
-const OBSIDIAN_PRIMARY_COLOR = 'var(--text-accent)';
+export const OBSIDIAN_PRIMARY_COLOR = 'var(--text-accent)';
 
 // //TODO: 只导入部分Vuetify的组件和样式，减少包体积
 

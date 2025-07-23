@@ -1,10 +1,10 @@
 {
 	"id": "doc-weaver",
 	"name": "Doc Weaver",
-	"version": "1.0.0",
+	"version": "0.5.0",
 	"minAppVersion": "0.15.0",
 	"description": "A comprehensive toolkit for note formatting, exporting and creation in Obsidian.",
-	"author": "Obsidian",
+	"author": "Yi Wang",
 	"authorUrl": "https://obsidian.md",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false

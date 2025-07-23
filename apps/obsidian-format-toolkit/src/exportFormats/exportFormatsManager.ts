@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 import path from "path";
 import fs from "fs";
-import { DEFAULT_EXPORT_FORMATS_SETTINGS, ExportManagerSetting, ExportConfig } from "./types";
+import { ExportManagerSetting, ExportConfig } from "./types";
 import { exportFormatsSetting } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { OutputFormat } from "./textConvert/textConverter";
@@ -11,18 +11,21 @@ import { EXPORT_FORMATS_CONSTANTS } from "./types";
 
 export class ExportFormatsManager {
     private plugin: MyPlugin;
-    public config: ExportManagerSetting;
 
     constructor(plugin: MyPlugin) {
         this.plugin = plugin;
-        this.config = this.plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;
         this.initialize();
     }
 
+    /**
+     * 获取当前配置（始终从响应式settingList中获取最新配置）
+     */
+    get config(): ExportManagerSetting {
+        return this.plugin.settingList[exportFormatsSetting.name] as ExportManagerSetting;
+    }
+
     initialize(): void {
-        if (!this.config) {
-            this.config = DEFAULT_EXPORT_FORMATS_SETTINGS;
-        }
+        // 配置现在通过getter动态获取，无需检查空值
     }
 
     /**

@@ -64,17 +64,20 @@ export default class MyPlugin extends Plugin {
         // 加载保存的设置
         const savedData = await this.loadData();
 
-        this.settingList = reactive(savedData);
+        // 修复BUG：当data.json不存在时，loadData()返回null，需要提供默认的空对象
+        this.settingList = reactive(savedData || {});
         
         debugLog('settingList', savedData);
 
-        this.tagWrapperManager = new TagWrapperManager(this);
-        this.exportFormatsManager = new ExportFormatsManager(this);
-        this.quickTemplateManager = new QuickTemplateManager(this);
-        
+        // 先注册所有设置模块（确保默认配置被设置到响应式对象中）
         this.registerSettings(exportFormatsSetting);
         this.registerSettings(tagWrapperSetting);
         this.registerSettings(quickTemplateSettingTab);
+        
+        // 然后初始化管理器（这样它们能获取到正确的响应式配置对象）
+        this.tagWrapperManager = new TagWrapperManager(this);
+        this.exportFormatsManager = new ExportFormatsManager(this);
+        this.quickTemplateManager = new QuickTemplateManager(this);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存
         // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积

@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
-import { DEFAULT_QUICK_TEMPLATE_SETTINGS, TemplateConfig, QuickTemplateSettings } from "./types";
+import { TemplateConfig, QuickTemplateSettings } from "./types";
 import { quickTemplateSettingTab } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/testUtils";
@@ -14,21 +14,24 @@ import { debounce } from 'lodash';
  */
 export class QuickTemplateManager {
     private plugin: MyPlugin;
-    private config: QuickTemplateSettings;
 
     constructor(plugin: MyPlugin) {
         this.plugin = plugin;
-        this.config = this.plugin.settingList[quickTemplateSettingTab.name] as QuickTemplateSettings;
         this.initialize();
+    }
+
+    /**
+     * 获取当前配置（始终从响应式settingList中获取最新配置）
+     */
+    get config(): QuickTemplateSettings {
+        return this.plugin.settingList[quickTemplateSettingTab.name] as QuickTemplateSettings;
     }
 
     /**
      * 初始化模板管理器
      */
     initialize(): void {
-        if (!this.config) {
-            this.config = DEFAULT_QUICK_TEMPLATE_SETTINGS;
-        }
+        // 配置现在通过getter动态获取，无需检查空值
         
         // 为所有启用的模板注册命令
         const enabledTemplates = this.config.templates.filter(template => template.enabled);

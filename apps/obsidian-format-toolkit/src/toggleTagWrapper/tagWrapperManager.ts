@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
-import { DEFAULT_TAG_WRAPPER_SETTINGS, TagConfig, TagWrapperSettings } from "./types";
+import { TagConfig, TagWrapperSettings } from "./types";
 import { tagWrapperSetting } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/testUtils";
@@ -9,19 +9,22 @@ import { debounce } from 'lodash';
 
 export class TagWrapperManager {
     private plugin: MyPlugin;
-    private config: TagWrapperSettings;
     private injectedStyles = new Map<string, HTMLStyleElement>();
 
     constructor(plugin: MyPlugin) {
         this.plugin = plugin;
-        this.config = this.plugin.settingList[tagWrapperSetting.name] as TagWrapperSettings;
         this.initialize();
     }
 
+    /**
+     * 获取当前配置（始终从响应式settingList中获取最新配置）
+     */
+    get config(): TagWrapperSettings {
+        return this.plugin.settingList[tagWrapperSetting.name] as TagWrapperSettings;
+    }
+
     initialize(): void {
-        if (!this.config) {
-            this.config = DEFAULT_TAG_WRAPPER_SETTINGS;
-        }
+        // 配置现在通过getter动态获取，无需检查空值
         const enabledTags = this.config.tags.filter(tag => tag.enabled);
         enabledTags.forEach(tag => {
             this.addTagCommand(tag);

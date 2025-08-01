@@ -128,22 +128,6 @@ export function addExportFormatsCommands(plugin: MyPlugin): void {
     });
 
     plugin.registerEvent(
-        plugin.app.workspace.on("editor-menu", (menu, editor, info) => {
-            menu.addItem((item)=>
-                item.setTitle("Deep copy")
-                    .setIcon("document")
-                    .onClick(async () => await deepCopy(plugin, plugin.app.workspace.getActiveFile() as TFile, editor.getSelection()))
-            )
-            menu.addItem((item)=>
-                item.setTitle("Deep paste")
-                    .setIcon("document")
-                    .onClick(() => deepPaste(plugin, editor))
-            )
-        }
-    ))
-    
-    
-    plugin.registerEvent(
         plugin.app.workspace.on("files-menu", (menu, files) => {
             // 确保文件对象存在，且是普通文件（不是文件夹）
             menu.addItem((item) =>
@@ -164,6 +148,21 @@ export function addExportFormatsCommands(plugin: MyPlugin): void {
     );
 
     if (DEBUG) {
+        // 深度拷贝和粘贴(笔记与附件打包迁移工具)
+        plugin.registerEvent(
+            plugin.app.workspace.on("editor-menu", (menu, editor, info) => {
+                menu.addItem((item)=>
+                    item.setTitle("Deep copy")
+                        .setIcon("document")
+                        .onClick(async () => await deepCopy(plugin, plugin.app.workspace.getActiveFile() as TFile, editor.getSelection()))
+                )
+                menu.addItem((item)=>
+                    item.setTitle("Deep paste")
+                        .setIcon("document")
+                        .onClick(() => deepPaste(plugin, editor))
+                )
+            }
+        ))
         // 调用baseConverter测试文本转换规则
         plugin.registerEvent(
             plugin.app.workspace.on("editor-menu", (menu, editor, info) => {

@@ -4,7 +4,7 @@
 	"version": "0.5.0",
 	"minAppVersion": "0.15.0",
 	"description": "A comprehensive toolkit for note formatting, exporting and creation in Obsidian.",
-	"author": "Yi Wang",
+	"author": "Huang Yifan",
 	"authorUrl": "https://obsidian.md",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false

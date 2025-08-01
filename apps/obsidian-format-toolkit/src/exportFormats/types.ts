@@ -76,9 +76,12 @@ export const EXPORT_FORMATS_CONSTANTS = {
 export const FORMAT_OPTIONS = [
     { value: 'typst', label: 'Typst' },
     { value: 'vuepress', label: 'VuePress' },
-    { value: 'quarto', label: 'Quarto' },
-    { value: 'plain', label: 'Plain' }
 ] as { value: OutputFormat; label: string }[];
+
+// TODO: 暂时不支持，后续待开发
+// { value: 'quarto', label: 'Quarto' },
+// { value: 'plain', label: 'Plain' }
+
 
 /**
  * Excalidraw导出类型选项

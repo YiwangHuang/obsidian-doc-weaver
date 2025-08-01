@@ -4,7 +4,7 @@ import footnote from 'markdown-it-footnote';
 // 基本脚注处理器 - 注册footnote插件
 BaseConverter.registerProcessor({
     name: 'footnote',
-    formats: ['quarto', 'typst', 'plain'],
+    formats: ['quarto', 'typst'],
     description: '处理脚注语法',
     detail: '支持解析和渲染 [^1] 格式的脚注',
     mditRuleSetup: (converter: BaseConverter) => {
@@ -56,17 +56,18 @@ BaseConverter.registerProcessor({
         };
 
         // 使用特殊标记包围脚注块，便于后处理识别删除
+        // TODO: 使用更原生的方法实现
         md.renderer.rules.footnote_block_open = () => {
-            return '<!-- FORMAT_TOOLKIT_FOOTNOTE_START -->';
+            return '<!-- DOC_WEAVER_FOOTNOTE_START -->';
         };
 
         md.renderer.rules.footnote_block_close = () => {
-            return '<!-- FORMAT_TOOLKIT_FOOTNOTE_END -->';
+            return '<!-- DOC_WEAVER_FOOTNOTE_END -->';
         };
     },
     // 添加后处理函数移除脚注块
     postProcessor: (text: string) => {
         // 移除自定义标记之间的所有内容（包括标记本身）
-        return text.replace(/<!-- FORMAT_TOOLKIT_FOOTNOTE_START -->[\s\S]*?<!-- FORMAT_TOOLKIT_FOOTNOTE_END -->/g, '');
+        return text.replace(/<!-- DOC_WEAVER_FOOTNOTE_START -->[\s\S]*?<!-- DOC_WEAVER_FOOTNOTE_END -->/g, '');
     }
 });

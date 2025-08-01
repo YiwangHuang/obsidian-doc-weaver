@@ -38,7 +38,7 @@ export class TagWrapperManager {
     addTagCommand(tag: TagConfig): void {
         const command: Command = {
             id: tag.id,
-            name: `Tag-${tag.name}`,
+            name: `tag - ${tag.name}`,
             editorCallback: (editor: Editor, view: MarkdownView) => {
                 this.executeTagWrapper(editor, view, tag.prefix, tag.suffix);
             }

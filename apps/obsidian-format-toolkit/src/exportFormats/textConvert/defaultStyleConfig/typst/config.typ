@@ -1,5 +1,5 @@
-#import "@preview/mitex:0.2.4": * // 支持latex公式
-#import "@preview/tablem:0.1.0": tablem // 支持Markdown表格
+#import "@preview/mitex:0.2.5": * // 支持latex公式
+#import "@preview/tablem:0.3.0": tablem // 支持Markdown表格
 #import "custom_format.typ": *
 
 #let underline = underline.with(show_content: true)
@@ -15,7 +15,8 @@
 ) = {
   set text(
     font: (
-      "LXGW WenKai",          // 主字体：霞鹜文楷
+      "Songti SC",            // 默认字体0：宋体
+      "LXGW WenKai",          // 推荐字体：霞鹜文楷
       "Noto Sans CJK SC",     // 备用字体1：思源黑体简体中文
       "Source Han Sans SC",   // 备用字体2：思源黑体简体中文（别名）
       "Microsoft YaHei",      // 备用字体3：微软雅黑（Windows系统）
@@ -37,7 +38,7 @@
   // 在这里添加所有的 show 规则
   show strong: it => text(
     weight: "bold",
-    fill: red.darken(20%),
+    fill: red.darken(20%), // 设置强调色为红色
     // fill: rgb("#ff64cb").darken(20%),
     it.body
   )

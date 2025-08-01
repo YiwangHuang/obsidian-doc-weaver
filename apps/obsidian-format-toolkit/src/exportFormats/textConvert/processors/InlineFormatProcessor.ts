@@ -22,6 +22,18 @@ BaseConverter.registerProcessor({
         };
         converter.md.renderer.rules.heading_close = () => "\n\n";
 
+        // 内联代码渲染规则
+        converter.md.renderer.rules.code_inline = (tokens, idx) => {
+            return `\`${tokens[idx].content}\``;
+        };
+
+        // 代码块渲染规则 TODO: 可能会有冲突，待测试
+        converter.md.renderer.rules.fence = (tokens, idx) => {
+            const token = tokens[idx];
+            const lang = token.info.trim();
+            return `\`\`\`${lang}\n${token.content}\`\`\``;
+        };
+
         // 加粗规则
         converter.md.renderer.rules.strong_open = () => "*";
         converter.md.renderer.rules.strong_close = () => "*";

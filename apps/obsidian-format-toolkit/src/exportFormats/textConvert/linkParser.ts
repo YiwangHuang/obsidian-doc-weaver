@@ -221,70 +221,108 @@ export class LinkParser {
     /**
      * 解析链接文本，按照规则优先级执行匹配的处理器
      * @param linkText 要解析的链接文本，格式为"部分1|部分2|部分3"
+     * 
+     * 处理流程：
+     * 1. 第一个部分：文件识别（ext_name -> no_ext_name）
+     * 2. 后续部分：装饰器处理（decorator -> alias）
      */
     public parseLink(linkText: string, mdState: StateBlock, linkToken: Token): void {
-        // 1. 将linkText以|为分隔符拆分成linkParts字符串数组
         const linkParts = linkText.split('|');
         
-        // 按优先级顺序定义处理流程
-        const priorityOrder: Array<'ext_name' | 'no_ext_name' | 'decorator' | 'alias'> = [
-            'ext_name',     // 先尝试匹配扩展名
-            'no_ext_name',  // 再匹配无扩展名处理
-            'decorator',    // 然后是装饰器
-            'alias'         // 最后是别名处理
-        ];
+        // 定义处理阶段
+        enum ProcessingStage {
+            FILE_IDENTIFICATION = 'file_identification',  // 文件识别阶段
+            DECORATION = 'decoration'                      // 装饰器处理阶段
+        }
         
-        // 2. 处理每个链接部分
+        let currentStage = ProcessingStage.FILE_IDENTIFICATION;
+        
         for (const part of linkParts) {
-            let isPartProcessed = false;
-            let currentPriorityIndex = 0;
+            const result = this.processPart(part, currentStage, mdState, linkToken);
             
-            // 按优先级顺序尝试匹配规则
-            while (currentPriorityIndex < priorityOrder.length) {
-                const priority = priorityOrder[currentPriorityIndex];
-                
-                // 如果部分已处理且不是decorator阶段，跳到decorator或结束
-                if (isPartProcessed && priority !== 'decorator') {
-                    currentPriorityIndex = priority === 'alias' ? priorityOrder.length : priorityOrder.indexOf('decorator');
-                    continue;
-                }
-                
-                // 获取当前优先级的所有规则
-                const rulesWithPriority = LinkParser.rules.filter(rule => rule.priority === priority);
-                
-                // 尝试应用每个规则
-                for (const rule of rulesWithPriority) {
-                    if (rule.shouldProcess(part)) {
-                        // 应用匹配的处理器
-                        rule.processors
-                            .filter((processor: LinkProcessor) => processor.formats.includes(this.converter.format))
-                            .forEach((processor: LinkProcessor) => processor.processor(part, this, mdState, linkToken));
-                        
-                        isPartProcessed = true;
-                        
-                        // 根据优先级处理后续流程
-                        if (priority === 'ext_name' || priority === 'no_ext_name') {
-                            // 跳到decorator阶段
-                            currentPriorityIndex = priorityOrder.indexOf('decorator');
-                            break;
-                        } else if (priority === 'alias') {
-                            // alias处理完成后结束所有处理
-                            currentPriorityIndex = priorityOrder.length;
-                            break;
-                        }
-                        // decorator可以继续匹配，不跳转
-                    }
-                }
-                
-                // 移动到下一个优先级
-                currentPriorityIndex++;
+            // 如果文件识别成功，后续部分进入装饰器阶段
+            if (result.processed && currentStage === ProcessingStage.FILE_IDENTIFICATION) {
+                currentStage = ProcessingStage.DECORATION;
+            }
+            
+            // 如果处理了alias，停止处理后续部分
+            if (result.stopProcessing) {
+                break;
             }
             
             // 记录未处理的部分
-            if (!isPartProcessed) {
+            if (!result.processed) {
                 console.log(`Link part not processed: ${part}`);
             }
         }
+    }
+
+    /**
+     * 处理单个链接部分
+     * @param part 链接部分
+     * @param stage 当前处理阶段
+     * @param mdState markdown状态
+     * @param linkToken 链接token
+     * @returns 处理结果：{processed: 是否处理成功, stopProcessing: 是否停止处理后续部分}
+     */
+    private processPart(
+        part: string, 
+        stage: 'file_identification' | 'decoration', 
+        mdState: StateBlock, 
+        linkToken: Token
+    ): {processed: boolean, stopProcessing: boolean} {
+        // 根据阶段确定要执行的规则优先级
+        const prioritiesToCheck = stage === 'file_identification' 
+            ? ['ext_name', 'no_ext_name'] as const
+            : ['decorator', 'alias'] as const;
+        
+        for (const priority of prioritiesToCheck) {
+            const rules = LinkParser.rules.filter(rule => rule.priority === priority);
+            
+            for (const rule of rules) {
+                if (rule.shouldProcess(part)) {
+                    // 执行匹配的处理器
+                    const executed = this.executeProcessors(rule, part, mdState, linkToken);
+                    
+                    if (executed) {
+                        // 如果是alias处理，停止所有后续处理
+                        if (priority === 'alias') {
+                            return { processed: true, stopProcessing: true };
+                        }
+                        return { processed: true, stopProcessing: false };
+                    }
+                }
+            }
+        }
+        
+        return { processed: false, stopProcessing: false }; // 未找到匹配的规则
+    }
+
+    /**
+     * 执行规则的处理器
+     * @param rule 规则
+     * @param part 链接部分
+     * @param mdState markdown状态
+     * @param linkToken 链接token
+     * @returns 是否有处理器被执行
+     */
+    private executeProcessors(
+        rule: LinkParseRule, 
+        part: string, 
+        mdState: StateBlock, 
+        linkToken: Token
+    ): boolean {
+        const matchingProcessors = rule.processors
+            .filter(processor => processor.formats.includes(this.converter.format));
+        
+        if (matchingProcessors.length > 0) {
+            matchingProcessors.forEach(processor => 
+                processor.processor(part, this, mdState, linkToken)
+            );
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -454,13 +492,22 @@ LinkParser.registerRule({
                 // console.log(`处理图片链接: ${linkPart} (typst/vuepress/quarto格式)`);
             }
         },
+        {
+            description: "定义解析媒体链接的处理器，专用于typst格式，输出原文",
+            formats: ['typst'], // 专门处理typst格式
+            processor: (linkPart, parser, mdState, linkToken) => {
+                linkToken.content = linkPart;
+                linkToken.hidden = true; // typst格式不支持多媒体，不渲染链接
+                linkToken.markup = '![[]]';
+            }
+        },
     ]
 });
 
 LinkParser.registerRule({
     name: "EmbedNoteRule",
     description: "处理嵌入笔记链接",
-    priority: 'ext_name',
+    priority: 'no_ext_name',
     shouldProcess: (linkPart) => {
         return true;
     },
@@ -515,6 +562,26 @@ LinkParser.registerRule({
             formats: ['plain'], // 专门处理plain格式
             processor: (linkPart, parser, mdState, linkToken) => {
                 linkToken.content = linkPart;
+                linkToken.markup = '![[]]';
+            }
+        },
+    ]
+});
+
+LinkParser.registerRule({
+    name: "Scale",
+    description: "处理显示大小",
+    priority: 'decorator',
+    shouldProcess: (linkPart) => {
+        return true;
+    },
+    processors: [
+        {
+            description: "解析显示大小的处理器，目前只适用plain",
+            formats: ['plain'], // 仅支持plain格式
+            processor: (linkPart, parser, mdState, linkToken) => {
+                // 将装饰器部分（如尺寸）追加到链接内容中
+                linkToken.content += "|"+linkPart;
                 linkToken.markup = '![[]]';
             }
         },

@@ -52,7 +52,7 @@ import ObsidianVueModal from './ObsidianVueModal.vue';
 import Button from './Button.vue';
 import { getLocalizedText } from '../../lib/textUtils';
 import '../shared-styles.css';
-import { debugLog } from '../../lib/testUtils';
+import { debugLog } from '../../lib/debugUtils';
 
 // Props定义
 interface ConfirmDialogProps {

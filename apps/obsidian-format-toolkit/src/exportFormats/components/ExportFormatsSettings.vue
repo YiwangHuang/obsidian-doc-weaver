@@ -263,7 +263,7 @@ import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defau
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
-import { debugLog } from '../../lib/testUtils';
+import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 // 路径预览功能
 import { TextConverter } from '../textConvert';

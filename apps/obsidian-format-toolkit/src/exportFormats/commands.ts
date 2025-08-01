@@ -7,7 +7,7 @@ import type { ExportManagerSettings } from './types';
 import { TextConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
 import { getNoteInfo } from '../lib/noteResloveUtils';
-import { DEBUG } from '../lib/testUtils';
+import { DEBUG } from '../lib/debugUtils';
 import { normalizeCrossPlatformPath } from '../lib/pathUtils';
 
 //TODO: 新增功能：直接通过typst的WebAssembly版本导出为pdf

@@ -150,7 +150,7 @@ import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
 import type { TemplateConfig, QuickTemplateSettings } from '../types';
-import { debugLog } from '../../lib/testUtils';
+import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { quickTemplateInfo } from '../index';
 import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';

@@ -4,7 +4,7 @@ import { watch } from "vue";
 import { TemplateConfig, QuickTemplateSettings } from "./types";
 import { quickTemplateInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
-import { debugLog } from "../lib/testUtils";
+import { debugLog } from "../lib/debugUtils";
 import { replaceDatePlaceholders } from "../lib/constant";
 import { debounce } from 'lodash';
 

@@ -45,7 +45,7 @@ import { ref, computed } from 'vue';
 import type { ModuleInfoRegistry } from '../../main';
 import type { SettingsAppProps } from '../types';
 import DemoModalComponent from './DemoModalComponent.vue';
-import { DEBUG, debugLog } from '../../lib/testUtils';
+import { DEBUG, debugLog } from '../../lib/debugUtils';
 
 const props = defineProps<SettingsAppProps>();
 

@@ -2,7 +2,7 @@ import { App, DataAdapter, FileSystemAdapter, Notice, Plugin, PluginSettingTab, 
 import path from 'path';
 import { createApp, App as VueApp, reactive, watch } from 'vue';
 import SettingsApp from './vue/components/SettingsApp.vue';
-import { debugLog } from './lib/testUtils';
+import { debugLog } from './lib/debugUtils';
 import { debounce } from 'lodash';
 
 // Vuetify

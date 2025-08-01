@@ -4,7 +4,7 @@ import { watch } from "vue";
 import { TagConfig, TagWrapperSettings } from "./types";
 import { tagWrapperInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
-import { debugLog } from "../lib/testUtils";
+import { debugLog } from "../lib/debugUtils";
 import { debounce } from 'lodash';
 
 export class TagWrapperManager {

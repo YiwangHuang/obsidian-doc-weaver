@@ -7,6 +7,7 @@ import { getHeadingText } from '../../lib/noteResloveUtils';
 import type { OutputFormat } from "./textConverter";
 import type { Token, StateBlock } from "markdown-it";
 import { getLocalizedText } from '../../lib/textUtils';
+import { debugLog } from "../../lib/debugUtils";
 
 // import type StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 // import type Token from 'markdown-it/lib/token.mjs';
@@ -252,7 +253,7 @@ export class LinkParser {
             
             // 记录未处理的部分
             if (!result.processed) {
-                console.log(`Link part not processed: ${part}`);
+                debugLog(`Link part not processed: ${part}`);
             }
         }
     }
@@ -445,7 +446,6 @@ LinkParser.registerRule({
                 const attachmentPath = parser.findLinkPath(linkPart);
                 if(attachmentPath === null){
                     new Notice(`未找到图片链接: ${linkPart}`);
-                    console.log(`未找到图片链接: ${linkPart}`);
                     return;
                 }
                 let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
@@ -456,7 +456,6 @@ LinkParser.registerRule({
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
-                // console.log(`处理图片链接: ${linkPart} (typst/vuepress/quarto格式)`);
             }
         },
     ]
@@ -478,7 +477,6 @@ LinkParser.registerRule({
                 const attachmentPath = parser.findLinkPath(linkPart);
                 if(attachmentPath === null){
                     new Notice(`未找到媒体链接: ${linkPart}`);
-                    console.log(`未找到媒体链接: ${linkPart}`);
                     return;
                 }
                 let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
@@ -489,7 +487,6 @@ LinkParser.registerRule({
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
-                // console.log(`处理图片链接: ${linkPart} (typst/vuepress/quarto格式)`);
             }
         },
         {
@@ -519,13 +516,11 @@ LinkParser.registerRule({
                 
                 if(!parser.isRecursiveEmbedNote){ //TODO: 考虑深度拷贝时，拷贝excalidraw文件
                     new Notice(`嵌入笔记链接未开启递归解析: ${linkPart}`);
-                    console.log(`嵌入笔记链接未开启递归解析: ${linkPart}`);
                     return;
                 }
                 const embedNoteFile = parser.findLinkPath(linkPart);
                 if(embedNoteFile === null || embedNoteFile.extension !== 'md'){
                     new Notice(`未找到嵌入笔记链接: ${linkPart}`);
-                    console.log(`未找到嵌入笔记链接: ${linkPart}`);
                     return;
                 }
 

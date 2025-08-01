@@ -6,7 +6,7 @@ import { exportFormatsInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { OutputFormat } from "./textConvert/textConverter";
 import { getDefaultYAML, createFormatAssetStructure } from './textConvert/defaultStyleConfig/styleConfigs';
-import { debugLog } from "../lib/testUtils";
+import { debugLog } from "../lib/debugUtils";
 import { EXPORT_FORMATS_CONSTANTS } from "./types";
 
 export class ExportFormatsManager {

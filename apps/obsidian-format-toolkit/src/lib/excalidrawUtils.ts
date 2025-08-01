@@ -1,7 +1,7 @@
 import type MyPlugin from '../main';
 import type { ExcalidrawAutomate } from 'obsidian-excalidraw-plugin';
 import { Notice, TFile } from 'obsidian';
-import { debugLog } from './testUtils';
+import { debugLog } from './debugUtils';
 import * as fs from 'fs';
 
 // TODO: 增加参数，控制输出的PNG或SVG的背景色，可选透明

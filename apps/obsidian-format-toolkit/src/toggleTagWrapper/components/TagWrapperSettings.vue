@@ -177,7 +177,7 @@ import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
 import type { TagConfig, TagWrapperSettings } from '../types';
-import { debugLog } from '../../lib/testUtils';
+import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { tagWrapperInfo } from '../index';
 import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';

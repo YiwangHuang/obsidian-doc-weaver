@@ -139,12 +139,11 @@
 
         <!-- 预览 -->
         <PreviewPanel
-          v-if="previewSourceCode"
+          v-if="editingTag"
           :title="getLocalizedText({ en: 'Live Preview', zh: '实时预览' })"
         >
-          <span class="text-primary">{{ previewSourceCode.prefix }}</span>
-          <span>{{ previewSourceCode.text }}</span>
-          <span class="text-primary">{{ previewSourceCode.suffix }}</span>
+          <!-- 带样式的HTML预览 -->
+          <div v-html="styledPreviewHtml"></div>
         </PreviewPanel>
       </div>
     </ObsidianVueModal>
@@ -202,20 +201,24 @@ const deleteTagIndex = ref<number | null>(null);
 // 固定的示例文本
 const sampleText = getLocalizedText({ en: "Sample text", zh: "示例文本" });
 
-// 计算源码内容
-const previewSourceCode = computed(() => {
-  if (!editingTag.value) return null;
-  return {
-    prefix: editingTag.value.prefix,
-    text: sampleText,
-    suffix: editingTag.value.suffix
-  };
-});
-
-// 计算预览HTML内容
-const previewHtml = computed(() => {
+// 计算带样式的预览HTML内容
+const styledPreviewHtml = computed(() => {
   if (!editingTag.value) return '';
-  return `${editingTag.value.prefix}${sampleText}${editingTag.value.suffix}`;
+  
+  // 生成包装后的HTML
+  const wrappedHtml = `${editingTag.value.prefix}${sampleText}${editingTag.value.suffix}`;
+  
+  // 如果有CSS片段，将其作为内联样式应用
+  if (editingTag.value.cssSnippet) {
+    return `
+      <style scoped>
+        ${editingTag.value.cssSnippet}
+      </style>
+      ${wrappedHtml}
+    `;
+  }
+  
+  return wrappedHtml;
 });
 
 const handleDragEnd = () => {
@@ -248,6 +251,8 @@ const cancelDelete = () => {
   deleteTagIndex.value = null;
   deleteConfirmVisible.value = false;
 };
+
+
 </script>
 
 <style scoped>

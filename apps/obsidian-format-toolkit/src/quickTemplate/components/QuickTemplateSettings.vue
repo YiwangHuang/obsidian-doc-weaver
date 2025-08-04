@@ -202,7 +202,6 @@ const openTemplateModal = (index: number) => {
 
 const addNewTemplate = () => {
   props.plugin.quickTemplateManager.addTemplateItem();
-  openTemplateModal(configs.templates.length - 1);
 };
 
 const showDeleteConfirm = (index: number) => {

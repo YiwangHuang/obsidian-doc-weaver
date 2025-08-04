@@ -1,11 +1,29 @@
 #import "config.typ": *
 
-#show: doc => conf(
+// 设置代码块的样式
+#import "@preview/codly:1.3.0": *
+#import "@preview/codly-languages:0.1.1": *
+#show: codly-init.with()
+#codly(languages: codly-languages)
+
+// 设置行内代码的背景色
+#show raw.where(block: false): box.with(
+  fill: luma(240),
+  inset: (x: 3pt, y: 0pt),
+  outset: (y: 3pt),
+  radius: 2pt,
+)
+
+#show: conf.with(
   title: "Typst 格式演示 / Typst Format Demo",
   author: ("张三", "李四"),
   date: "date of today",
-  doc,
 )
+
+= 基础语法演示 / Basic Syntax Demo
+
+1. *重点强调文本*：`*重点强调文本*`或`#strong[重点强调文本]`
+2. _强调文本_：`_强调文本_`或`#emph[强调文本]`
 
 = 自定义格式演示 / Custom Format Demo
 
@@ -13,30 +31,27 @@
 
 #callout(
   type: "tip",
-  title: [学习提示 / Learning Tip],
+  title: [提示 / Tip],
   [
-    这是一个提示框，支持多种类型：note、tip、info、question、done、danger 等。
-    This is a callout that supports multiple types: note, tip, info, question, done, danger, etc.
+    继承自obsidian的callout语法，支持多种类型：note、tip、info、question、done、todo 等。
+    Inherit from obsidian's callout syntax, supporting multiple types: note, tip, info, question, done, todo, etc.
   ]
 )
 
+```typst
 #callout(
-  type: "done",
-  title: [任务完成 / Task Completed],
+  type: "tip",
+  title: [提示 / Tip],
   [
-    配置完成！/ Configuration completed!
+    继承自obsidian的callout语法，支持多种类型：note、tip、info、question、done、todo 等。
+    Inherit from obsidian's callout syntax, supporting multiple types: note, tip, info, question, done, todo, etc.
   ]
 )
+```
 
-// 这个 todo 类型不会显示，因为在 config.typ 中被隐藏
-// This todo type won't display because it's hidden in config.typ
-#callout(
-  type: "todo",
-  title: [待办事项 / Todo],
-  [
-    这个内容不会显示 / This content won't show
-  ]
-)
+== 双栏布局演示 / Double Column Layout Demo
+
+
 
 == Underline 语法演示 / Underline Syntax Demo
 

@@ -2,10 +2,14 @@
 #import "@preview/tablem:0.3.0": tablem // 支持Markdown表格
 #import "custom_format.typ": *
 
+// 自定义callout隐藏类型，预设hidden_types以包含更多隐藏类型
+#let callout = callout.with(hidden_types: ("todo"))
+
+// 切换underline是否显示内容
 #let underline = underline.with(show_content: true)
 
-// 自定义callout版本，预设hidden_types为包含更多隐藏类型
-#let callout = callout.with(hidden_types: ("todo"))
+// 设置分栏(grid)的默认间距
+#let grid = grid.with(gutter: 1em)
 
 #let conf(
   title: none,
@@ -14,21 +18,23 @@
   doc,
 ) = {
   set text(
+    // 分别设置中英文字体
     font: (
-      "Songti SC",            // 默认字体0：宋体
-      "LXGW WenKai",          // 推荐字体：霞鹜文楷
-      "Noto Sans CJK SC",     // 备用字体1：思源黑体简体中文
-      "Source Han Sans SC",   // 备用字体2：思源黑体简体中文（别名）
-      "Microsoft YaHei",      // 备用字体3：微软雅黑（Windows系统）
-      "PingFang SC",          // 备用字体4：苹方简体（macOS系统）
-      "SimHei",               // 备用字体5：黑体（Windows系统）
-      "DejaVu Sans",          // 备用字体6：通用西文字体
-      "Arial"                 // 备用字体7：系统默认字体
-    ), 
-    lang: "zh", 
-    size: 10.8pt
+      (name: "Times New Roman", covers: "latin-in-cjk"), // 英文字体
+      (name: "Times New Roman", covers: regex("[0-9]")), // 数字字体
+      "Songti SC", // 其他字体，默认：宋体
+      "Microsoft YaHei", // 备用字体：微软雅黑（Windows系统）
+      "PingFang SC", // 备用字体：苹方简体（macOS系统）
+      "LXGW WenKai", // 作者推荐字体：霞鹜文楷
+    ),
+    lang: "zh",
+    size: 10pt
   )
-  set grid(gutter: 1em)  // 设置分栏(grid)的默认间距
+
+  // 设置标题编号
+  set heading(numbering: "1.1.1")
+
+  // 设置页面边距
   // set page(margin: (
   // top: 1.2cm,
   // right: 1.5cm,
@@ -36,10 +42,19 @@
   // left: 1.5cm   
   // ))
   // 在这里添加所有的 show 规则
+  // 
+  
+  // 设置重点强调文本的样式
   show strong: it => text(
     weight: "bold",
-    fill: red.darken(20%), // 设置强调色为红色
-    // fill: rgb("#ff64cb").darken(20%),
+    fill: red.darken(20%), 
+    it.body
+  )
+
+  // 设置强调文本的样式
+  show emph: it => text(
+    fill: purple.darken(20%),
+    style: "italic",
     it.body
   )
 

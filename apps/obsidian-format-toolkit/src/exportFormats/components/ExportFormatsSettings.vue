@@ -72,23 +72,27 @@
                     hide-details
                     class="me-2"
                   />
-                  <VBtnObsidianIcon 
-                    icon="gear"
+                  <v-btn
                     size="small"
                     @click="openExportModal(index)"
-                    class="me-1"
-                  />
-                  <VBtnObsidianIcon 
-                    icon="trash-2"
+                    class="me-1 icon-btn-square"
+                  >
+                    <Icon name="gear" />
+                  </v-btn>
+                  <v-btn
                     size="small"
                     @click="showDeleteConfirm(index)"
-                    class="me-1"
-                  />
-                  <VBtnObsidianIcon 
-                    icon="folder"
+                    class="me-1 icon-btn-square"
+                  >
+                    <Icon name="trash-2" />
+                  </v-btn>
+                  <v-btn
                     size="small"
                     @click="openAssetsFolder(config)"
-                  />
+                    class="icon-btn-square"
+                  >
+                    <Icon name="folder" />
+                  </v-btn>
                 </div>
               </v-col>
             </v-row>
@@ -261,7 +265,7 @@ import type { OutputFormat } from '../textConvert/textConverter';
 import { generateTimestamp } from '../../lib/idGenerator';
 import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defaultStyleConfig/styleConfigs';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
-import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
+import Icon from '../../vue/components/Icon.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';

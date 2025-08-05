@@ -54,17 +54,20 @@
                     hide-details
                     class="me-3"
                   />
-                  <VBtnObsidianIcon 
-                    icon="gear"
+                  <v-btn
                     size="small"
                     @click="openTemplateModal(index)"
-                    class="me-1"
-                  />
-                  <VBtnObsidianIcon 
-                    icon="trash-2"
+                    class="me-1 icon-btn-square"
+                  >
+                    <Icon name="gear" />
+                  </v-btn>
+                  <v-btn
                     size="small"
                     @click="showDeleteConfirm(index)"
-                  />
+                    class="icon-btn-square"
+                  >
+                    <Icon name="trash-2" />
+                  </v-btn>
                 </div>
               </v-col>
             </v-row>
@@ -78,6 +81,7 @@
       <v-btn
         @click="addNewTemplate()"
       >
+        <Icon name="plus" class="me-2" />
         {{ getLocalizedText({ en: "Add Template Configuration", zh: "添加模板配置" }) }}
       </v-btn>
     </div>
@@ -146,14 +150,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
 import type { TemplateConfig, QuickTemplateSettings } from '../index';
 import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { quickTemplateInfo } from '../index';
-import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
+import Icon from '../../vue/components/Icon.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import TemplateEditor from '../../vue/components/TemplateEditor.vue';
 

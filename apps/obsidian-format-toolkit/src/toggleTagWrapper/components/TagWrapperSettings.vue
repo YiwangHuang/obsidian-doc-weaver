@@ -54,17 +54,20 @@
                     hide-details
                     class="me-2"
                   />
-                  <VBtnObsidianIcon 
-                    icon="gear"
+                  <v-btn
                     size="small"
                     @click="openTagModal(index)"
-                    class="me-1"
-                  />
-                  <VBtnObsidianIcon 
-                    icon="trash-2"
+                    class="me-1 icon-btn-square"
+                  >
+                    <Icon name="gear" />
+                  </v-btn>
+                  <v-btn
                     size="small"
                     @click="showDeleteConfirm(index)"
-                  />
+                    class="icon-btn-square"
+                  >
+                    <Icon name="trash-2" />
+                  </v-btn>
                 </div>
               </v-col>
             </v-row>
@@ -179,7 +182,7 @@ import type { TagConfig, TagWrapperSettings } from '../types';
 import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { tagWrapperInfo } from '../index';
-import VBtnObsidianIcon from '../../vue/components/VBtnObsidianIcon.vue';
+import Icon from '../../vue/components/Icon.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 
@@ -256,7 +259,6 @@ const cancelDelete = () => {
 </script>
 
 <style scoped>
-@import '../../vue/shared-styles.css';
 /* 拖拽状态样式 */
 .v-card--dragging {
   border: 2px solid var(--interactive-accent) !important;

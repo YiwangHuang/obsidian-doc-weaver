@@ -9,6 +9,9 @@ import { debounce } from 'lodash';
 import 'vuetify/styles'
 import { vuetify } from './vue/plugins/vuetify'
 
+// 全局样式
+import './vue/shared-styles.css'
+
 // import { 
 // 	addGetCreateNoteCommands,
 // 	createNoteSetting

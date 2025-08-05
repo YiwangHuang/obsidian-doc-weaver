@@ -8,11 +8,23 @@ import { getLocalizedText } from '../lib/textUtils';
 import GeneralSettingsComponent from './components/GeneralSettings.vue';
 
 /**
- * 通用模块设置接口
+ * 通用模块设置接口，修改需同步修改类型守卫函数isGeneralSettings
  */
 export interface GeneralSettings {
     /** 是否显示 SpeedDial 悬浮按钮 */
     showSpeedDial: boolean;
+}
+
+/**
+ * 类型守卫函数：检查对象是否符合 GeneralSettings 接口
+ * @param obj 要检查的对象
+ * @returns 是否符合 GeneralSettings 接口
+ */
+export function isGeneralSettings(obj: unknown): obj is GeneralSettings {
+    if (!obj || typeof obj !== 'object') return false;
+    
+    const settings = obj as Record<string, unknown>;
+    return typeof settings.showSpeedDial === 'boolean';
 }
 
 /**
@@ -30,18 +42,6 @@ export const generalInfo: ModuleInfoRegistry<GeneralSettings> = {
     defaultConfigs: DEFAULT_GENERAL_SETTINGS,
     component: GeneralSettingsComponent
 };
-
-/**
- * 类型守卫函数：检查对象是否符合 GeneralSettings 接口
- * @param obj 要检查的对象
- * @returns 是否符合 GeneralSettings 接口
- */
-export function isGeneralSettings(obj: unknown): obj is GeneralSettings {
-    if (!obj || typeof obj !== 'object') return false;
-    
-    const settings = obj as Record<string, unknown>;
-    return typeof settings.showSpeedDial === 'boolean';
-}
 
 // 导出管理器
 export { GeneralManager } from './generalManager';

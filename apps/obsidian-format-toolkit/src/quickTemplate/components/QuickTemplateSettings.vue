@@ -30,7 +30,7 @@
         >
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
-                             <!-- 模板名称 -->
+              <!-- 模板名称 -->
                <v-col cols="6">
                  <div class="text-subtitle-2 font-weight-medium">{{ template.name }}</div>
                </v-col>
@@ -149,7 +149,7 @@
 import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
-import type { TemplateConfig, QuickTemplateSettings } from '../types';
+import type { TemplateConfig, QuickTemplateSettings } from '../index';
 import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { quickTemplateInfo } from '../index';

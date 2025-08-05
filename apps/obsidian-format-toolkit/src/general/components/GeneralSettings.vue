@@ -1,27 +1,30 @@
 <template>
-  <div class="general-settings">
-    <div class="setting-item">
-      <div class="setting-item-info">
-        <div class="setting-item-name">{{ $t('general.title') }}</div>
-        <div class="setting-item-description">{{ $t('general.description') }}</div>
-      </div>
+  <v-container fluid class="pa-0">
+    <!-- 模块头部 -->
+    <div>
+      <h3 class="my-2">{{ getLocalizedText({ en: "General Settings", zh: "通用设置" }) }}</h3>
+      <p class="text-medium-emphasis my-2">
+        {{ getLocalizedText({ en: "Configure general functionality", zh: "配置通用功能" }) }}
+      </p>
     </div>
     
     <!-- SpeedDial 显示控制 -->
-    <div class="setting-item">
-      <div class="setting-item-info">
-        <div class="setting-item-name">{{ $t('general.speedDial.title') }}</div>
-        <div class="setting-item-description">{{ $t('general.speedDial.description') }}</div>
+    <div class="setting-item d-flex align-center mt-4">
+      <div class="flex-grow-1">
+        <div class="text-subtitle-2 font-weight-medium">
+          {{ getLocalizedText({ en: "Show SpeedDial Button", zh: "显示悬浮按钮" }) }}
+        </div>
+        <div class="text-caption text-medium-emphasis">
+          {{ getLocalizedText({ en: "Display a floating action button in the editor", zh: "在编辑器中显示一个悬浮的快捷操作按钮" }) }}
+        </div>
       </div>
-      <div class="setting-item-control">
-        <v-switch
-          v-model="localSettings.showSpeedDial"
-          hide-details
-          density="compact"
-        />
-      </div>
+      <v-switch
+        v-model="configs.showSpeedDial"
+        hide-details
+        density="compact"
+      />
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -30,94 +33,21 @@
  * 提供通用模块的配置界面
  */
 
-import { reactive, watch } from 'vue';
-import type { GeneralSettings } from '../types';
+import type MyPlugin from '../../main';
+import type { GeneralSettings } from '../index';
+import { getLocalizedText } from '../../lib/textUtils';
+import { generalInfo } from '../index';
 
-// 定义组件属性
-interface Props {
-  value: GeneralSettings;
+interface GeneralSettingsProps {
+  plugin: MyPlugin;
 }
 
-// 定义事件
-interface Emits {
-  (e: 'update:value', value: GeneralSettings): void;
-}
+const props = defineProps<GeneralSettingsProps>();
 
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
-// 创建响应式数据
-const localSettings = reactive({ ...props.value });
-
-// 监听本地设置变化，同步到父组件
-watch(
-  () => localSettings,
-  (newSettings) => {
-    emit('update:value', { ...newSettings });
-  },
-  { deep: true }
-);
-
-// 监听外部属性变化，同步到本地
-watch(
-  () => props.value,
-  (newValue) => {
-    Object.assign(localSettings, newValue);
-  },
-  { deep: true }
-);
-
-// 多语言支持
-const $t = (key: string): string => {
-  const translations: Record<string, Record<string, string>> = {
-    en: {
-      'general.title': 'General Settings',
-      'general.description': 'Configure general functionality',
-      'general.speedDial.title': 'Show SpeedDial Button',
-      'general.speedDial.description': 'Display a floating action button in the editor'
-    },
-    zh: {
-      'general.title': '通用设置',
-      'general.description': '配置通用功能',
-      'general.speedDial.title': '显示悬浮按钮',
-      'general.speedDial.description': '在编辑器中显示一个悬浮的快捷操作按钮'
-    }
-  };
-  
-  const locale = 'zh'; // 默认使用中文，可以根据需要动态设置
-  return translations[locale]?.[key] || key;
-};
+// 初始化设置
+const configs = props.plugin.settingList[generalInfo.name] as GeneralSettings;
 </script>
 
 <style scoped>
-.general-settings {
-  padding: 16px;
-}
-
-.setting-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.setting-item-info {
-  flex: 1;
-}
-
-.setting-item-name {
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.setting-item-description {
-  color: var(--text-muted);
-  font-size: 0.9em;
-}
-
-.setting-item-control {
-  display: flex;
-  align-items: center;
-}
+/* 使用Vuetify内置样式，无需额外CSS */
 </style>

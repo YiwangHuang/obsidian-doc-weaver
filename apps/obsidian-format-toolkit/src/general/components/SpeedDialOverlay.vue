@@ -1,62 +1,116 @@
 <template>
-  <div 
+  <!-- 
+    工具栏容器：固定定位，可拖拽的浮动工具栏
+    - position.x/y: 通过拖拽更新的位置坐标
+  -->
+  <v-card 
     class="speed-dial-overlay"
     :style="{
       position: 'fixed',
       top: position.y + 'px',
       left: position.x + 'px',
-      zIndex: 1000
+      zIndex: 1000,
+      minWidth: '200px'
     }"
+    elevation="4"
   >
-    <v-speed-dial
-      v-model="fab"
-      transition="fade-transition"
+    <!-- 
+      可折叠工具栏：
+      - collapse: 控制工具栏内容的展开/收起
+      - 工具栏本身包含拖拽和折叠功能
+    -->
+    <v-toolbar 
+      :collapse="isCollapsed" 
+      density="compact"
+      color="grey-lighten-2"
     >
-      <template #activator="{ props }">
-        <v-btn
-          v-bind="props"
-          fab
-          size="small"
-          icon="mdi-plus"
-          @mousedown="startDrag"
-          @touchstart="startDrag"
-          @click="handleActivatorClick"
-        />
+
+
+      <!-- 工具栏标题和拖拽区域 -->
+      <v-toolbar-title 
+        class="text-subtitle-2 drag-handle"
+        @mousedown="startDrag"
+        @touchstart="startDrag"
+        style="cursor: move; user-select: none;"
+      >
+        工具栏
+      </v-toolbar-title>
+
+      <!-- 工具栏按钮组 -->
+      <template v-slot:append>
+        <div class="d-flex ga-1">
+          <!-- 折叠/展开按钮 -->
+          <v-btn
+            :icon="isCollapsed ? 'mdi-chevron-down' : 'mdi-chevron-up'"
+            size="small"
+            variant="text"
+            @click="toggleCollapse"
+          />
+
+          <!-- 拖拽按钮 -->
+          <v-btn
+            icon="mdi-drag"
+            size="small"
+            variant="text"
+            @mousedown="startDrag"
+            @touchstart="startDrag"
+            style="cursor: move;"
+          />
+        </div>
       </template>
+    </v-toolbar>
 
-      <v-btn
-        icon="mdi-pencil"
-        size="small"
-        @click="handleClick('edit')"
-      />
+    <!-- 
+      工具栏内容区域：
+      - 只在未折叠时显示
+      - 包含所有功能按钮
+    -->
+    <v-card-text v-show="!isCollapsed" class="pa-2">
+      <div class="d-flex flex-column ga-1">
+        <v-btn
+          prepend-icon="mdi-pencil"
+          text="编辑"
+          size="small"
+          variant="outlined"
+          block
+          @click="handleClick('edit')"
+        />
 
-      <v-btn
-        icon="mdi-delete"
-        size="small"
-        @click="handleClick('delete')"
-      />
+        <v-btn
+          prepend-icon="mdi-delete"
+          text="删除"
+          size="small"
+          variant="outlined"
+          color="error"
+          block
+          @click="handleClick('delete')"
+        />
 
-      <v-btn
-        icon="mdi-star"
-        size="small"
-        @click="handleClick('star')"
-      />
-    </v-speed-dial>
-  </div>
+        <v-btn
+          prepend-icon="mdi-star"
+          text="收藏"
+          size="small"
+          variant="outlined"
+          color="warning"
+          block
+          @click="handleClick('star')"
+        />
+      </div>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup lang="ts">
 /**
- * SpeedDialOverlay 组件
- * 在 Obsidian 编辑界面显示一个可拖动的 v-speed-dial 组件
+ * SpeedDialOverlay 组件（现在使用工具栏设计）
+ * 在 Obsidian 编辑界面显示一个可拖动、可折叠的浮动工具栏
  */
 
 import { ref, reactive, onMounted, onUnmounted } from 'vue';
 
 // 组件状态
-const fab = ref(false);
+const isCollapsed = ref(true); // 工具栏是否折叠
 const isDragging = ref(false);
-const dragDistance = ref(0);
 
 // 位置状态
 const position = reactive({
@@ -74,14 +128,12 @@ const dragState = reactive({
 
 /**
  * 开始拖拽
- * @param event 鼠标或触摸事件
  */
 const startDrag = (event: MouseEvent | TouchEvent) => {
   event.preventDefault();
   event.stopPropagation();
 
-  isDragging.value = false; // 初始时不认为是拖拽
-  dragDistance.value = 0;
+  isDragging.value = true;
   
   const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
   const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
@@ -91,7 +143,6 @@ const startDrag = (event: MouseEvent | TouchEvent) => {
   dragState.startPosX = position.x;
   dragState.startPosY = position.y;
 
-  // 添加全局事件监听器
   document.addEventListener('mousemove', onDrag);
   document.addEventListener('mouseup', endDrag);
   document.addEventListener('touchmove', onDrag);
@@ -100,7 +151,6 @@ const startDrag = (event: MouseEvent | TouchEvent) => {
 
 /**
  * 拖拽过程中
- * @param event 鼠标或触摸事件
  */
 const onDrag = (event: MouseEvent | TouchEvent) => {
   const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
@@ -108,77 +158,84 @@ const onDrag = (event: MouseEvent | TouchEvent) => {
 
   const deltaX = clientX - dragState.startX;
   const deltaY = clientY - dragState.startY;
-  
-  // 计算拖拽距离
-  dragDistance.value = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-  
-  // 如果拖拽距离超过阈值，认为是拖拽而不是点击
-  if (dragDistance.value > 5) {
-    isDragging.value = true;
-    // 关闭 speed-dial 如果在拖拽
-    fab.value = false;
-  }
 
-  if (isDragging.value) {
-    // 更新位置
-    position.x = Math.max(0, Math.min(window.innerWidth - 56, dragState.startPosX + deltaX));
-    position.y = Math.max(0, Math.min(window.innerHeight - 56, dragState.startPosY + deltaY));
-  }
+  // 更新位置
+  position.x = dragState.startPosX + deltaX;
+  position.y = dragState.startPosY + deltaY;
+  
+  // 确保位置在可视区域内
+  ensureInViewport();
 };
 
 /**
  * 结束拖拽
  */
 const endDrag = () => {
-  // 移除全局事件监听器
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', endDrag);
   document.removeEventListener('touchmove', onDrag);
   document.removeEventListener('touchend', endDrag);
   
-  // 延迟重置拖拽状态，避免立即触发点击
-  setTimeout(() => {
-    isDragging.value = false;
-    dragDistance.value = 0;
-  }, 50);
+  isDragging.value = false;
 };
 
 /**
- * 处理激活按钮点击事件
+ * 切换工具栏折叠状态
  */
-const handleActivatorClick = (event: MouseEvent) => {
-  // 如果刚刚拖拽过，阻止点击事件
-  if (isDragging.value || dragDistance.value > 5) {
-    event.preventDefault();
-    event.stopPropagation();
-    return;
-  }
+const toggleCollapse = () => {
+  isCollapsed.value = !isCollapsed.value;
 };
 
 /**
  * 处理按钮点击事件
- * @param action 动作类型
  */
 const handleClick = (action: string) => {
-  console.log(`Speed dial action: ${action}`);
-  // 关闭 speed-dial
-  fab.value = false;
+  console.log(`Toolbar action: ${action}`);
+};
+
+/**
+ * 确保位置在可视区域内
+ */
+const ensureInViewport = () => {
+  // 获取当前窗口尺寸
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+  
+  // 工具栏的最小尺寸
+  const toolbarMinWidth = 200;
+  const toolbarMinHeight = 48;
+  
+  // 调整 X 坐标
+  position.x = Math.max(0, Math.min(windowWidth - toolbarMinWidth, position.x));
+  
+  // 调整 Y 坐标
+  position.y = Math.max(0, Math.min(windowHeight - toolbarMinHeight, position.y));
+};
+
+/**
+ * 处理窗口大小变化
+ */
+const handleResize = () => {
+  ensureInViewport();
 };
 
 // 组件挂载时的初始化
 onMounted(() => {
-  // 可以在这里添加初始化逻辑
-  console.log('SpeedDialOverlay mounted');
+  // 初始化时确保位置在可视区域内
+  ensureInViewport();
+  
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize);
 });
 
 // 组件卸载时的清理
 onUnmounted(() => {
-  // 确保移除所有事件监听器
+  // 移除所有事件监听器
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', endDrag);
   document.removeEventListener('touchmove', onDrag);
   document.removeEventListener('touchend', endDrag);
-  console.log('SpeedDialOverlay unmounted');
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 

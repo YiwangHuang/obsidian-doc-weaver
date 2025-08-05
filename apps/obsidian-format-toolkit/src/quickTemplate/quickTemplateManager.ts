@@ -1,8 +1,7 @@
 import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
-import { TemplateConfig, QuickTemplateSettings } from "./types";
-import { quickTemplateInfo } from "./index";
+import { quickTemplateInfo, TemplateConfig, QuickTemplateSettings } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/debugUtils";
 import { replaceDatePlaceholders } from "../lib/constant";

@@ -31,6 +31,11 @@ import {
     quickTemplateInfo
 } from './quickTemplate/index';
 
+import {
+    GeneralManager,
+    generalInfo
+} from './general/index';
+
 // 定义设置注册接口
 export interface ModuleInfoRegistry<T = any> {
     name: string;
@@ -51,6 +56,7 @@ export default class MyPlugin extends Plugin {
     tagWrapperManager: TagWrapperManager;
     exportFormatsManager: ExportFormatsManager;
     quickTemplateManager: QuickTemplateManager;
+    generalManager: GeneralManager;
     
     // 用于控制是否启用自动保存，避免初始化时触发保存
     private enableAutoSave = false;
@@ -73,11 +79,13 @@ export default class MyPlugin extends Plugin {
         this.registerSettings(exportFormatsInfo);
         this.registerSettings(tagWrapperInfo);
         this.registerSettings(quickTemplateInfo);
+        this.registerSettings(generalInfo);
         
         // 然后初始化管理器（这样它们能获取到正确的响应式配置对象）
         this.tagWrapperManager = new TagWrapperManager(this);
         this.exportFormatsManager = new ExportFormatsManager(this);
         this.quickTemplateManager = new QuickTemplateManager(this);
+        this.generalManager = new GeneralManager(this);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存
         // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积
@@ -160,6 +168,9 @@ export default class MyPlugin extends Plugin {
         }
         if (this.quickTemplateManager) {
             this.quickTemplateManager.cleanup();
+        }
+        if (this.generalManager) {
+            this.generalManager.destroy();
         }
         console.log('Plugin unloaded, commands cleaned up');
 	}

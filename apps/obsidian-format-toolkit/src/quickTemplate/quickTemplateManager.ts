@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
-import { quickTemplateInfo, TemplateConfig, QuickTemplateSettings } from "./index";
+import { quickTemplateInfo, TemplateConfig, QuickTemplateSettings, isQuickTemplateSettings } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/debugUtils";
 import { replaceDatePlaceholders } from "../lib/constant";
@@ -16,7 +16,28 @@ export class QuickTemplateManager {
 
     constructor(plugin: MyPlugin) {
         this.plugin = plugin;
+        // 第一步：注册模块设置
+        this.registerSettings();
         this.initialize();
+    }
+
+    /**
+     * 注册模块设置到插件的响应式设置列表中
+     */
+    private registerSettings(): void {
+        // 获取当前设置
+        const currentSettings = this.plugin.settingList[quickTemplateInfo.name];
+        
+        // 检查设置是否需要重置 - 使用优雅的类型守卫函数
+        const needsReset = !currentSettings || !isQuickTemplateSettings(currentSettings);
+        
+        if (needsReset) {
+            console.log(`Initializing settings for ${quickTemplateInfo.name} with type checking`);
+            this.plugin.settingList[quickTemplateInfo.name] = quickTemplateInfo.defaultConfigs;
+        }
+
+        // 将模块信息添加到插件的模块设置列表中
+        this.plugin.moduleSettings.push(quickTemplateInfo);
     }
 
     /**

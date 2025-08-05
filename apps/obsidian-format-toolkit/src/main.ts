@@ -15,25 +15,21 @@ import { vuetify } from './vue/plugins/vuetify'
 // } from './src/createNote/index';
 
 import {
-	exportFormatsInfo,
     ExportFormatsManager,
     // exportToFormats,
     addExportFormatsCommands
 } from './exportFormats/index';	
 
 import { 
-    TagWrapperManager,
-    tagWrapperInfo
+    TagWrapperManager
 } from './toggleTagWrapper/index';
 
 import {
-    QuickTemplateManager,
-    quickTemplateInfo
+    QuickTemplateManager
 } from './quickTemplate/index';
 
 import {
-    GeneralManager,
-    generalInfo
+    GeneralManager
 } from './general/index';
 
 // 定义设置注册接口
@@ -75,17 +71,11 @@ export default class MyPlugin extends Plugin {
         
         debugLog('settingList', savedData);
 
-        // 先注册所有设置模块（确保默认配置被设置到响应式对象中）
-        this.registerSettings(exportFormatsInfo);
-        this.registerSettings(tagWrapperInfo);
-        this.registerSettings(quickTemplateInfo);
-        this.registerSettings(generalInfo);
-        
-        // 然后初始化管理器（这样它们能获取到正确的响应式配置对象）
-        this.tagWrapperManager = new TagWrapperManager(this);
+        // 初始化管理器（每个管理器会在构造函数中自动注册自己的设置）
+        this.generalManager = new GeneralManager(this);
         this.exportFormatsManager = new ExportFormatsManager(this);
         this.quickTemplateManager = new QuickTemplateManager(this);
-        this.generalManager = new GeneralManager(this);
+        this.tagWrapperManager = new TagWrapperManager(this);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存
         // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积
@@ -119,28 +109,7 @@ export default class MyPlugin extends Plugin {
         console.log('Plugin loaded with dynamic command management and reactive settings');
 	}
 
-    /**
-     * 注册模块设置
-     */
-    registerSettings<T extends object>(setting: ModuleInfoRegistry<T>): void {
-        this.moduleSettings.push(setting);
-        
-        // 获取当前设置
-        const currentSettings = this.settingList[setting.name];
-        
-        // 检查设置是否需要重置
-        const needsReset = !currentSettings || 
-            // 检查所有必需的属性是否存在且类型匹配
-            !Object.entries(setting.defaultConfigs).every(([key, value]) => {
-                return currentSettings.hasOwnProperty(key) && 
-                       typeof currentSettings[key] === typeof value;
-            });
-        
-        if (needsReset) {
-            console.log(`Initializing settings for ${setting.name} with type checking`);
-            this.settingList[setting.name] = setting.defaultConfigs;
-        }
-    }
+
 
     /**
      * 设置变更通知 - 由设置界面调用//TODO: 完全删除这个函数

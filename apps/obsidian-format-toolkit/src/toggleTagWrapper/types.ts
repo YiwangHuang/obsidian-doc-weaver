@@ -29,6 +29,37 @@ export interface TagWrapperSettings {
 }
 
 /**
+ * 类型守卫函数：检查对象是否符合 TagConfig 接口
+ * @param obj 要检查的对象
+ * @returns 是否符合 TagConfig 接口
+ */
+export function isTagConfig(obj: unknown): obj is TagConfig {
+    if (!obj || typeof obj !== 'object') return false;
+    
+    const config = obj as Record<string, unknown>;
+    return typeof config.id === 'string' &&
+           typeof config.name === 'string' &&
+           typeof config.prefix === 'string' &&
+           typeof config.suffix === 'string' &&
+           typeof config.enabled === 'boolean' &&
+           typeof config.cssSnippet === 'string';
+}
+
+/**
+ * 类型守卫函数：检查对象是否符合 TagWrapperSettings 接口
+ * @param obj 要检查的对象
+ * @returns 是否符合 TagWrapperSettings 接口
+ */
+export function isTagWrapperSettings(obj: unknown): obj is TagWrapperSettings {
+    if (!obj || typeof obj !== 'object') return false;
+    
+    const settings = obj as Record<string, unknown>;
+    if (!Array.isArray(settings.tags)) return false;
+    
+    return settings.tags.every((tag: unknown) => isTagConfig(tag));
+}
+
+/**
  * 标签包装器的默认设置
  */
 export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
@@ -49,4 +80,3 @@ position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
         },
     ]
 };
-// '/* 下划线样式 */\nu {\n  text-decoration: underline;\n  text-decoration-color: var(--text-accent);\n}'

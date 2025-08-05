@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 import path from "path";
 import fs from "fs";
-import { ExportManagerSettings, ExportConfig } from "./types";
+import { ExportManagerSettings, ExportConfig, isExportManagerSettings } from "./types";
 import { exportFormatsInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { OutputFormat } from "./textConvert/textConverter";
@@ -14,7 +14,28 @@ export class ExportFormatsManager {
 
     constructor(plugin: MyPlugin) {
         this.plugin = plugin;
+        // 第一步：注册模块设置
+        this.registerSettings();
         this.initialize();
+    }
+
+    /**
+     * 注册模块设置到插件的响应式设置列表中
+     */
+    private registerSettings(): void {
+        // 获取当前设置
+        const currentSettings = this.plugin.settingList[exportFormatsInfo.name];
+        
+        // 使用类型守卫函数检查设置是否需要重置
+        const needsReset = !currentSettings || !isExportManagerSettings(currentSettings);
+        
+        if (needsReset) {
+            console.log(`Initializing settings for ${exportFormatsInfo.name} with type checking`);
+            this.plugin.settingList[exportFormatsInfo.name] = exportFormatsInfo.defaultConfigs;
+        }
+
+        // 将模块信息添加到插件的模块设置列表中
+        this.plugin.moduleSettings.push(exportFormatsInfo);
     }
 
     /**

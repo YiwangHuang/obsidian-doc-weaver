@@ -31,7 +31,18 @@ export const generalInfo: ModuleInfoRegistry<GeneralSettings> = {
     component: GeneralSettingsComponent
 };
 
+/**
+ * 类型守卫函数：检查对象是否符合 GeneralSettings 接口
+ * @param obj 要检查的对象
+ * @returns 是否符合 GeneralSettings 接口
+ */
+export function isGeneralSettings(obj: unknown): obj is GeneralSettings {
+    if (!obj || typeof obj !== 'object') return false;
+    
+    const settings = obj as Record<string, unknown>;
+    return typeof settings.showSpeedDial === 'boolean';
+}
+
 // 导出管理器
 export { GeneralManager } from './generalManager';
-
 

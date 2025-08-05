@@ -10,6 +10,7 @@ import * as path from 'path';
 
 /**
  * 单个导出格式配置接口
+ * 修改需同步修改类型守卫函数isExportConfig
  */
 export interface ExportConfig {
     /** 格式ID，唯一标识符 */
@@ -35,12 +36,47 @@ export interface ExportConfig {
 }
 
 /**
- * 导出管理器设置接口
+ * 导出管理器设置接口，修改需同步修改类型守卫函数isExportManagerSettings
  * 包含所有导出格式配置的容器，便于扩展更多设置项
  */
 export interface ExportManagerSettings {
     /** 导出格式配置数组 */
     exportConfigs: ExportConfig[];
+}
+
+/**
+ * 类型守卫函数：检查对象是否符合 ExportConfig 接口
+ * @param obj 要检查的对象
+ * @returns 是否符合 ExportConfig 接口
+ */
+export function isExportConfig(obj: unknown): obj is ExportConfig {
+    if (!obj || typeof obj !== 'object') return false;
+    
+    const config = obj as Record<string, unknown>;
+    return typeof config.id === 'string' &&
+           typeof config.style_dir === 'string' &&
+           typeof config.format === 'string' &&
+           typeof config.enabled === 'boolean' &&
+           typeof config.template === 'string' &&
+           typeof config.name === 'string' &&
+           typeof config.output_dir === 'string' &&
+           typeof config.output_base_name === 'string' &&
+           (config.excalidraw_export_type === 'png' || config.excalidraw_export_type === 'svg') &&
+           typeof config.excalidraw_png_scale === 'number';
+}
+
+/**
+ * 类型守卫函数：检查对象是否符合 ExportManagerSettings 接口
+ * @param obj 要检查的对象
+ * @returns 是否符合 ExportManagerSettings 接口
+ */
+export function isExportManagerSettings(obj: unknown): obj is ExportManagerSettings {
+    if (!obj || typeof obj !== 'object') return false;
+    
+    const settings = obj as Record<string, unknown>;
+    if (!Array.isArray(settings.exportConfigs)) return false;
+    
+    return settings.exportConfigs.every((format: unknown) => isExportConfig(format));
 }
 
 /**

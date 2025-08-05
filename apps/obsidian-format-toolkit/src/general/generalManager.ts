@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 
 import { watch, createApp, App as VueApp } from "vue";
-import { generalInfo, GeneralSettings } from "./index";
+import { generalInfo, GeneralSettings, isGeneralSettings } from "./index";
 import { debugLog } from "../lib/debugUtils";
 
 import SpeedDialOverlay from './components/SpeedDialOverlay.vue';
@@ -18,7 +18,28 @@ export class GeneralManager {
 
     constructor(plugin: MyPlugin) {
         this.plugin = plugin;
+        // 第一步：注册模块设置
+        this.registerSettings();
         this.initialize();
+    }
+
+    /**
+     * 注册模块设置到插件的响应式设置列表中
+     */
+    private registerSettings(): void {
+        // 获取当前设置
+        const currentSettings = this.plugin.settingList[generalInfo.name];
+        
+        // 使用类型守卫函数检查设置是否需要重置
+        const needsReset = !currentSettings || !isGeneralSettings(currentSettings);
+        
+        if (needsReset) {
+            console.log(`Initializing settings for ${generalInfo.name} with type checking`);
+            this.plugin.settingList[generalInfo.name] = generalInfo.defaultConfigs;
+        }
+
+        // 将模块信息添加到插件的模块设置列表中
+        this.plugin.moduleSettings.push(generalInfo);
     }
 
     /**

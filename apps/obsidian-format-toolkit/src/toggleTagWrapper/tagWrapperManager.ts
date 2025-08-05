@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
-import { TagConfig, TagWrapperSettings } from "./types";
+import { TagConfig, TagWrapperSettings, isTagWrapperSettings } from "./types";
 import { tagWrapperInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/debugUtils";
@@ -13,7 +13,28 @@ export class TagWrapperManager {
 
     constructor(plugin: MyPlugin) {
         this.plugin = plugin;
+        // 第一步：注册模块设置
+        this.registerSettings();
         this.initialize();
+    }
+
+    /**
+     * 注册模块设置到插件的响应式设置列表中
+     */
+    private registerSettings(): void {
+        // 获取当前设置
+        const currentSettings = this.plugin.settingList[tagWrapperInfo.name];
+        
+        // 使用类型守卫函数检查设置是否需要重置
+        const needsReset = !currentSettings || !isTagWrapperSettings(currentSettings);
+        
+        if (needsReset) {
+            console.log(`Initializing settings for ${tagWrapperInfo.name} with type checking`);
+            this.plugin.settingList[tagWrapperInfo.name] = tagWrapperInfo.defaultConfigs;
+        }
+
+        // 将模块信息添加到插件的模块设置列表中
+        this.plugin.moduleSettings.push(tagWrapperInfo);
     }
 
     /**

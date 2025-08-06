@@ -4,7 +4,7 @@
     ID: editingToolbarModalBar (保持与原版一致)
   -->
   <div
-    v-show="visible"
+    v-show="visible && isInMarkdownEditor"
     id="editingToolbarModalBar"
     ref="toolbarRef"
     :class="toolbarClasses"
@@ -33,11 +33,13 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
 import type { ToolbarItem } from '../types';
+import { MarkdownView } from 'obsidian';
 
 // 组件属性
 interface Props {
   visible?: boolean;
   iconSize?: number;
+  app?: any; // Obsidian App实例
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -69,6 +71,9 @@ const dragState = reactive({
   startPosY: 0,
   hasDragged: false
 });
+
+// 编辑器状态
+const isInMarkdownEditor = ref(false);
 
 // 工具栏数据（模拟原版的工具栏按钮，包含多级菜单结构）
 const toolbarItems = ref<ToolbarItem[]>([
@@ -294,10 +299,28 @@ const handleResize = () => {
   ensureInViewport();
 };
 
+/**
+ * 检查当前是否在Markdown编辑器中
+ */
+const checkIfInMarkdownEditor = () => {
+  if (!props.app) return;
+  
+  const activeLeaf = props.app.workspace.getActiveViewOfType(MarkdownView);
+  isInMarkdownEditor.value = activeLeaf !== null;
+};
+
 // 生命周期
 onMounted(() => {
   ensureInViewport();
   window.addEventListener('resize', handleResize);
+  
+  // 检查编辑器状态
+  checkIfInMarkdownEditor();
+  
+  // 监听工作区变化以检测编辑器切换
+  if (props.app && props.app.workspace) {
+    props.app.workspace.on('active-leaf-change', checkIfInMarkdownEditor);
+  }
 });
 
 onUnmounted(() => {
@@ -306,6 +329,11 @@ onUnmounted(() => {
   document.removeEventListener('mouseup', handleMouseUp);
   document.removeEventListener('selectstart', preventSelect);
   window.removeEventListener('resize', handleResize);
+  
+  // 清理工作区监听器
+  if (props.app && props.app.workspace) {
+    props.app.workspace.off('active-leaf-change', checkIfInMarkdownEditor);
+  }
 });
 </script>
 

@@ -95,7 +95,9 @@ export class GeneralManager {
             document.body.appendChild(this.speedDialContainer);
             
             // 创建 Vue 应用
-            this.speedDialApp = createApp(EditingToolbar);
+            this.speedDialApp = createApp(EditingToolbar, {
+                app: this.plugin.app
+            });
             this.speedDialApp.use(vuetify);
             
             // 挂载到容器

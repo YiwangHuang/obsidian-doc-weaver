@@ -15,7 +15,12 @@
               :class="[...buttonClasses, 'has-submenu']"
             >
               <Icon :name="icon" />
-              <Icon name="chevron-right" class="submenu-indicator" />
+              <!-- 子菜单指示器：右下角的向下三角形 -->
+              <div class="submenu-indicator">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
             </v-btn>
           </template>
         </v-tooltip>
@@ -27,7 +32,12 @@
           :class="[...buttonClasses, 'has-submenu']"
         >
           <span class="button-text">{{ name }}</span>
-          <Icon name="chevron-right" class="submenu-indicator" />
+          <!-- 子菜单指示器：右下角的向下三角形 -->
+          <div class="submenu-indicator">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </v-btn>
       </div>
     </template>
@@ -153,16 +163,40 @@ const handleSubItemClick = (id: string) => {
   color: var(--text-normal);
 }
 
-/* 子菜单指示器样式 */
-.submenu-indicator {
-  margin-left: 4px;
-  font-size: 12px;
-  opacity: 0.7;
-}
-
 /* 有子菜单的按钮样式 */
 .has-submenu {
   position: relative;
+}
+
+/**
+ * 子菜单指示器样式：按钮右下角的向下三角形
+ * 作用：提示用户此按钮有子菜单可以展开
+ * 设计原则：
+ * 1. 小巧不突兀，不干扰主按钮的视觉效果
+ * 2. 位置固定在按钮右下角，便于用户识别
+ * 3. 不影响按钮的点击交互
+ */
+.submenu-indicator {
+  position: absolute;
+  bottom: 2px;           /* 距离按钮底部8px，更靠近中心 */
+  right: 2px;           /* 距离按钮右侧10px，更靠近中心 */
+  width: 12px;            /* 指示器容器宽度，比之前更小 */
+  height: 12px;           /* 指示器容器高度，比之前更小 */
+  pointer-events: none;  /* 禁用鼠标事件，确保不阻止按钮点击 */
+  z-index: 1;            /* 确保指示器显示在按钮内容之上 */
+}
+
+/**
+ * 子菜单指示器SVG样式
+ * 直接控制嵌入的SVG元素，避免Icon组件的样式干扰
+ * 使用自定义SVG可以完全控制图标的大小和样式
+ */
+.submenu-indicator svg {
+  width: 12px;                /* SVG宽度5px，非常小巧 */
+  height: 12px;               /* SVG高度5px，非常小巧 */
+  opacity: 1;              /* 透明度设为0.6，更加低调 */
+  color: var(--text-normal);  /* 使用Obsidian主题的弱化文本颜色--text-muted */
+  stroke: currentColor;      /* 确保路径使用当前文本颜色 */
 }
 
 /* 子菜单项样式 - 移除自定义样式，完全依赖全局 .editing-toolbar-command-item */

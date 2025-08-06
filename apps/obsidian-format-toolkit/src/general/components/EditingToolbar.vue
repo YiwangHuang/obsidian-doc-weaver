@@ -16,9 +16,7 @@
       <ToolbarButton
         v-for="(item, index) in toolbarItems"
         :key="item.id"
-        :id="item.id"
-        :name="item.name"
-        :icon="item.icon"
+        v-bind="item"
         :index="index"
         @click="handleButtonClick"
       />
@@ -72,17 +70,19 @@ const dragState = reactive({
   hasDragged: false
 });
 
-// 工具栏数据（模拟原版的工具栏按钮，包含二级菜单结构）
+// 工具栏数据（模拟原版的工具栏按钮，包含多级菜单结构）
 const toolbarItems = ref<ToolbarItem[]>([
   {
     id: 'bold',
     name: '粗体',
-    icon: 'bold'
+    icon: 'bold',
+    action: () => console.log('执行粗体操作')
   },
   {
     id: 'italic',
     name: '斜体',
-    icon: 'italic'
+    icon: 'italic',
+    action: () => console.log('执行斜体操作')
   },
   {
     id: 'font-color',
@@ -92,17 +92,20 @@ const toolbarItems = ref<ToolbarItem[]>([
       {
         id: 'color-red',
         name: '红色',
-        icon: 'circle'
+        icon: 'circle',
+        action: () => console.log('应用红色字体')
       },
       {
         id: 'color-blue',
         name: '蓝色',
-        icon: 'circle'
+        icon: 'circle',
+        action: () => console.log('应用蓝色字体')
       },
       {
         id: 'color-green',
         name: '绿色',
-        icon: 'circle'
+        icon: 'circle',
+        action: () => console.log('应用绿色字体')
       }
     ]
   },
@@ -114,24 +117,47 @@ const toolbarItems = ref<ToolbarItem[]>([
       {
         id: 'highlight-yellow',
         name: '黄色高亮',
-        icon: 'highlighter'
+        icon: 'highlighter',
+        action: () => console.log('应用黄色高亮')
       },
       {
         id: 'highlight-green',
         name: '绿色高亮',
-        icon: 'highlighter'
+        icon: 'highlighter',
+        action: () => console.log('应用绿色高亮')
+      },
+      {
+        id: 'highlight-more',
+        name: '更多高亮',
+        icon: 'more-horizontal',
+        children: [
+          {
+            id: 'highlight-red',
+            name: '红色高亮',
+            icon: 'highlighter',
+            action: () => console.log('应用红色高亮')
+          },
+          {
+            id: 'highlight-blue',
+            name: '蓝色高亮',
+            icon: 'highlighter',
+            action: () => console.log('应用蓝色高亮')
+          }
+        ]
       }
     ]
   },
   {
     id: 'code',
     name: '行内代码',
-    icon: 'code-glyph'
+    icon: 'code-glyph',
+    action: () => console.log('插入行内代码')
   },
   {
     id: 'link',
     name: '链接',
-    icon: 'link'
+    icon: 'link',
+    action: () => console.log('插入链接')
   }
 ]);
 

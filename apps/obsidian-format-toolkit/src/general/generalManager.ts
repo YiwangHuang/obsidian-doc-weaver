@@ -4,7 +4,7 @@ import { watch, createApp, App as VueApp } from "vue";
 import { generalInfo, GeneralSettings, isGeneralSettings } from "./index";
 import { debugLog } from "../lib/debugUtils";
 
-import SpeedDialOverlay from './components/SpeedDialOverlay.vue';
+import EditingToolbar from './components/EditingToolbar.vue';
 import { vuetify } from '../vue/plugins/vuetify';
 
 /**
@@ -95,7 +95,7 @@ export class GeneralManager {
             document.body.appendChild(this.speedDialContainer);
             
             // 创建 Vue 应用
-            this.speedDialApp = createApp(SpeedDialOverlay);
+            this.speedDialApp = createApp(EditingToolbar);
             this.speedDialApp.use(vuetify);
             
             // 挂载到容器

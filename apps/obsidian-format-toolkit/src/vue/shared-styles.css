@@ -178,3 +178,124 @@ code {
   justify-content: center !important;
 }
 
+/* ====================================================================== */
+/* Editing Toolbar 样式 - 复现原版 Obsidian Editing Toolbar 视觉效果      */
+/* ====================================================================== */
+
+/* CSS 变量定义 */
+:root {
+  --toolbar-horizontal-offset: 0px;
+  --toolbar-vertical-offset: 0px;
+}
+
+/* 主工具栏容器样式 - 对应原版 #editingToolbarModalBar */
+#editingToolbarModalBar {
+  /* 基础布局 */
+  width: auto;
+  height: auto;
+  padding: 3px;
+  display: flex; /* 强制单行布局 */
+  user-select: none;
+  min-width: fit-content;
+  justify-content: space-around;
+  
+  /* 单行布局设置 */
+  flex-wrap: nowrap; /* 强制不换行 */
+  align-items: center;
+  gap: 2px;
+  
+  /* 视觉效果 */
+  border-radius: var(--radius-m);
+  background-color: var(--background-primary-alt);
+  box-shadow: var(--shadow-s);
+  
+  /* 定位和层级 */
+  position: absolute;
+  z-index: var(--layer-modal);
+  
+  /* 动画效果 */
+  transition: 100ms cubic-bezier(0.92, -0.53, 0.65, 1.21);
+  -webkit-transition: 100ms cubic-bezier(0.92, -0.53, 0.65, 1.21);
+  
+  /* 变换 */
+  transform: translate(var(--toolbar-horizontal-offset), var(--toolbar-vertical-offset));
+}
+
+/* 工具栏按钮样式 - 对应原版 .editingToolbarCommandItem */
+.editing-toolbar-command-item {
+  /* 基础布局 */
+  margin: 2px;
+  border: none;
+  display: flex;
+  padding: 5px 6px;
+  margin-left: 3px;
+  margin-right: 3px;
+  position: relative;
+  height: auto;
+  
+  /* 视觉效果 */
+  border-radius: var(--radius-s);
+  background-color: var(--background-primary-alt);
+  box-shadow: none;
+  
+  /* 交互 */
+  cursor: default;
+  
+  /* 字体 */
+  font-size: initial;
+}
+
+/* 按钮悬停效果 */
+.editing-toolbar-command-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* 第二行按钮样式 */
+.editing-toolbar-second {
+  /* 可以在这里添加第二行特有的样式 */
+}
+
+/* 确保 Vuetify 按钮组件的兼容性 */
+.editing-toolbar-command-item.v-btn {
+  /* 重置 Vuetify 默认样式 */
+  min-width: unset;
+  min-height: unset;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.editing-toolbar-command-item .v-btn__content {
+  /* 确保内容正确显示 */
+  opacity: 1;
+}
+
+.editing-toolbar-command-item .v-btn__overlay {
+  /* 隐藏 Vuetify 的覆盖层效果 */
+  display: none;
+}
+
+/* 图标样式调整 */
+.editing-toolbar-command-item .v-icon {
+  color: var(--text-normal);
+  font-size: 16px;
+}
+
+/* 拖拽相关样式 */
+#editingToolbarModalBar[style*="cursor: grabbing"] {
+  box-shadow: var(--shadow-l);
+  transform: translate(var(--toolbar-horizontal-offset), var(--toolbar-vertical-offset)) scale(1.02);
+}
+
+/* 响应式单行布局 */
+@media (max-width: 768px) {
+  #editingToolbarModalBar {
+    gap: 1px; /* 小屏幕时减少间距 */
+  }
+}
+
+@media (max-width: 480px) {
+  #editingToolbarModalBar {
+    gap: 0px; /* 超小屏幕时进一步减少间距 */
+  }
+}
+

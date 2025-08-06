@@ -34,13 +34,7 @@
 
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
-
-// 工具栏项目类型定义
-interface ToolbarItem {
-  id: string;
-  name: string;
-  icon?: string;
-}
+import type { ToolbarItem } from '../types';
 
 // 组件属性
 interface Props {
@@ -78,7 +72,7 @@ const dragState = reactive({
   hasDragged: false
 });
 
-// 工具栏数据（模拟原版的工具栏按钮）
+// 工具栏数据（模拟原版的工具栏按钮，包含二级菜单结构）
 const toolbarItems = ref<ToolbarItem[]>([
   {
     id: 'bold',
@@ -91,19 +85,43 @@ const toolbarItems = ref<ToolbarItem[]>([
     icon: 'italic'
   },
   {
-    id: 'underline',
-    name: '下划线',
-    icon: 'underline'
-  },
-  {
-    id: 'strikethrough',
-    name: '删除线',
-    icon: 'strikethrough'
+    id: 'font-color',
+    name: '字体颜色',
+    icon: 'palette',
+    children: [
+      {
+        id: 'color-red',
+        name: '红色',
+        icon: 'circle'
+      },
+      {
+        id: 'color-blue',
+        name: '蓝色',
+        icon: 'circle'
+      },
+      {
+        id: 'color-green',
+        name: '绿色',
+        icon: 'circle'
+      }
+    ]
   },
   {
     id: 'highlight',
     name: '高亮',
-    icon: 'highlighter'
+    icon: 'highlighter',
+    children: [
+      {
+        id: 'highlight-yellow',
+        name: '黄色高亮',
+        icon: 'highlighter'
+      },
+      {
+        id: 'highlight-green',
+        name: '绿色高亮',
+        icon: 'highlighter'
+      }
+    ]
   },
   {
     id: 'code',
@@ -114,11 +132,6 @@ const toolbarItems = ref<ToolbarItem[]>([
     id: 'link',
     name: '链接',
     icon: 'link'
-  },
-  {
-    id: 'quote',
-    name: '引用',
-    icon: 'quote'
   }
 ]);
 

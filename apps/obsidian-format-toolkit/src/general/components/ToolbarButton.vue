@@ -32,7 +32,6 @@ interface Props {
   id: string;
   name: string;
   icon?: string;
-  iconHtml?: string;
   index?: number;
   isSecondRow?: boolean;
 }

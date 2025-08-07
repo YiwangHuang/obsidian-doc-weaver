@@ -33,7 +33,7 @@
               <!-- 模板名称和图标 -->
                <v-col cols="6">
                  <div class="d-flex align-center">
-                   <Icon v-if="template.icon" :name="template.icon" size="small" class="me-2" />
+                   <Icon :name="template.icon" size="small" class="me-2" />
                    <div class="text-subtitle-2 font-weight-medium">{{ template.name }}</div>
                  </div>
                </v-col>

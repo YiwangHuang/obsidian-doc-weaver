@@ -173,7 +173,7 @@ export class TagWrapperManager {
     border-bottom: 1px solid black; /* 使用边框模拟下划线 */
     position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
 }`,
-            icon: icon || 'tag' // 默认图标
+            icon: icon || 'tag' // 必须提供图标，默认为'tag'
         };
     }
 

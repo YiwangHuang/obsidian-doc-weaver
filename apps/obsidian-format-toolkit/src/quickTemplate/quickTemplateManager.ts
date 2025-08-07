@@ -207,7 +207,7 @@ export class QuickTemplateManager {
             name: name || `Template-${timestamp}`,
             template: template || '{{selectedText}}',
             enabled: true,
-            icon: icon || 'file' // 默认图标
+            icon: icon || 'file' // 必须提供图标，默认为'file'
         };
     }
 

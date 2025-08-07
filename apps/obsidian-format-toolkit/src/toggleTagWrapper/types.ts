@@ -19,7 +19,7 @@ export interface TagConfig {
     /** CSS 片段，会根据启用状态热插拔到 Obsidian */
     cssSnippet: string;
     /** 标签图标，用于在UI中显示 */
-    icon?: string;
+    icon: string;
 }
 
 /**
@@ -45,7 +45,7 @@ export function isTagConfig(obj: unknown): obj is TagConfig {
            typeof config.suffix === 'string' &&
            typeof config.enabled === 'boolean' &&
            typeof config.cssSnippet === 'string' &&
-           (config.icon === undefined || typeof config.icon === 'string');
+           typeof config.icon === 'string';
 }
 
 /**

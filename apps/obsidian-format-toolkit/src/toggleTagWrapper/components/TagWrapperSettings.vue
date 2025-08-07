@@ -33,7 +33,7 @@
               <!-- 标签名称和图标 -->
               <v-col cols="3.5">
                 <div class="d-flex align-center">
-                  <Icon v-if="tag.icon" :name="tag.icon" size="small" class="me-2" />
+                  <Icon :name="tag.icon" size="small" class="me-2" />
                   <div class="text-subtitle-2 font-weight-medium">{{ tag.name }}</div>
                 </div>
               </v-col>

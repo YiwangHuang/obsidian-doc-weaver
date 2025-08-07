@@ -4,7 +4,7 @@
     v-model="isOpen"
     open-on-hover
     :close-delay="50"
-    :open-delay="0"
+    :open-delay="20"
     location="bottom center"
     :offset="2"
     transition="slide-y-transition"

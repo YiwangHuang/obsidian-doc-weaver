@@ -23,7 +23,7 @@ export interface TemplateConfig {
     /** 是否启用此模板配置 */
     enabled: boolean;
     /** 模板图标，用于在UI中显示 */
-    icon?: string;
+    icon: string;
 }
 
 /**
@@ -47,7 +47,7 @@ export function isTemplateConfig(obj: unknown): obj is TemplateConfig {
            typeof tmpl.name === 'string' &&
            typeof tmpl.template === 'string' &&
            typeof tmpl.enabled === 'boolean' &&
-           (tmpl.icon === undefined || typeof tmpl.icon === 'string');
+           typeof tmpl.icon === 'string';
 }
 
 /**

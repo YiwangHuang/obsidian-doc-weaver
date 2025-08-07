@@ -76,7 +76,7 @@ export class ExportFormatsManager {
         format: format,
         excalidraw_export_type: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
         excalidraw_png_scale: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE,
-        icon: getDefaultIcon(format) // 根据格式设置默认图标
+        icon: getDefaultIcon(format) // 必须提供图标，根据格式设置默认图标
         };
     
         // 创建对应的资源文件夹

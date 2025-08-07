@@ -1,11 +1,12 @@
 import type MyPlugin from "../main";
 
-import { watch, createApp, App as VueApp } from "vue";
+import { createApp, App as VueApp } from "vue";
 import { generalInfo, GeneralSettings, isGeneralSettings } from "./index";
 import { debugLog } from "../lib/debugUtils";
 
 import EditingToolbar from './components/EditingToolbar.vue';
 import { vuetify } from '../vue/plugins/vuetify';
+import type { ToolbarDependencies } from './types';
 
 /**
  * 通用模块管理器
@@ -53,27 +54,11 @@ export class GeneralManager {
      * 初始化通用模块管理器
      */
     initialize(): void {
-        // 监听 SpeedDial 显示设置变化
-        this.watchSpeedDialSetting();
-
-        // 根据初始设置决定是否显示 SpeedDial
-        if (this.config.showSpeedDial) {
-            this.initializeSpeedDial();
-        }
+        // 直接初始化工具栏，可见性由组件内部的 visible 属性控制
+        this.initializeSpeedDial();
     }
 
-    /**
-     * 监听 SpeedDial 显示设置变化
-     */
-    private watchSpeedDialSetting(): void {
-        watch(() => this.config.showSpeedDial, (newValue) => {
-            if (newValue) {
-                this.initializeSpeedDial();
-            } else {
-                this.cleanupSpeedDial();
-            }
-        }, { immediate: false });
-    }
+    
 
     /**
      * 初始化 SpeedDial 组件
@@ -94,11 +79,19 @@ export class GeneralManager {
             // 将容器添加到 body
             document.body.appendChild(this.speedDialContainer);
             
-            // 创建 Vue 应用
-            this.speedDialApp = createApp(EditingToolbar, {
+            // 创建工具栏上下文对象
+            const toolbarContext: ToolbarDependencies = {
                 app: this.plugin.app
+            };
+            
+            // 创建 Vue 应用，传入可见性配置
+            this.speedDialApp = createApp(EditingToolbar, {
+                visible: () => this.config.showToolBar // 传入响应式的可见性函数
             });
             this.speedDialApp.use(vuetify);
+            
+            // 提供工具栏上下文
+            this.speedDialApp.provide('toolbarContext', toolbarContext);
             
             // 挂载到容器
             this.speedDialApp.mount(this.speedDialContainer);
@@ -110,9 +103,9 @@ export class GeneralManager {
     }
 
     /**
-     * 清理 SpeedDial 组件
+     * 销毁管理器，清理资源
      */
-    private cleanupSpeedDial(): void {
+    destroy(): void {
         try {
             // 卸载 Vue 应用
             if (this.speedDialApp) {
@@ -126,19 +119,9 @@ export class GeneralManager {
                 this.speedDialContainer = null;
             }
             
-            debugLog('SpeedDial component cleaned up');
+            debugLog('General manager destroyed');
         } catch (error) {
-            console.error('Failed to cleanup SpeedDial component:', error);
+            console.error('Failed to destroy general manager:', error);
         }
-    }
-
-    /**
-     * 销毁管理器，清理资源
-     */
-    destroy(): void {
-        // 清理 SpeedDial 组件
-        this.cleanupSpeedDial();
-        
-        debugLog('General manager destroyed');
     }
 }

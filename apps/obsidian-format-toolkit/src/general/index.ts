@@ -12,7 +12,7 @@ import GeneralSettingsComponent from './components/GeneralSettings.vue';
  */
 export interface GeneralSettings {
     /** 是否显示 SpeedDial 悬浮按钮 */
-    showSpeedDial: boolean;
+    showToolBar: boolean;
 }
 
 /**
@@ -31,7 +31,7 @@ export function isGeneralSettings(obj: unknown): obj is GeneralSettings {
  * 通用模块的默认设置
  */
 export const DEFAULT_GENERAL_SETTINGS: GeneralSettings = {
-    showSpeedDial: true
+    showToolBar: true
 };
 
 // General settings registry

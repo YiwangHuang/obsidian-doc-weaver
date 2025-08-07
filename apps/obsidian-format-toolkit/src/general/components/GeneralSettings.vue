@@ -19,7 +19,7 @@
         </div>
       </div>
       <v-switch
-        v-model="configs.showSpeedDial"
+        v-model="configs.showToolBar"
         hide-details
         density="compact"
       />

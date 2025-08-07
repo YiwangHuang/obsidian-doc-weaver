@@ -1,14 +1,24 @@
+import { App } from "obsidian";
 /**
  * 编辑工具栏相关类型定义
  */
+
+/**
+ * 工具栏上下文接口
+ * 用于 Provide/Inject 模式下传递 Obsidian App 实例
+ */
+export interface ToolbarDependencies {
+  /** Obsidian App 实例 */
+  app: App;
+}
 
 /**
  * 工具栏项目类型定义
  * 支持自包含的树形结构，类似文件和文件夹结构，以适配二级菜单
  */
 export interface ToolbarItem {
-  /** 项目唯一标识符 */
-  id: string;
+  /** 项目唯一标识符（可选，用于执行命令） */
+  id?: string;
   
   /** 显示名称 */
   name: string;
@@ -29,9 +39,6 @@ export interface ToolbarItem {
    */
   children?: ToolbarItem[];
   
-  /**
-   * 按钮触发操作的回调函数
-   * 用于自定义操作逻辑
-   */
-  action?: () => void;
+  /** 允许任意额外的属性 */
+  [key: string]: unknown;
 }

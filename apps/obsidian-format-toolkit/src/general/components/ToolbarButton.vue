@@ -78,19 +78,19 @@
  * 支持递归渲染子菜单
  */
 
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import Icon from '../../vue/components/Icon.vue';
 import SubMenu from './SubMenu.vue';
-import type { ToolbarItem } from '../types';
+import type { ToolbarItem, ToolbarDependencies } from '../types';
+import { debugLog } from '../../lib/debugUtils';
 
 // 组件属性定义
 interface Props {
-  id: string;
+  id?: string;
   name: string;
   icon?: string;
   children?: ToolbarItem[];
   enabled?: boolean;
-  action?: () => void;
   index?: number;
   isSecondRow?: boolean;
   isInSubmenu?: boolean;
@@ -103,10 +103,8 @@ const props = withDefaults(defineProps<Props>(), {
   isInSubmenu: false
 });
 
-// 组件事件
-const emit = defineEmits<{
-  click: [id: string];
-}>();
+// 注入工具栏上下文
+const toolbarContext = inject<ToolbarDependencies>('toolbarContext');
 
 /**
  * 是否有子菜单
@@ -137,13 +135,44 @@ const buttonClasses = computed(() => {
 });
 
 /**
- * 处理按钮点击（叶子节点）
+ * 执行工具栏命令
+ * @param id 命令ID
+ */
+const executeCommand = (id: string): void => {
+  debugLog('Executing toolbar command:', id);
+  
+  if (!toolbarContext?.app) {
+    console.error('无法执行命令：缺少 app 实例');
+    return;
+  }
+
+  try {
+    // 执行 Obsidian 内置命令, 该命令不被包含在 Obsidian 的类型定义中, 使用 @ts-ignore 忽略类型检查
+    // @ts-ignore
+    const isSuccess = toolbarContext.app.commands.executeCommandById(id);
+    if (!isSuccess) {
+      console.error('Failed to execute command:', id);
+    } else {
+      debugLog('Command executed successfully:', id);
+    }
+  } catch (error) {
+    console.error('Error executing command:', id, error);
+  }
+};
+
+/**
+ * 处理按钮点击，执行命令
  */
 const handleClick = () => {
-  if (props.action) {
-    props.action();
+  // 检查是否有有效的命令ID
+  if (typeof props.id === 'string' && props.id.trim().length > 0) {
+    executeCommand(props.id);
   } else {
-    emit('click', props.id);
+    console.warn('无法执行命令：', {
+      hasId: !!props.id,
+      hasContext: !!toolbarContext,
+      buttonName: props.name
+    });
   }
 };
 
@@ -151,7 +180,7 @@ const handleClick = () => {
  * 处理子菜单项点击
  */
 const handleSubItemClick = (id: string) => {
-  emit('click', id);
+  // 子菜单项点击不再发射事件，交由子项目自己处理
 };
 </script>
 

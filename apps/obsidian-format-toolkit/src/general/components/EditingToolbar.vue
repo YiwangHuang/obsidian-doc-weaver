@@ -4,7 +4,7 @@
     ID: editingToolbarModalBar (保持与原版一致)
   -->
   <div
-    v-show="visible && isInMarkdownEditor"
+    v-show="isVisible && isInMarkdownEditor"
     id="editingToolbarModalBar"
     ref="toolbarRef"
     :class="toolbarClasses"
@@ -15,10 +15,9 @@
     <div class="toolbar-buttons-container">
       <ToolbarButton
         v-for="(item, index) in toolbarItems"
-        :key="item.id"
+        :key="item.id || item.name"
         v-bind="item"
         :index="index"
-        @click="handleButtonClick"
       />
     </div>
   </div>
@@ -30,16 +29,15 @@
  * 复现原版 Obsidian Editing Toolbar 的视觉效果和拖拽功能
  */
 
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
-import type { ToolbarItem } from '../types';
+import type { ToolbarItem, ToolbarDependencies } from '../types';
 import { MarkdownView } from 'obsidian';
 
 // 组件属性
 interface Props {
-  visible?: boolean;
+  visible?: boolean | (() => boolean);
   iconSize?: number;
-  app?: any; // Obsidian App实例
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -49,7 +47,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 // 组件事件
 const emit = defineEmits<{
-  buttonClick: [id: string];
   positionChange: [x: number, y: number];
 }>();
 
@@ -72,97 +69,96 @@ const dragState = reactive({
   hasDragged: false
 });
 
+// 注入工具栏上下文
+const toolbarContext = inject<ToolbarDependencies>('toolbarContext');
+
 // 编辑器状态
 const isInMarkdownEditor = ref(false);
 
-// 工具栏数据（模拟原版的工具栏按钮，包含多级菜单结构）
+// 计算属性：处理可见性逻辑
+const isVisible = computed(() => {
+  const visibleProp = props.visible;
+  if (typeof visibleProp === 'function') {
+    return visibleProp();
+  }
+  return visibleProp;
+});
+
+// 工具栏数据（示例数据，包含多级菜单结构）
+// 实际使用时这些数据应该从配置中获取
 const toolbarItems = ref<ToolbarItem[]>([
   {
-    id: 'bold',
+    id: 'doc-weaver:quick-template-1754545567043',
     name: '粗体',
-    icon: 'bold',
-    action: () => console.log('执行粗体操作')
+    icon: 'bold'
   },
   {
-    id: 'italic',
+    id: 'editor:toggle-italics',
     name: '斜体',
-    icon: 'italic',
-    action: () => console.log('执行斜体操作')
+    icon: 'italic'
   },
   {
-    id: 'font-color',
     name: '字体颜色',
     icon: 'palette',
     children: [
       {
-        id: 'color-red',
+        id: 'obsidian-format-toolkit:red-text',
         name: '红色',
-        icon: 'circle',
-        action: () => console.log('应用红色字体')
+        icon: 'circle'
       },
       {
-        id: 'color-blue',
+        id: 'obsidian-format-toolkit:blue-text',
         name: '蓝色',
-        icon: 'circle',
-        action: () => console.log('应用蓝色字体')
+        icon: 'circle'
       },
       {
-        id: 'color-green',
+        id: 'obsidian-format-toolkit:green-text',
         name: '绿色',
-        icon: 'circle',
-        action: () => console.log('应用绿色字体')
+        icon: 'circle'
       }
     ]
   },
   {
-    id: 'highlight',
     name: '高亮',
     icon: 'highlighter',
     children: [
       {
-        id: 'highlight-yellow',
+        id: 'editor:toggle-highlight',
         name: '黄色高亮',
-        icon: 'highlighter',
-        action: () => console.log('应用黄色高亮')
+        icon: 'highlighter'
       },
       {
-        id: 'highlight-green',
+        id: 'obsidian-format-toolkit:green-highlight',
         name: '绿色高亮',
-        icon: 'highlighter',
-        action: () => console.log('应用绿色高亮')
+        icon: 'highlighter'
       },
       {
-        id: 'highlight-more',
         name: '更多高亮',
         icon: 'more-horizontal',
         children: [
           {
-            id: 'highlight-red',
+            id: 'obsidian-format-toolkit:red-highlight',
             name: '红色高亮',
-            icon: 'highlighter',
-            action: () => console.log('应用红色高亮')
+            icon: 'highlighter'
           },
           {
-            id: 'highlight-blue',
+            id: 'obsidian-format-toolkit:blue-highlight',
             name: '蓝色高亮',
-            icon: 'highlighter',
-            action: () => console.log('应用蓝色高亮')
+            icon: 'highlighter'
           }
         ]
       }
     ]
   },
   {
-    id: 'code',
+    id: 'editor:toggle-code',
     name: '行内代码',
-    icon: 'code-glyph',
-    action: () => console.log('插入行内代码')
+    icon: 'code-glyph'
   },
   {
-    id: 'link',
+    id: 'editor:insert-link',
     name: '链接',
-    icon: 'link',
-    action: () => console.log('插入链接')
+    icon: 'link'
   }
 ]);
 
@@ -190,19 +186,7 @@ const toolbarStyle = computed(() => ({
 
 // 方法
 
-/**
- * 处理按钮点击
- */
-const handleButtonClick = (id: string) => {
-  // 如果刚刚拖拽过，不触发点击事件
-  if (dragState.hasDragged) {
-    dragState.hasDragged = false;
-    return;
-  }
-  
-  emit('buttonClick', id);
-  console.log('工具栏按钮点击:', id);
-};
+// 按钮点击现在由 ToolbarButton 组件内部直接处理，不再需要父组件的事件处理函数
 
 /**
  * 处理鼠标按下（开始拖拽检测）
@@ -303,10 +287,18 @@ const handleResize = () => {
  * 检查当前是否在Markdown编辑器中
  */
 const checkIfInMarkdownEditor = () => {
-  if (!props.app) return;
+  if (!toolbarContext?.app) {
+    isInMarkdownEditor.value = false;
+    return;
+  }
   
-  const activeLeaf = props.app.workspace.getActiveViewOfType(MarkdownView);
-  isInMarkdownEditor.value = activeLeaf !== null;
+  try {
+    const activeLeaf = toolbarContext.app.workspace.getActiveViewOfType(MarkdownView);
+    isInMarkdownEditor.value = activeLeaf !== null;
+  } catch (error) {
+    console.error('Failed to check markdown editor state:', error);
+    isInMarkdownEditor.value = false;
+  }
 };
 
 // 生命周期
@@ -318,8 +310,8 @@ onMounted(() => {
   checkIfInMarkdownEditor();
   
   // 监听工作区变化以检测编辑器切换
-  if (props.app && props.app.workspace) {
-    props.app.workspace.on('active-leaf-change', checkIfInMarkdownEditor);
+  if (toolbarContext?.app?.workspace) {
+    toolbarContext.app.workspace.on('active-leaf-change', checkIfInMarkdownEditor);
   }
 });
 
@@ -331,8 +323,8 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
   
   // 清理工作区监听器
-  if (props.app && props.app.workspace) {
-    props.app.workspace.off('active-leaf-change', checkIfInMarkdownEditor);
+  if (toolbarContext?.app?.workspace) {
+    toolbarContext.app.workspace.off('active-leaf-change', checkIfInMarkdownEditor);
   }
 });
 </script>

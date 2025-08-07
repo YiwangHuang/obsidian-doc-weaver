@@ -30,9 +30,12 @@
         >
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
-              <!-- 标签名称 -->
+              <!-- 标签名称和图标 -->
               <v-col cols="3.5">
-                <div class="text-subtitle-2 font-weight-medium">{{ tag.name }}</div>
+                <div class="d-flex align-center">
+                  <Icon v-if="tag.icon" :name="tag.icon" size="small" class="me-2" />
+                  <div class="text-subtitle-2 font-weight-medium">{{ tag.name }}</div>
+                </div>
               </v-col>
 
               <!-- 预览 -->
@@ -105,6 +108,13 @@
           density="compact"
           class="mb-3"
         />
+
+        <!-- 标签图标选择 -->
+        <div class="mb-3">
+          <IconSelect 
+            v-model="editingTag.icon"
+          />
+        </div>
 
         <!-- 开始和结束标签 -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
@@ -183,6 +193,7 @@ import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { tagWrapperInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
+import IconSelect from '../../vue/components/IconSelect.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 
@@ -254,7 +265,6 @@ const cancelDelete = () => {
   deleteTagIndex.value = null;
   deleteConfirmVisible.value = false;
 };
-
 
 </script>
 

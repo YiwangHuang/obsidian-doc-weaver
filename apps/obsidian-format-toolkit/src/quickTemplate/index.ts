@@ -22,6 +22,8 @@ export interface TemplateConfig {
     template: string;
     /** 是否启用此模板配置 */
     enabled: boolean;
+    /** 模板图标，用于在UI中显示 */
+    icon?: string;
 }
 
 /**
@@ -44,7 +46,8 @@ export function isTemplateConfig(obj: unknown): obj is TemplateConfig {
     return typeof tmpl.id === 'string' &&
            typeof tmpl.name === 'string' &&
            typeof tmpl.template === 'string' &&
-           typeof tmpl.enabled === 'boolean';
+           typeof tmpl.enabled === 'boolean' &&
+           (tmpl.icon === undefined || typeof tmpl.icon === 'string');
 }
 
 /**
@@ -70,13 +73,15 @@ export const DEFAULT_QUICK_TEMPLATE_SETTINGS: QuickTemplateSettings = {
             id: 'quick-template-multi-column',
             name: 'Multi Column Template',
             template: ":::col|width(50%, 50%)\n\n@col\n\n{{selectedText}}\n\n@col\n\n\n\n:::\n",
-            enabled: true   
+            enabled: true,
+            icon: 'columns-2'
         },
         {
             id: 'quick-template-callout',
             name: 'Callout Template', 
             template: '> [!info] 讲解注释\n> {{selectedText}}',
-            enabled: true
+            enabled: true,
+            icon: 'quote'
         }
     ]
 }; 

@@ -197,15 +197,17 @@ export class QuickTemplateManager {
      * 生成新的模板项
      * @param name 模板名称
      * @param template 模板内容
+     * @param icon 模板图标
      * @returns 新的模板配置
      */
-    generateTemplateItem(name?: string, template?: string): TemplateConfig {
+    generateTemplateItem(name?: string, template?: string, icon?: string): TemplateConfig {
         const timestamp = generateTimestamp();
         return {
             id: `quick-template-${timestamp}`,
             name: name || `Template-${timestamp}`,
             template: template || '{{selectedText}}',
-            enabled: true
+            enabled: true,
+            icon: icon || 'file' // 默认图标
         };
     }
 

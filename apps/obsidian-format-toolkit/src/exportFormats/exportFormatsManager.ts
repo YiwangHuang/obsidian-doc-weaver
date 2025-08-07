@@ -54,6 +54,17 @@ export class ExportFormatsManager {
      */
     addExportFormatItem(format: OutputFormat): void {
         const hexId = generateTimestamp("hex");
+        // 根据格式类型设置默认图标
+        const getDefaultIcon = (format: OutputFormat): string => {
+            switch (format) {
+                case 'typst': return 'file-text';
+                case 'vuepress': return 'book';
+                case 'quarto': return 'file-code';
+                case 'plain': return 'file';
+                default: return 'download';
+            }
+        };
+        
         const newConfig: ExportConfig = {
         id: hexId,
         style_dir: path.posix.join('styles', hexId),
@@ -64,7 +75,8 @@ export class ExportFormatsManager {
         enabled: true,
         format: format,
         excalidraw_export_type: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
-        excalidraw_png_scale: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE
+        excalidraw_png_scale: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE,
+        icon: getDefaultIcon(format) // 根据格式设置默认图标
         };
     
         // 创建对应的资源文件夹

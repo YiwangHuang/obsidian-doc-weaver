@@ -18,6 +18,8 @@ export interface TagConfig {
     enabled: boolean;
     /** CSS 片段，会根据启用状态热插拔到 Obsidian */
     cssSnippet: string;
+    /** 标签图标，用于在UI中显示 */
+    icon?: string;
 }
 
 /**
@@ -42,7 +44,8 @@ export function isTagConfig(obj: unknown): obj is TagConfig {
            typeof config.prefix === 'string' &&
            typeof config.suffix === 'string' &&
            typeof config.enabled === 'boolean' &&
-           typeof config.cssSnippet === 'string';
+           typeof config.cssSnippet === 'string' &&
+           (config.icon === undefined || typeof config.icon === 'string');
 }
 
 /**
@@ -76,7 +79,8 @@ cursor: pointer; /* 鼠标悬停显示为手型 */
 text-decoration: none; /* 去掉默认的下划线 */
 border-bottom: 1px solid black; /* 使用边框模拟下划线 */
 position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
-}`
+}`,
+            icon: 'underline'
         },
     ]
 };

@@ -33,6 +33,8 @@ export interface ExportConfig {
     excalidraw_export_type: 'png' | 'svg';
     /** PNG导出时的缩放比例 */
     excalidraw_png_scale: number;
+    /** 导出格式图标，用于在UI中显示 */
+    icon?: string;
 }
 
 /**
@@ -62,7 +64,8 @@ export function isExportConfig(obj: unknown): obj is ExportConfig {
            typeof config.output_dir === 'string' &&
            typeof config.output_base_name === 'string' &&
            (config.excalidraw_export_type === 'png' || config.excalidraw_export_type === 'svg') &&
-           typeof config.excalidraw_png_scale === 'number';
+           typeof config.excalidraw_png_scale === 'number' &&
+           (config.icon === undefined || typeof config.icon === 'string');
 }
 
 /**

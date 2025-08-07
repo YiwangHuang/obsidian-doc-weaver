@@ -156,7 +156,8 @@ export class TagWrapperManager {
         name?: string,
         prefix?: string,
         suffix?: string,
-        cssSnippet?: string
+        cssSnippet?: string,
+        icon?: string
     ): TagConfig {
         const hexId = generateTimestamp();
         return {
@@ -171,7 +172,8 @@ export class TagWrapperManager {
     text-decoration: none; /* 去掉默认的下划线 */
     border-bottom: 1px solid black; /* 使用边框模拟下划线 */
     position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
-}`
+}`,
+            icon: icon || 'tag' // 默认图标
         };
     }
 

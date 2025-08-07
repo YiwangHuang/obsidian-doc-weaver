@@ -57,9 +57,12 @@
                 </v-chip>
               </v-col>
 
-              <!-- 格式名称 -->
+              <!-- 格式名称和图标 -->
               <v-col cols="4">
-                <div class="text-subtitle-2 font-weight-medium">{{ config.name }}</div>
+                <div class="d-flex align-center">
+                  <Icon v-if="config.icon" :name="config.icon" size="small" class="me-2" />
+                  <div class="text-subtitle-2 font-weight-medium">{{ config.name }}</div>
+                </div>
               </v-col>
               
               <!-- 操作按钮 -->
@@ -144,6 +147,13 @@
           density="compact"
           class="mb-3"
         />
+
+        <!-- 导出格式图标选择 -->
+        <div class="mb-3">
+          <IconSelect 
+            v-model="editingConfig.icon"
+          />
+        </div>
 
         <!-- 输出目录和文件名 -->
         <TemplateEditor :placeholders="pathPlaceholders">
@@ -266,6 +276,7 @@ import { generateTimestamp } from '../../lib/idGenerator';
 import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defaultStyleConfig/styleConfigs';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import Icon from '../../vue/components/Icon.vue';
+import IconSelect from '../../vue/components/IconSelect.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';

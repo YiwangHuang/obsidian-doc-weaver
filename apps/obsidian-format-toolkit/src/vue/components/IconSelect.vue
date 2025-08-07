@@ -83,6 +83,9 @@ const emit = defineEmits<{
  */
 const iconOptions: string[] = [
   // { icon: '', alias: '(无图标)' }, // 空选项
+'file-text',
+'file-sliders',
+'file-check',
 'home',
 'columns-2',
 'columns-3',

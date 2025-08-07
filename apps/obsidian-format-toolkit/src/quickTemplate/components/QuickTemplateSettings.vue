@@ -30,9 +30,12 @@
         >
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
-              <!-- 模板名称 -->
+              <!-- 模板名称和图标 -->
                <v-col cols="6">
-                 <div class="text-subtitle-2 font-weight-medium">{{ template.name }}</div>
+                 <div class="d-flex align-center">
+                   <Icon v-if="template.icon" :name="template.icon" size="small" class="me-2" />
+                   <div class="text-subtitle-2 font-weight-medium">{{ template.name }}</div>
+                 </div>
                </v-col>
 
               <!-- 模板预览 -->
@@ -105,7 +108,13 @@
           class="mb-3"
         />
 
-        
+        <!-- 模板图标选择 -->
+         <div class="mb-3">
+           <IconSelect 
+             v-model="editingTemplate.icon"
+             @change="handleIconChange"
+           />
+         </div>
 
         <!-- 模板编辑器组件 -->
         <TemplateEditor
@@ -158,6 +167,7 @@ import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { quickTemplateInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
+import IconSelect from '../../vue/components/IconSelect.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import TemplateEditor from '../../vue/components/TemplateEditor.vue';
 
@@ -223,6 +233,15 @@ const confirmDelete = () => {
 const cancelDelete = () => {
   deleteTemplateIndex.value = null;
   deleteConfirmVisible.value = false;
+};
+
+/**
+ * 处理图标变化
+ * @param iconName 新的图标名称
+ */
+const handleIconChange = (iconName: string) => {
+  debugLog('Template icon changed:', iconName);
+  // 图标变化会自动保存，因为editingTemplate是响应式的引用
 };
 </script>
 

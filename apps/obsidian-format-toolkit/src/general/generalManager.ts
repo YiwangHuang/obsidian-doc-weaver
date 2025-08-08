@@ -1,6 +1,6 @@
 import type MyPlugin from "../main";
 
-import { createApp, App as VueApp} from "vue";
+import { createApp, App as VueApp, computed, h } from "vue";
 import { generalInfo, GeneralSettings, isGeneralSettings } from "./index";
 import { debugLog } from "../lib/debugUtils";
 
@@ -67,29 +67,42 @@ export class GeneralManager {
     }
 
     
+    /**
+     * 收集工具栏项目数据
+     * 关键：创建新数组副本以确保数组增减操作能被响应式系统正确追踪
+     */
     private collectToolbarItems(): ToolbarItem[] {
         const items: ToolbarItem[] = [];
-        const exportFormatsItems = this.plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings
+        
+        // 直接从响应式settingList获取数据，确保依赖收集正确
+        const exportFormatsItems = this.plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;
+        const tagWrapperItems = this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings;
+        const quickTemplateItems = this.plugin.settingList[quickTemplateInfo.name] as QuickTemplateSettings;
+        
+        // 创建数组副本以确保数组增减操作能被响应式系统追踪
         items.push({
             name: '导出格式',
             icon: 'file',
             enabled: true,
-            children: exportFormatsItems.exportConfigs  // 调整导出格式工具栏项目
-        })
-        const tagWrapperItems = this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings
+            children: [...exportFormatsItems.exportConfigs]  // 创建副本追踪数组变化
+        });
+        
         items.push({
             name: '标签包装器',
             icon: 'tag',
             enabled: true,
-            children: tagWrapperItems.tags  // 调整标签包装器工具栏项目
-        })
-        const quickTemplateItems = this.plugin.settingList[quickTemplateInfo.name] as QuickTemplateSettings
+            children: [...tagWrapperItems.tags]  // 创建副本追踪数组变化
+        });
+        
+        // 合并两个数组并创建副本
+        const merged = [...exportFormatsItems.exportConfigs, ...quickTemplateItems.templates];
         items.push({
             name: '快捷模板',
             icon: 'file',
             enabled: true,
-            children: quickTemplateItems.templates  // 调整快捷模板工具栏项目
-        })
+            children: merged  // 合并后的数组本身就是新创建的
+        });
+        
         return items;
     }
     
@@ -117,16 +130,35 @@ export class GeneralManager {
                 plugin: this.plugin
             };
             
-            // 创建 Vue 应用，传入可见性配置
-            this.toolBarApp = createApp(EditingToolbar, {
-                items: this.collectToolbarItems()
-            });
+            /**
+             * 创建包装组件来处理响应式props传递
+             * 
+             * Vue 3 的 createApp 第二个参数期望普通对象作为props，
+             * 而不是响应式对象。因此我们创建一个包装组件：
+             * 1. 在setup中使用computed响应数据变化
+             * 2. 通过render函数将计算结果作为普通props传递给目标组件
+             * 
+             * 这样确保了响应式数据变化能正确传播到子组件
+             */
+            const ToolbarWrapper = {
+                setup: () => {
+                    const items = computed(() => {
+                        return this.collectToolbarItems();
+                    });
+                    
+                    return {
+                        items
+                    };
+                },
+                render() {
+                    return h(EditingToolbar, { items: this.items });
+                }
+            };
+
+            this.toolBarApp = createApp(ToolbarWrapper);
             this.toolBarApp.use(vuetify);
-            
-            // 提供工具栏上下文
             this.toolBarApp.provide('toolbarContext', toolbarContext);
             
-            // 挂载到容器
             this.toolBarApp.mount(this.toolBarContainer);
             
             debugLog('SpeedDial component initialized');

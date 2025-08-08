@@ -75,10 +75,10 @@ export default class MyPlugin extends Plugin {
         debugLog('settingList', savedData);
 
         // 初始化管理器（每个管理器会在构造函数中自动注册自己的设置）
-        this.generalManager = new GeneralManager(this);
         this.exportFormatsManager = new ExportFormatsManager(this);
         this.quickTemplateManager = new QuickTemplateManager(this);
         this.tagWrapperManager = new TagWrapperManager(this);
+        this.generalManager = new GeneralManager(this);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存
         // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积

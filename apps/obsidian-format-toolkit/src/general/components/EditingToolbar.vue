@@ -13,9 +13,15 @@
   >
     <!-- 工具栏按钮容器 -->
     <div class="toolbar-buttons-container">
+      <!-- 
+        使用复合key确保Vue能正确识别数组变化：
+        - item.commandId/name: 项目标识
+        - index: 数组位置
+        - children?.length: 子项数量，确保子数组变化时重新渲染
+      -->
       <ToolbarButton
-        v-for="item in items"
-        :key="item.commandId || item.name"
+        v-for="(item, index) in items"
+        :key="`${item.commandId || item.name}-${index}-${item.children?.length || 0}`"
         :item="item"
       />
     </div>
@@ -81,7 +87,12 @@ const isInMarkdownEditor = ref(false);
 // 计算属性：处理可见性逻辑
 // const isVisible = computed(() => props.visible());
 
-// 工具栏数据由外部传入 props.items
+/**
+ * 工具栏数据处理
+ * 
+ * 将外部传入的响应式props.items转换为组件内部的computed，
+ * 确保当父组件数据变化时，子组件能正确响应更新
+ */
 const items = computed(() => props.items);
 
 // 计算属性

@@ -4,7 +4,7 @@
     ID: editingToolbarModalBar (保持与原版一致)
   -->
   <div
-    v-show="isVisible && isInMarkdownEditor"
+    v-show="visible && isInMarkdownEditor"
     id="editingToolbarModalBar"
     ref="toolbarRef"
     :class="toolbarClasses"
@@ -14,10 +14,9 @@
     <!-- 工具栏按钮容器 -->
     <div class="toolbar-buttons-container">
       <ToolbarButton
-        v-for="(item, index) in toolbarItems"
-        :key="item.id || item.name"
-        v-bind="item"
-        :index="index"
+        v-for="item in items"
+        :key="item.commandId || item.name"
+        :item="item"
       />
     </div>
   </div>
@@ -33,16 +32,18 @@ import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
 import type { ToolbarItem, ToolbarDependencies } from '../types';
 import { MarkdownView } from 'obsidian';
+import { generalInfo, GeneralSettings } from '../index';
+
+
 
 // 组件属性
 interface Props {
-  visible?: boolean | (() => boolean);
-  iconSize?: number;
+  /** 传入的工具栏条目列表 */
+  items: ToolbarItem[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  visible: true,
-  iconSize: 18
+
 });
 
 // 组件事件
@@ -71,96 +72,17 @@ const dragState = reactive({
 
 // 注入工具栏上下文
 const toolbarContext = inject<ToolbarDependencies>('toolbarContext');
+const configs = toolbarContext?.plugin.settingList[generalInfo.name] as GeneralSettings;
+const visible = computed(() => configs.showToolBar)
 
 // 编辑器状态
 const isInMarkdownEditor = ref(false);
 
 // 计算属性：处理可见性逻辑
-const isVisible = computed(() => {
-  const visibleProp = props.visible;
-  if (typeof visibleProp === 'function') {
-    return visibleProp();
-  }
-  return visibleProp;
-});
+// const isVisible = computed(() => props.visible());
 
-// 工具栏数据（示例数据，包含多级菜单结构）
-// 实际使用时这些数据应该从配置中获取
-const toolbarItems = ref<ToolbarItem[]>([
-  {
-    id: 'doc-weaver:quick-template-1754545567043',
-    name: '粗体',
-    icon: 'bold'
-  },
-  {
-    id: 'editor:toggle-italics',
-    name: '斜体',
-    icon: 'italic'
-  },
-  {
-    name: '字体颜色',
-    icon: 'palette',
-    children: [
-      {
-        id: 'obsidian-format-toolkit:red-text',
-        name: '红色',
-        icon: 'circle'
-      },
-      {
-        id: 'obsidian-format-toolkit:blue-text',
-        name: '蓝色',
-        icon: 'circle'
-      },
-      {
-        id: 'obsidian-format-toolkit:green-text',
-        name: '绿色',
-        icon: 'circle'
-      }
-    ]
-  },
-  {
-    name: '高亮',
-    icon: 'highlighter',
-    children: [
-      {
-        id: 'editor:toggle-highlight',
-        name: '黄色高亮',
-        icon: 'highlighter'
-      },
-      {
-        id: 'obsidian-format-toolkit:green-highlight',
-        name: '绿色高亮',
-        icon: 'highlighter'
-      },
-      {
-        name: '更多高亮',
-        icon: 'more-horizontal',
-        children: [
-          {
-            id: 'obsidian-format-toolkit:red-highlight',
-            name: '红色高亮',
-            icon: 'highlighter'
-          },
-          {
-            id: 'obsidian-format-toolkit:blue-highlight',
-            name: '蓝色高亮',
-            icon: 'highlighter'
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'editor:toggle-code',
-    name: '行内代码',
-    icon: 'code-glyph'
-  },
-  {
-    id: 'editor:insert-link',
-    name: '链接',
-    icon: 'link'
-  }
-]);
+// 工具栏数据由外部传入 props.items
+const items = computed(() => props.items);
 
 // 计算属性
 
@@ -287,13 +209,13 @@ const handleResize = () => {
  * 检查当前是否在Markdown编辑器中
  */
 const checkIfInMarkdownEditor = () => {
-  if (!toolbarContext?.app) {
+  if (!toolbarContext?.plugin.app) {
     isInMarkdownEditor.value = false;
     return;
   }
   
   try {
-    const activeLeaf = toolbarContext.app.workspace.getActiveViewOfType(MarkdownView);
+    const activeLeaf = toolbarContext.plugin.app.workspace.getActiveViewOfType(MarkdownView);
     isInMarkdownEditor.value = activeLeaf !== null;
   } catch (error) {
     console.error('Failed to check markdown editor state:', error);
@@ -310,8 +232,8 @@ onMounted(() => {
   checkIfInMarkdownEditor();
   
   // 监听工作区变化以检测编辑器切换
-  if (toolbarContext?.app?.workspace) {
-    toolbarContext.app.workspace.on('active-leaf-change', checkIfInMarkdownEditor);
+  if (toolbarContext?.plugin?.app?.workspace) {
+    toolbarContext.plugin.app.workspace.on('active-leaf-change', checkIfInMarkdownEditor);
   }
 });
 
@@ -323,8 +245,8 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
   
   // 清理工作区监听器
-  if (toolbarContext?.app?.workspace) {
-    toolbarContext.app.workspace.off('active-leaf-change', checkIfInMarkdownEditor);
+  if (toolbarContext?.plugin?.app?.workspace) {
+    toolbarContext.plugin.app.workspace.off('active-leaf-change', checkIfInMarkdownEditor);
   }
 });
 </script>

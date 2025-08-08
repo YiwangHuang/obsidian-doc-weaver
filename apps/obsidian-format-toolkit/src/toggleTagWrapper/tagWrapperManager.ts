@@ -161,7 +161,8 @@ export class TagWrapperManager {
     ): TagConfig {
         const hexId = generateTimestamp();
         return {
-            id: `doc-weaver-tag-${hexId}`,
+            id: `tag-${hexId}`,
+            commandId: `doc-weaver:tag-${hexId}`,
             name: name || `${hexId}`,
             prefix: prefix || '<u>',
             suffix: suffix || '</u>',

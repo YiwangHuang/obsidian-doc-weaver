@@ -5,7 +5,7 @@
 import { ModuleInfoRegistry } from '../main';
 import { getLocalizedText } from '../lib/textUtils';
 import QuickTemplateSettingsComponent from './components/QuickTemplateSettings.vue';
-
+import type { ToolbarItem } from '../general/types';
 /**
  * Quick Template 模块的类型定义
  */
@@ -13,17 +13,11 @@ import QuickTemplateSettingsComponent from './components/QuickTemplateSettings.v
 /**
  * 单个模板配置接口，修改需同步修改类型守卫函数isTemplateConfig
  */
-export interface TemplateConfig {
+export interface TemplateConfig extends ToolbarItem {
     /** 模板ID，唯一标识符 */
     id: string;
-    /** 模板名称，用于显示和识别 */
-    name: string;
-    /** 模板内容，支持占位符 */
+    commandId: string;
     template: string;
-    /** 是否启用此模板配置 */
-    enabled: boolean;
-    /** 模板图标，用于在UI中显示 */
-    icon: string;
 }
 
 /**
@@ -71,6 +65,7 @@ export const DEFAULT_QUICK_TEMPLATE_SETTINGS: QuickTemplateSettings = {
     templates: [
         {
             id: 'quick-template-multi-column',
+            commandId: 'doc-weaver:quick-template-multi-column',
             name: 'Multi Column Template',
             template: ":::col|width(50%, 50%)\n\n@col\n\n{{selectedText}}\n\n@col\n\n\n\n:::\n",
             enabled: true,
@@ -78,6 +73,7 @@ export const DEFAULT_QUICK_TEMPLATE_SETTINGS: QuickTemplateSettings = {
         },
         {
             id: 'quick-template-callout',
+            commandId: 'doc-weaver:quick-template-callout',
             name: 'Callout Template', 
             template: '> [!info] 讲解注释\n> {{selectedText}}',
             enabled: true,

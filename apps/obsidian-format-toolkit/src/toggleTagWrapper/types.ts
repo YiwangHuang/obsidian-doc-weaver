@@ -1,3 +1,4 @@
+import type { ToolbarItem } from "../general/types";
 /**
  * Toggle Tag Wrapper模块的类型定义
  */
@@ -5,21 +6,15 @@
 /**
  * 单个标签配置接口
  */
-export interface TagConfig {
-    /** 命令ID，唯一标识符 */
+export interface TagConfig extends ToolbarItem {
     id: string;
-    /** 命令名称，用于显示和识别 */
-    name: string;
+    commandId: string;
     /** 开始标签（前缀） */
     prefix: string;
     /** 结束标签（后缀） */
     suffix: string;
-    /** 是否启用此标签配置 */
-    enabled: boolean;
     /** CSS 片段，会根据启用状态热插拔到 Obsidian */
     cssSnippet: string;
-    /** 标签图标，用于在UI中显示 */
-    icon: string;
 }
 
 /**
@@ -68,7 +63,8 @@ export function isTagWrapperSettings(obj: unknown): obj is TagWrapperSettings {
 export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
     tags: [
         {
-            id: 'doc-weaver-toggle-underline',
+            id: 'toggle-underline',
+            commandId: 'doc-weaver:toggle-underline',
             name: 'Underline',
             prefix: '<u>',
             suffix: '</u>',

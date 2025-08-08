@@ -2,19 +2,19 @@
   <!-- 有子菜单的按钮 -->
   <SubMenu
     v-if="hasChildren"
-    :items="children || []"
+    :items="item.children || []"
     @item-click="handleSubItemClick"
   >
     <template #activator="{ props: menuProps }">
       <!-- 带图标的菜单触发按钮 -->
-      <div v-if="icon">
-        <v-tooltip :text="name" location="top" :open-delay="500">
+      <div v-if="item.icon">
+        <v-tooltip :text="item.name" location="top" :open-delay="500">
           <template #activator="{ props: tooltipProps }">
             <v-btn
               v-bind="{ ...tooltipProps, ...menuProps }"
               :class="[...buttonClasses, 'has-submenu']"
             >
-              <Icon :name="icon" />
+              <Icon :name="item.icon" />
               <!-- 子菜单指示器：右下角的向下三角形 -->
               <div class="submenu-indicator">
                 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -31,7 +31,7 @@
           v-bind="menuProps"
           :class="[...buttonClasses, 'has-submenu']"
         >
-          <span class="button-text">{{ name }}</span>
+          <span class="button-text">{{ item.name }}</span>
           <!-- 子菜单指示器：右下角的向下三角形 -->
           <div class="submenu-indicator">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,17 +44,17 @@
   </SubMenu>
 
   <!-- 普通按钮（无子菜单） -->
-  <template v-else>
+  <template v-else-if="item.enabled">
     <!-- 带图标的按钮 -->
-    <div v-if="icon">
-      <v-tooltip :text="name" location="top" :open-delay="500">
+    <div v-if="item.icon">
+      <v-tooltip :text="item.name" location="top" :open-delay="500">
         <template #activator="{ props }"> 
           <v-btn
             v-bind="props"
             :class="buttonClasses"
             @click="handleClick"
           >
-            <Icon :name="icon" />
+            <Icon :name="item.icon" />
           </v-btn>
         </template>
       </v-tooltip>
@@ -65,7 +65,7 @@
         :class="buttonClasses"
         @click="handleClick"
       >
-        <span class="button-text">{{ name }}</span>
+        <span class="button-text">{{ item.name }}</span>
       </v-btn>
     </div>
   </template>
@@ -86,20 +86,13 @@ import { debugLog } from '../../lib/debugUtils';
 
 // 组件属性定义
 interface Props {
-  id?: string;
-  name: string;
-  icon?: string;
-  children?: ToolbarItem[];
-  enabled?: boolean;
-  index?: number;
-  isSecondRow?: boolean;
+  /** 单个工具栏条目 */
+  item: ToolbarItem;
+  /** 是否位于子菜单中，仅影响样式 */
   isInSubmenu?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  enabled: true,
-  index: 0,
-  isSecondRow: false,
   isInSubmenu: false
 });
 
@@ -109,54 +102,35 @@ const toolbarContext = inject<ToolbarDependencies>('toolbarContext');
 /**
  * 是否有子菜单
  */
-const hasChildren = computed(() => {
-  return props.children && props.children.length > 0;
-});
+const hasChildren = computed(() => props.item.children && props.item.children.length > 0);
 
 /**
  * 按钮CSS类名
  */
 const buttonClasses = computed(() => {
   const classes = ['editing-toolbar-command-item'];
-
-  if (props.icon) {
-    classes.push('icon-btn-square');
-  }
-
-  if (props.isSecondRow) {
-    classes.push('editing-toolbar-second');
-  }
-
-  if (props.isInSubmenu) {
-    classes.push('submenu-item');
-  }
-  
+  if (props.item.icon) classes.push('icon-btn-square');
+  if (props.isInSubmenu) classes.push('submenu-item');
   return classes;
 });
 
 /**
  * 执行工具栏命令
- * @param id 命令ID
+ * @param commandId 命令ID
  */
-const executeCommand = (id: string): void => {
-  debugLog('Executing toolbar command:', id);
-  
-  if (!toolbarContext?.app) {
-    console.error('无法执行命令：缺少 app 实例');
-    return;
-  }
-
+const executeCommand = (commandId: string): void => {
+  debugLog('Executing toolbar command:', commandId);
   try {
     // 执行 Obsidian 内置命令, 该命令不被包含在 Obsidian 的类型定义中, 使用 @ts-ignore 忽略类型检查
     // @ts-ignore
-    const isSuccess = toolbarContext.app.commands.executeCommandById(id);
+    const isSuccess = toolbarContext.plugin.app.commands.executeCommandById(commandId);
     if (!isSuccess) {
-      console.error('Failed to execute command:', id);
+      console.error('Failed to execute command:', commandId);
     } else {
-      debugLog('Command executed successfully:', id);
+      debugLog('Command executed successfully:', commandId);
     }
   } catch (error) {
-    console.error('Error executing command:', id, error);
+    console.error('Error executing command:', commandId, error);
   }
 };
 
@@ -164,14 +138,14 @@ const executeCommand = (id: string): void => {
  * 处理按钮点击，执行命令
  */
 const handleClick = () => {
-  // 检查是否有有效的命令ID
-  if (typeof props.id === 'string' && props.id.trim().length > 0) {
-    executeCommand(props.id);
+  const id = props.item.commandId;
+  if (typeof id === 'string' && id.trim().length > 0) {
+    executeCommand(id);
   } else {
     console.warn('无法执行命令：', {
-      hasId: !!props.id,
+      hasId: !!id,
       hasContext: !!toolbarContext,
-      buttonName: props.name
+      buttonName: props.item.name
     });
   }
 };

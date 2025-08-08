@@ -1,4 +1,4 @@
-import { App } from "obsidian";
+import type MyPlugin from "../main";
 /**
  * 编辑工具栏相关类型定义
  */
@@ -8,8 +8,8 @@ import { App } from "obsidian";
  * 用于 Provide/Inject 模式下传递 Obsidian App 实例
  */
 export interface ToolbarDependencies {
-  /** Obsidian App 实例 */
-  app: App;
+  /** 插件实例 */
+  plugin: MyPlugin;
 }
 
 /**
@@ -18,7 +18,7 @@ export interface ToolbarDependencies {
  */
 export interface ToolbarItem {
   /** 项目唯一标识符（可选，用于执行命令） */
-  id?: string;
+  commandId?: string;
   
   /** 显示名称 */
   name: string;
@@ -30,7 +30,7 @@ export interface ToolbarItem {
    * 是否启用此项目
    * 默认为 true
    */
-  enabled?: boolean;
+  enabled: boolean;
   
   /** 
    * 子菜单项目列表
@@ -38,7 +38,4 @@ export interface ToolbarItem {
    * 当不存在子项时，此项目表现为一个叶子节点（类似文件）
    */
   children?: ToolbarItem[];
-  
-  /** 允许任意额外的属性 */
-  [key: string]: unknown;
 }

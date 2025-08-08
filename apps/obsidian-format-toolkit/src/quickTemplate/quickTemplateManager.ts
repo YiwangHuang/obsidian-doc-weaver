@@ -203,7 +203,8 @@ export class QuickTemplateManager {
     generateTemplateItem(name?: string, template?: string, icon?: string): TemplateConfig {
         const timestamp = generateTimestamp();
         return {
-            id: `quick-template-${timestamp}`,
+            id: `template-${timestamp}`,
+            commandId: `doc-weaver:template-${timestamp}`,
             name: name || `Template-${timestamp}`,
             template: template || '{{selectedText}}',
             enabled: true,

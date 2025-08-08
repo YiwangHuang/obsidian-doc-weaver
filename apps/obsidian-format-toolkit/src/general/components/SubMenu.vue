@@ -18,10 +18,8 @@
     <div class="submenu-container">
       <ToolbarButton
         v-for="item in items"
-        :key="item.id"
-        v-bind="item"
-        :is-in-submenu="true"
-        @click="handleItemClick"
+        :key="item.commandId || item.name"
+        :item="item"
       />
     </div>
   </v-menu>
@@ -44,21 +42,8 @@ interface Props {
 
 defineProps<Props>();
 
-// 组件事件
-const emit = defineEmits<{
-  itemClick: [id: string];
-}>();
-
 // 菜单状态
 const isOpen = ref(false);
-
-/**
- * 处理子项点击事件
- */
-const handleItemClick = (id: string) => {
-  emit('itemClick', id);
-  isOpen.value = false; // 点击后关闭菜单
-};
 </script>
 
 <style scoped>

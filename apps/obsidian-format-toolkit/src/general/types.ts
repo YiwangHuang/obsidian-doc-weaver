@@ -32,6 +32,12 @@ export interface ToolbarItem {
    */
   enabled: boolean;
   
+  /**
+   * 是否展开
+   * 默认为 false
+   */
+  unfolded?: boolean;
+
   /** 
    * 子菜单项目列表
    * 当存在子项时，此项目表现为一个容器（类似文件夹）

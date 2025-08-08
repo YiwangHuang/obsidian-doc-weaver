@@ -82,24 +82,26 @@ export class GeneralManager {
         // 创建数组副本以确保数组增减操作能被响应式系统追踪
         items.push({
             name: '导出格式',
-            icon: 'file',
+            icon: 'file-up',
             enabled: true,
             children: [...exportFormatsItems.exportConfigs]  // 创建副本追踪数组变化
         });
         
         items.push({
             name: '标签包装器',
-            icon: 'tag',
+            icon: 'code-xml',
             enabled: true,
+            unfolded: true,
             children: [...tagWrapperItems.tags]  // 创建副本追踪数组变化
         });
         
         // 合并两个数组并创建副本
-        const merged = [...exportFormatsItems.exportConfigs, ...quickTemplateItems.templates];
+        const merged = [...quickTemplateItems.templates];
         items.push({
             name: '快捷模板',
-            icon: 'file',
+            icon: 'puzzle',
             enabled: true,
+            unfolded: true,
             children: merged  // 合并后的数组本身就是新创建的
         });
         

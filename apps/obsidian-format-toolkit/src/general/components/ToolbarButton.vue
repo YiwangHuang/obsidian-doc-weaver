@@ -1,7 +1,17 @@
 <template>
-  <!-- 有子菜单的按钮 -->
+  <!-- 折叠显示模式：直接递归渲染所有子项为同级按钮 -->
+  <div v-if="item.unfolded && hasChildren && item.enabled" class="collapsed-children">
+    <!-- 使用 v-for 将 children 中的每个子项传递给自身（ToolbarButton），实现递归渲染 -->
+    <ToolbarButton
+      v-for="(child, index) in item.children || []"
+      :key="`${child.commandId || child.name}-${index}-${child.children?.length || 0}`"
+      :item="child"
+      :isInSubmenu="isInSubmenu"
+    />
+  </div>
+  <!-- 有子菜单且启用的按钮 -->
   <SubMenu
-    v-if="hasChildren"
+    v-else-if="hasChildren && item.enabled"
     :items="item.children || []"
     @item-click="handleSubItemClick"
   >
@@ -43,7 +53,7 @@
     </template>
   </SubMenu>
 
-  <!-- 普通按钮（无子菜单） -->
+  <!-- 普通按钮（无子菜单且启用） -->
   <template v-else-if="item.enabled">
     <!-- 带图标的按钮 -->
     <div v-if="item.icon">
@@ -159,6 +169,10 @@ const handleSubItemClick = (id: string) => {
 </script>
 
 <style scoped>
+/* 折叠模式的容器采用 contents，让子按钮与父级同一行参与布局 */
+.collapsed-children {
+  display: contents;
+}
 
 /* 按钮文本样式 */
 .button-text {

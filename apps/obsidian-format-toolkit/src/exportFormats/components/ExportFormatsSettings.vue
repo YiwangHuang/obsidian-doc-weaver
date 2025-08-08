@@ -89,13 +89,18 @@
                   >
                     <Icon name="trash-2" />
                   </v-btn>
-                  <v-btn
-                    size="small"
-                    @click="openAssetsFolder(config)"
-                    class="icon-btn-square"
-                  >
-                    <Icon name="folder" />
-                  </v-btn>
+                  <v-tooltip :text="getLocalizedText({ en: 'Open the style folder to customize export style', zh: '打开样式文件夹，自定义导出样式' })" location="top" :open-delay="200">
+                    <template #activator="{ props }"> 
+                      <v-btn
+                        v-bind="props"
+                        size="small"
+                        @click="openAssetsFolder(config)"
+                        class="icon-btn-square"
+                      >
+                        <Icon name="folder" />
+                      </v-btn>
+                    </template>
+                  </v-tooltip>
                 </div>
               </v-col>
             </v-row>

@@ -6,13 +6,14 @@ import { ModuleInfoRegistry } from '../main';
 
 import { getLocalizedText } from '../lib/textUtils';
 import GeneralSettingsComponent from './components/GeneralSettings.vue';
-
+import { ToolbarItem } from './types';
 /**
  * 通用模块设置接口，修改需同步修改类型守卫函数isGeneralSettings
  */
 export interface GeneralSettings {
     /** 是否显示 SpeedDial 悬浮按钮 */
     showToolBar: boolean;
+    commands: ToolbarItem[];
 }
 
 /**
@@ -31,7 +32,8 @@ export function isGeneralSettings(obj: unknown): obj is GeneralSettings {
  * 通用模块的默认设置
  */
 export const DEFAULT_GENERAL_SETTINGS: GeneralSettings = {
-    showToolBar: true
+    showToolBar: true,
+    commands: []
 };
 
 // General settings registry

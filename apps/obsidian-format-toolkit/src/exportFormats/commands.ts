@@ -8,33 +8,10 @@ import { TextConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
 import { getNoteInfo } from '../lib/noteResloveUtils';
 import { DEBUG } from '../lib/debugUtils';
-import { normalizeCrossPlatformPath } from '../lib/pathUtils';
+import { normalizeCrossPlatformPath, copyFilesRecursively } from '../lib/pathUtils';
 
 //TODO: 新增功能：直接通过typst的WebAssembly版本导出为pdf
-/**
- * 递归查找并复制文件，保持原有目录结构
- */
-function copyFilesRecursively(
-    sourceDir: string, 
-    targetDir: string, 
-    fileFilter: (fileName: string) => boolean = () => true
-): void {
-    const files = fs.readdirSync(sourceDir, { withFileTypes: true });
-    
-    for (const file of files) {
-        const sourcePath = path.posix.join(sourceDir, file.name);
-        const targetPath = path.posix.join(targetDir, file.name);
 
-        if (file.isDirectory()) {
-            copyFilesRecursively(sourcePath, targetPath, fileFilter);
-        } else if (fileFilter(file.name)) {
-            if (!fs.existsSync(path.dirname(targetPath))) {
-                fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-            }
-            fs.copyFileSync(sourcePath, targetPath);
-        }
-    }
-}
 
 async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<void> {
     if (sourceFile.extension !== 'md' || sourceFile.path.endsWith('.excalidraw.md')) {

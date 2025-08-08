@@ -13,13 +13,16 @@ import { TagWrapperSettings } from '../toggleTagWrapper/types';
 
 import { quickTemplateInfo, QuickTemplateSettings } from '../quickTemplate/index';
 
+import { exportFormatsInfo } from '../exportFormats/index';
+import { ExportManagerSettings } from '../exportFormats/types';
+
 /**
  * 通用模块管理器
  * 负责管理通用配置和功能
  */
 export class GeneralManager {
     private plugin: MyPlugin;
-    private speedDialApp: VueApp | null = null;
+    private toolBarApp: VueApp | null = null;
     private toolBarContainer: HTMLElement | null = null;
 
     constructor(plugin: MyPlugin) {
@@ -66,6 +69,13 @@ export class GeneralManager {
     
     private collectToolbarItems(): ToolbarItem[] {
         const items: ToolbarItem[] = [];
+        const exportFormatsItems = this.plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings
+        items.push({
+            name: '导出格式',
+            icon: 'file',
+            enabled: true,
+            children: exportFormatsItems.exportConfigs  // 调整导出格式工具栏项目
+        })
         const tagWrapperItems = this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings
         items.push({
             name: '标签包装器',
@@ -82,8 +92,6 @@ export class GeneralManager {
         })
         return items;
     }
-    
-
     
     /**
      * 初始化 SpeedDial 组件
@@ -110,16 +118,16 @@ export class GeneralManager {
             };
             
             // 创建 Vue 应用，传入可见性配置
-            this.speedDialApp = createApp(EditingToolbar, {
+            this.toolBarApp = createApp(EditingToolbar, {
                 items: this.collectToolbarItems()
             });
-            this.speedDialApp.use(vuetify);
+            this.toolBarApp.use(vuetify);
             
             // 提供工具栏上下文
-            this.speedDialApp.provide('toolbarContext', toolbarContext);
+            this.toolBarApp.provide('toolbarContext', toolbarContext);
             
             // 挂载到容器
-            this.speedDialApp.mount(this.toolBarContainer);
+            this.toolBarApp.mount(this.toolBarContainer);
             
             debugLog('SpeedDial component initialized');
         } catch (error) {
@@ -133,9 +141,9 @@ export class GeneralManager {
     destroy(): void {
         try {
             // 卸载 Vue 应用
-            if (this.speedDialApp) {
-                this.speedDialApp.unmount();
-                this.speedDialApp = null;
+            if (this.toolBarApp) {
+                this.toolBarApp.unmount();
+                this.toolBarApp = null;
             }
             
             // 移除容器元素

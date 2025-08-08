@@ -8,7 +8,7 @@
     <template #activator="{ props: menuProps }">
       <!-- 带图标的菜单触发按钮 -->
       <div v-if="item.icon">
-        <v-tooltip :text="item.name" location="top" :open-delay="500">
+        <v-tooltip :text="item.name" location="top" :open-delay="200">
           <template #activator="{ props: tooltipProps }">
             <v-btn
               v-bind="{ ...tooltipProps, ...menuProps }"

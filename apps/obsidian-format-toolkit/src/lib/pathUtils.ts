@@ -66,6 +66,31 @@ export function readDirRecursively(dirPath: string, baseDir: string = dirPath): 
 }
 
 /**
+ * 递归查找并复制文件，保持原有目录结构
+ */
+export function copyFilesRecursively(
+    sourceDir: string, 
+    targetDir: string, 
+    fileFilter: (fileName: string) => boolean = () => true
+): void {
+    const files = fs.readdirSync(sourceDir, { withFileTypes: true });
+    
+    for (const file of files) {
+        const sourcePath = path.posix.join(sourceDir, file.name);
+        const targetPath = path.posix.join(targetDir, file.name);
+
+        if (file.isDirectory()) {
+            copyFilesRecursively(sourcePath, targetPath, fileFilter);
+        } else if (fileFilter(file.name)) {
+            if (!fs.existsSync(path.dirname(targetPath))) {
+                fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+            }
+            fs.copyFileSync(sourcePath, targetPath);
+        }
+    }
+}
+
+/**
  * 跨平台路径处理工具使用示例：
  * 
  * // 处理混合格式路径

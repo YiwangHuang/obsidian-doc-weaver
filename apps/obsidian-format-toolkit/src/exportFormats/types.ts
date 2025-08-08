@@ -5,6 +5,7 @@
  */
 
 import type { OutputFormat } from './textConvert/textConverter';
+import type { ToolbarItem } from '../general/types';
 import * as placeholders from '../lib/constant';
 import * as path from 'path';
 
@@ -12,19 +13,16 @@ import * as path from 'path';
  * 单个导出格式配置接口
  * 修改需同步修改类型守卫函数isExportConfig
  */
-export interface ExportConfig {
+export interface ExportConfig extends ToolbarItem {
     /** 格式ID，唯一标识符 */
     id: string;
+    commandId: string;
     /** 样式文件夹路径 */
     style_dir: string;
     /** 导出格式类型 */
     format: OutputFormat;
-    /** 是否启用此配置 */
-    enabled: boolean;
     /** 模板内容 */
     template: string;
-    /** 格式名称，用于显示 */
-    name: string;
     /** 输出目录路径 */
     output_dir: string;
     /** 输出文件基础名称 */
@@ -34,7 +32,6 @@ export interface ExportConfig {
     /** PNG导出时的缩放比例 */
     excalidraw_png_scale: number;
     /** 导出格式图标，用于在UI中显示 */
-    icon: string;
 }
 
 /**

@@ -13,7 +13,7 @@
 
     <div v-if="selectedCommand" class="result-display">
       <h3>选择的命令:</h3>
-      <p><strong>命令ID:</strong> {{ selectedCommand.commandId }}</p>
+      <p><strong>命令ID:</strong> {{ selectedCommand.id }}</p>
       <p><strong>命令名称:</strong> {{ selectedCommand.name }}</p>
     </div>
 
@@ -27,9 +27,9 @@
 
 <script setup lang="ts">
 import { ref, inject, nextTick } from 'vue';
-import { App, setIcon } from 'obsidian';
-import { openCommandSelector, CommandSelectResult } from './commandSelector';
-import { openIconSelector } from './iconSelector';
+import { App, Command, setIcon } from 'obsidian';
+import { openCommandSelector } from '../../lib/commandUtils';
+import { openIconSelector } from '../../lib/iconUtils';
 import type { DocWeaverInstance } from '../../main';
 
 // 通过inject获取Obsidian App实例
@@ -37,7 +37,7 @@ import type { DocWeaverInstance } from '../../main';
 const app = inject<DocWeaverInstance>('docWeaverInstance')?.app
 
 // 响应式数据
-const selectedCommand = ref<CommandSelectResult | null>(null);
+const selectedCommand = ref<Command | null>(null);
 const selectedIcon = ref<string | null>(null);
 const iconPreview = ref<HTMLElement | null>(null);
 

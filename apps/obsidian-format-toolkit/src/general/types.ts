@@ -1,16 +1,6 @@
-import type MyPlugin from "../main";
 /**
  * 编辑工具栏相关类型定义
  */
-
-/**
- * 工具栏上下文接口
- * 用于 Provide/Inject 模式下传递 Obsidian App 实例
- */
-export interface ToolbarDependencies {
-  /** 插件实例 */
-  plugin: MyPlugin;
-}
 
 /**
  * 工具栏项目类型定义

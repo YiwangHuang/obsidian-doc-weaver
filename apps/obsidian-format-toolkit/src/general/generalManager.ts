@@ -1,4 +1,5 @@
 import type MyPlugin from "../main";
+import type { DocWeaverInstance } from "../main";
 
 import { createApp, App as VueApp, computed, h } from "vue";
 import { generalInfo, GeneralSettings, isGeneralSettings } from "./index";
@@ -6,7 +7,7 @@ import { debugLog } from "../lib/debugUtils";
 
 import EditingToolbar from './components/EditingToolbar.vue';
 import { vuetify } from '../vue/plugins/vuetify';
-import type { ToolbarDependencies, ToolbarItem } from './types';
+import type { ToolbarItem } from './types';
 
 import { tagWrapperInfo } from '../toggleTagWrapper/index';
 import { TagWrapperSettings } from '../toggleTagWrapper/types';
@@ -128,8 +129,9 @@ export class GeneralManager {
             document.body.appendChild(this.toolBarContainer);
             
             // 创建工具栏上下文对象
-            const toolbarContext: ToolbarDependencies = {
-                plugin: this.plugin
+            const docWeaverInstance: DocWeaverInstance = {
+                plugin: this.plugin,
+                app: this.plugin.app
             };
             
             /**
@@ -159,7 +161,7 @@ export class GeneralManager {
 
             this.toolBarApp = createApp(ToolbarWrapper);
             this.toolBarApp.use(vuetify);
-            this.toolBarApp.provide('toolbarContext', toolbarContext);
+            this.toolBarApp.provide('docWeaverInstance', docWeaverInstance);
             
             this.toolBarApp.mount(this.toolBarContainer);
             

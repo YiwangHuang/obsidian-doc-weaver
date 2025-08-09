@@ -1,6 +1,6 @@
 <template>
-  <!-- 折叠显示模式：直接递归渲染所有子项为同级按钮 -->
-  <div v-if="item.unfolded && hasChildren && item.enabled" class="collapsed-children">
+  <!-- 展开显示模式（横排）：直接递归渲染所有子项为同级按钮 -->
+  <div v-if="item.unfolded && hasChildren && item.enabled" class="children-horizontal">
     <!-- 使用 v-for 将 children 中的每个子项传递给自身（ToolbarButton），实现递归渲染 -->
     <ToolbarButton
       v-for="(child, index) in item.children || []"
@@ -91,8 +91,9 @@
 import { computed, inject } from 'vue';
 import Icon from '../../vue/components/Icon.vue';
 import SubMenu from './SubMenu.vue';
-import type { ToolbarItem, ToolbarDependencies } from '../types';
+import type { ToolbarItem } from '../types';
 import { debugLog } from '../../lib/debugUtils';
+import type { DocWeaverInstance } from '../../main';
 
 // 组件属性定义
 interface Props {
@@ -107,7 +108,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // 注入工具栏上下文
-const toolbarContext = inject<ToolbarDependencies>('toolbarContext');
+const toolbarContext = inject<DocWeaverInstance>('docWeaverInstance');
 
 /**
  * 是否有子菜单
@@ -169,9 +170,15 @@ const handleSubItemClick = (id: string) => {
 </script>
 
 <style scoped>
-/* 折叠模式的容器采用 contents，让子按钮与父级同一行参与布局 */
-.collapsed-children {
-  display: contents;
+/* 子级容器（横排）：让子按钮与父级同一行参与布局 */
+.children-horizontal { display: contents; }
+
+/* 子级容器（竖排）：提供竖排布局的可选类 */
+.children-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
 }
 
 /* 按钮文本样式 */

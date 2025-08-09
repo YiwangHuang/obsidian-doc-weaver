@@ -14,8 +14,8 @@
       <slot name="activator" :props="menuProps" />
     </template>
 
-    <!-- 子菜单内容 -->
-    <div class="submenu-container">
+    <!-- 子菜单内容（横竖排可切换） -->
+    <div class="submenu-container-vertical">
       <ToolbarButton
         v-for="item in items"
         :key="item.commandId || item.name"
@@ -47,28 +47,35 @@ const isOpen = ref(false);
 </script>
 
 <style scoped>
-/* 子菜单容器样式，完全复现主工具栏的横排布局 */
-.submenu-container {
-  /* 横排布局 - 与主工具栏一致 */
+/* 子菜单容器样式（横排），复现主工具栏的横向布局 */
+.submenu-container-horizontal {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
   gap: 2px;
-  
-  /* 尺寸和间距 */
   padding: 3px;
   min-width: fit-content;
   width: auto;
   height: auto;
-  
-  /* 视觉效果 - 与主工具栏一致 */
   background-color: var(--background-primary-alt);
   border-radius: var(--radius-m);
   box-shadow: var(--shadow-s);
   border: 1px solid var(--background-modifier-border);
-  
-  /* 层级 */
+  z-index: var(--layer-modal);
+}
+
+/* 子菜单容器样式（竖排） */
+.submenu-container-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 3px;
+  background-color: var(--background-primary-alt);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-s);
+  border: 1px solid var(--background-modifier-border);
   z-index: var(--layer-modal);
 }
 

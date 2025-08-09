@@ -11,8 +11,8 @@
     :style="toolbarStyle"
     @mousedown="handleMouseDown"
   >
-    <!-- 工具栏按钮容器 -->
-    <div class="toolbar-buttons-container">
+    <!-- 工具栏按钮容器（横排） -->
+    <div class="toolbar-buttons-horizontal">
       <!-- 
         使用复合key确保Vue能正确识别数组变化：
         - item.commandId/name: 项目标识
@@ -36,9 +36,10 @@
 
 import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
-import type { ToolbarItem, ToolbarDependencies } from '../types';
+import type { ToolbarItem } from '../types';
 import { MarkdownView } from 'obsidian';
 import { generalInfo, GeneralSettings } from '../index';
+import type { DocWeaverInstance } from '../../main';
 
 
 
@@ -77,7 +78,7 @@ const dragState = reactive({
 });
 
 // 注入工具栏上下文
-const toolbarContext = inject<ToolbarDependencies>('toolbarContext');
+const toolbarContext = inject<DocWeaverInstance>('docWeaverInstance');
 const configs = toolbarContext?.plugin.settingList[generalInfo.name] as GeneralSettings;
 const visible = computed(() => configs.showToolBar)
 
@@ -283,9 +284,23 @@ onUnmounted(() => {
   gap: 2px;
 }
 
-/* 工具栏按钮容器 */
-.toolbar-buttons-container {
-  display: contents; /* 让子元素直接参与父级的flex布局 */
+/*
+  工具栏按钮容器（横排）
+  说明：使用 contents 让子按钮直接参与父容器（横向flex）的布局
+*/
+.toolbar-buttons-horizontal {
+  display: contents;
+}
+
+/*
+  工具栏按钮容器（竖排）
+  说明：提供竖排布局类，可在需要时切换使用
+*/
+.toolbar-buttons-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
 }
 
 /* 美学效果：轻微的边框 */

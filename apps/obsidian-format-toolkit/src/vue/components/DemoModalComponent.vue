@@ -1,4 +1,5 @@
 <template>
+  <vueUsageExample />
   <!-- 图标选择演示区域 -->
   <v-container>
     <v-row>
@@ -46,6 +47,7 @@
 
 import { ref } from 'vue';
 import IconSelect from './IconSelect.vue';
+import vueUsageExample from '../example/vue-usage-example.vue';
 
 // 原有的标签页状态
 const tab = ref(null);

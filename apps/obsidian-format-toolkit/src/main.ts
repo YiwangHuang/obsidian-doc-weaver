@@ -35,6 +35,12 @@ import {
     GeneralManager
 } from './general/index';
 
+
+export interface DocWeaverInstance {
+    plugin: MyPlugin;
+    app: App;
+}
+
 // 定义设置注册接口
 export interface ModuleInfoRegistry<T = any> {
     name: string;
@@ -197,6 +203,14 @@ export class AlternativeSettingTab extends PluginSettingTab {
             moduleSettings: this.plugin.moduleSettings
         });
         
+        const docWeaverInstance: DocWeaverInstance = {
+            plugin: this.plugin,
+            app: this.app
+        };
+
+        // 提供DocWeaverInstance实例
+        this.vueApp.provide('docWeaverInstance', docWeaverInstance);
+
         // 使用Vuetify插件
         this.vueApp.use(vuetify);
 

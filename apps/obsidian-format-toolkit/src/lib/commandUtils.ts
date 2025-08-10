@@ -1,5 +1,10 @@
 import { App, Command, FuzzySuggestModal } from "obsidian";
 
+export function findCommand(app: App, commandId: string): Command | null {
+  // @ts-ignore - app.commands.findCommand() 是 Obsidian 内部 API
+  return app.commands.findCommand(commandId);
+}
+
 // 变更说明：
 // 为了与 Obsidian 的类型对齐，命令选择不再返回自定义的 CommandSelectResult，
 // 而是直接返回 Obsidian 提供的 Command 类型。

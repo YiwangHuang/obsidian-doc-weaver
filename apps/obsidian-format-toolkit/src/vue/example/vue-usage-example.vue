@@ -22,13 +22,27 @@
       <p><strong>图标名称:</strong> {{ selectedIcon }}</p>
       <div class="icon-preview" ref="iconPreview"></div>
     </div>
+
+    <!-- 测试 findCommand：输入命令ID，查询并显示命令信息 -->
+    <div class="result-display">
+      <h3>findCommand 测试</h3>
+      <input v-model="testCommandId" placeholder="输入命令ID，如 editor:toggle-bold" class="selector-input" />
+      <button class="selector-button" @click="handleFindCommand">查找命令</button>
+      <div v-if="foundCommand" class="found-command">
+        <p><strong>命令ID:</strong> {{ foundCommand.id }}</p>
+        <p><strong>命令名称:</strong> {{ foundCommand.name }}</p>
+      </div>
+      <div v-else-if="findTried">
+        <p>未找到该命令</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, inject, nextTick } from 'vue';
 import { App, Command, setIcon } from 'obsidian';
-import { openCommandSelector } from '../../lib/commandUtils';
+import { openCommandSelector, findCommand } from '../../lib/commandUtils';
 import { openIconSelector } from '../../lib/iconUtils';
 import type { DocWeaverInstance } from '../../main';
 
@@ -40,6 +54,11 @@ const app = inject<DocWeaverInstance>('docWeaverInstance')?.app
 const selectedCommand = ref<Command | null>(null);
 const selectedIcon = ref<string | null>(null);
 const iconPreview = ref<HTMLElement | null>(null);
+
+// findCommand 测试相关状态
+const testCommandId = ref('');
+const foundCommand = ref<Command | null>(null);
+const findTried = ref(false);
 
 /**
  * 处理命令选择
@@ -61,6 +80,16 @@ const handleSelectCommand = async () => {
   } catch (error) {
     console.error('命令选择出错:', error);
   }
+};
+
+// 测试：根据输入的命令ID查找命令
+const handleFindCommand = () => {
+  if (!app) {
+    console.error('Obsidian app 实例未找到');
+    return;
+  }
+  findTried.value = true;
+  foundCommand.value = testCommandId.value ? findCommand(app, testCommandId.value) : null;
 };
 
 /**
@@ -143,6 +172,14 @@ const handleSelectIcon = async () => {
 .result-display p {
   margin: 5px 0;
   color: #666;
+}
+
+.selector-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 8px 0;
 }
 
 .icon-preview {

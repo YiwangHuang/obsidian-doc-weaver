@@ -1,4 +1,4 @@
-import { moment } from 'obsidian';
+import { getLanguage } from 'obsidian';
 
 /**
  * 文本匹配结果接口
@@ -39,7 +39,7 @@ export interface LocalizedTextOptions {
  */
 function getCurrentLanguage(): string {
     try {
-        return moment.locale().split('-')[0]; // 'zh-cn' -> 'zh'
+        return getLanguage().split('-')[0]; // 'zh-cn' -> 'zh'
     } catch {
         return 'en'; // 默认英语
     }

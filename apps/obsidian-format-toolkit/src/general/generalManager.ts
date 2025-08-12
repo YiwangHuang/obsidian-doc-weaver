@@ -1,5 +1,6 @@
 import type MyPlugin from "../main";
 import type { DocWeaverInstance } from "../main";
+import type { Command } from "obsidian";
 
 import { createApp, App as VueApp, computed, h } from "vue";
 import { generalInfo, GeneralSettings, isGeneralSettings } from "./index";
@@ -7,7 +8,7 @@ import { debugLog } from "../lib/debugUtils";
 
 import EditingToolbar from './components/EditingToolbar.vue';
 import { vuetify } from '../vue/plugins/vuetify';
-import type { ToolbarItem } from './types';
+import type { ToolbarItem, ExtraCommandConfig } from './types';
 
 import { tagWrapperInfo } from '../toggleTagWrapper/index';
 import { TagWrapperSettings } from '../toggleTagWrapper/types';
@@ -79,6 +80,7 @@ export class GeneralManager {
         const exportFormatsItems = this.plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;
         const tagWrapperItems = this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings;
         const quickTemplateItems = this.plugin.settingList[quickTemplateInfo.name] as QuickTemplateSettings;
+        const generalItems = this.plugin.settingList[generalInfo.name] as GeneralSettings;
         
         // 创建数组副本以确保数组增减操作能被响应式系统追踪
         items.push({
@@ -106,6 +108,12 @@ export class GeneralManager {
             children: merged  // 合并后的数组本身就是新创建的
         });
         
+        // 添加用户自定义命令（只有启用的才显示）
+        const extraCommands = generalItems.extraCommands
+        if (extraCommands.length > 0) {
+            items.push(...extraCommands.map(cmd => ({ ...cmd }))); // 创建副本追踪变化
+        }
+
         return items;
     }
     
@@ -169,6 +177,16 @@ export class GeneralManager {
         } catch (error) {
             console.error('Failed to initialize SpeedDial component:', error);
         }
+    }
+
+    addExtraCommand(command: Command): void {
+        const newCommand: ExtraCommandConfig = {
+            commandId: command.id,
+            name: command.name,
+            enabled: true,
+            icon: command.icon || 'circle-question-mark'
+        };
+        this.config.extraCommands.push(newCommand);
     }
 
     /**

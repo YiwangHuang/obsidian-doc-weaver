@@ -35,3 +35,32 @@ export interface ToolbarItem {
    */
   children?: ToolbarItem[];
 }
+
+/**
+ * 单个命令配置接口，修改需同步修改类型守卫函数isExtraCommandConfig
+ */
+export interface ExtraCommandConfig extends ToolbarItem {
+    /** 命令ID，用于执行Obsidian命令 */
+    commandId: string;
+    /** 显示名称 */
+    name: string;
+    /** 图标名称 */
+    icon: string;
+    /** 是否启用 */
+    enabled: boolean;
+}
+
+/**
+ * 类型守卫函数：检查对象是否符合 ExtraCommandConfig 接口
+ * @param obj 要检查的对象
+ * @returns 是否符合 ExtraCommandConfig 接口
+ */
+export function isExtraCommandConfig(obj: unknown): obj is ExtraCommandConfig {
+    if (!obj || typeof obj !== 'object') return false;
+    
+    const cmd = obj as Record<string, unknown>;
+    return typeof cmd.commandId === 'string' &&
+           typeof cmd.name === 'string' &&
+           typeof cmd.enabled === 'boolean' &&
+           typeof cmd.icon === 'string';
+}

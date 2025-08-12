@@ -24,6 +24,14 @@
         density="compact"
       />
     </div>
+
+    <!-- 分割线 -->
+    <v-divider class="my-6" />
+
+    <!-- 额外命令管理 -->
+    <ExtraCommandSettings
+      :plugin="props.plugin"
+    />
   </v-container>
 </template>
 
@@ -37,6 +45,7 @@ import type MyPlugin from '../../main';
 import type { GeneralSettings } from '../index';
 import { getLocalizedText } from '../../lib/textUtils';
 import { generalInfo } from '../index';
+import ExtraCommandSettings from './ExtraCommandSettings.vue';
 
 interface GeneralSettingsProps {
   plugin: MyPlugin;

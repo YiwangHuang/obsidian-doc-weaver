@@ -187,6 +187,8 @@ export class TagWrapperManager {
         const SL = suffix.length;
         const selectedText = editor.somethingSelected() ? editor.getSelection() : "";
 
+        debugLog('executeTagWrapper', selectedText, editor.listSelections()); //TODO: 对多选文本用listSelections()处理
+
         const last_cursor = editor.getCursor();
         last_cursor.line = editor.lastLine();
         last_cursor.ch = editor.getLine(last_cursor.line).length;

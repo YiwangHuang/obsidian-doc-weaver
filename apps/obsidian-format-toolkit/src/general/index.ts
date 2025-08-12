@@ -3,17 +3,19 @@
  */
 
 import { ModuleInfoRegistry } from '../main';
-
 import { getLocalizedText } from '../lib/textUtils';
 import GeneralSettingsComponent from './components/GeneralSettings.vue';
-import { ToolbarItem } from './types';
+import type { ExtraCommandConfig } from './types';
+import { isExtraCommandConfig } from './types';
+
 /**
  * 通用模块设置接口，修改需同步修改类型守卫函数isGeneralSettings
  */
 export interface GeneralSettings {
     /** 是否显示 SpeedDial 悬浮按钮 */
     showToolBar: boolean;
-    commands: ToolbarItem[];
+    /** 自定义命令配置数组 */
+    extraCommands: ExtraCommandConfig[];
 }
 
 /**
@@ -25,7 +27,9 @@ export function isGeneralSettings(obj: unknown): obj is GeneralSettings {
     if (!obj || typeof obj !== 'object') return false;
     
     const settings = obj as Record<string, unknown>;
-    return typeof settings.showSpeedDial === 'boolean';
+    return typeof settings.showToolBar === 'boolean' &&
+           Array.isArray(settings.extraCommands) &&
+           settings.extraCommands.every((command: unknown) => isExtraCommandConfig(command));
 }
 
 /**
@@ -33,7 +37,7 @@ export function isGeneralSettings(obj: unknown): obj is GeneralSettings {
  */
 export const DEFAULT_GENERAL_SETTINGS: GeneralSettings = {
     showToolBar: true,
-    commands: []
+    extraCommands: []
 };
 
 // General settings registry
@@ -48,3 +52,5 @@ export const generalInfo: ModuleInfoRegistry<GeneralSettings> = {
 // 导出管理器
 export { GeneralManager } from './generalManager';
 
+// 导出类型
+export type { ExtraCommandConfig } from './types';

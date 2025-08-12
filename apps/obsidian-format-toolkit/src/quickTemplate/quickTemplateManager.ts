@@ -128,7 +128,6 @@ export class QuickTemplateManager {
         try {
             // 获取选中的文本
             const selectedText = editor.somethingSelected() ? editor.getSelection() : "";
-            
             // 处理模板内容，替换占位符
             const processedTemplate = this.replacePlaceholders(template.template, selectedText);
             

@@ -45,28 +45,63 @@
   )
 }
 
-// 重定义下划线命令
+// 先保存内置的 underline 引用，以便包装而不丢失自动换行能力
+#let underline__builtin = underline
+
+// 重定义下划线命令，新增 hide 属性用于隐藏正文内容，保持原生换行与布局
+// - hide: 为 true 时隐藏正文（通过将文字透明化），但仍按正文长度与换行绘制下划线
+// - show_content: 兼容旧参数；若传入 hide 则以 hide 优先
 #let underline(
   body,
-  stroke: black,
+  stroke: 0.6pt+black,
   offset: 2pt,
-  thickness: 0.6pt,
-  show_content: true, // 控制是否显示内容文字，用于挖空
+  evade: false, // 是否避开文字
+  show_content: true,    // 是否显示正文内容
+  fill_line: false,      // 新增：为 true 时创建多行填空效果
 ) = {
-  context {
-    let size = measure(body)
-    box(
-      baseline: offset, // 设置box的基线位置与文字对齐
-      stack(
-        dir: ttb,
-        spacing: offset,
-        if show_content { body } else { [] },
-        line(
-          length: size.width,
-          stroke: (thickness + stroke)
+  let content_to_show = if show_content { body } else { text(fill: rgb(0, 0, 0, 0))[#body] }
+  
+  // 使用内置 underline 以保留自动换行
+  // fill_line=true 时，自动计算行数并创建多行填空效果
+  if fill_line and not show_content {
+    context {
+      // 准备要显示的内容
+      let content_to_show = if show_content { body } else { text(fill: rgb(0, 0, 0, 0))[#body] }
+      
+      // 使用layout来获取容器宽度并进行测量
+      layout(size => {
+        let container_width = size.width
+        
+        // 简单直接：文本宽度除以容器宽度，向上取整得到行数
+        let measured = measure(content_to_show)
+        let calculated_lines = calc.max(1, calc.ceil(measured.width / container_width))
+        let line_height = 1em  // 固定行高
+        
+        // 调试信息：显示计算结果
+        // [文本宽度: #measured.width, 容器宽度: #container_width, 行数: #calculated_lines] 
+        // linebreak()
+        
+        // 创建多行填空布局
+        stack(
+          dir: ttb,
+          spacing: line_height,
+          ..range(calculated_lines).map(i => {
+            stack(
+              dir: ttb,
+              spacing: offset,
+              // 只在第一行显示内容
+              v(line_height),
+              line(length: 100%, stroke: stroke)
+            )
+          })
         )
-      )
-    )
+      })
+    }
+  } else if fill_line {
+    set par(justify: true)
+    underline__builtin(stroke: stroke, offset: offset, evade: evade)[#content_to_show]
+  } else {
+    underline__builtin(stroke: stroke, offset: offset, evade: evade)[#content_to_show]
   }
 }
 

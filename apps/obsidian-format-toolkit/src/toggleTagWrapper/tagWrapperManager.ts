@@ -464,23 +464,13 @@ export class TagWrapperManager {
             // 单选区：直接设置
             editor.setSelection(selections[0].anchor, selections[0].head);
         } else {
-            // 多选区：先设置第一个选区
-            // editor.setSelection(selections[0].anchor, selections[0].head);
-
-
-            editor.setSelections(selections);
-            
-            // 尝试恢复多选状态（Obsidian的多选API可能有限）
+            // 尝试恢复多选状态
             try {
-                debugLog('restoreSelections', 'attempting to restore', selections.length, 'selections');
-                
-                // 注意：Obsidian基于CodeMirror，多选恢复可能需要特定的API
-                // 目前暂时只保持第一个选区，这样至少保证基本功能可用
-                // TODO: 当找到合适的API时，实现完整的多选恢复逻辑
-                
+                editor.setSelections(selections);
             } catch (error) {
                 debugLog('restoreSelections', 'failed to restore multiple selections:', error);
                 // 如果多选恢复失败，至少保持第一个选区
+                editor.setSelection(selections[0].anchor, selections[0].head);
             }
         }
     }

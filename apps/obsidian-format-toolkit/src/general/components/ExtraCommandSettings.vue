@@ -33,7 +33,7 @@
               <!-- 命令名称和图标 -->
                <v-col cols="6">
                  <div class="d-flex align-center">
-                   <Icon :name="command.icon" size="small" class="me-2" />
+                   <IconSelectButton :app="props.plugin.app" :command="command" />
                    <div class="text-subtitle-2 font-weight-medium">{{ command.name }}</div>
                  </div>
                </v-col>
@@ -121,23 +121,7 @@
               append-inner-icon="mdi-magnify"
               @click:append-inner="selectObsidianCommand"
             />
-            <div class="text-caption text-medium-emphasis mt-1">
-              {{ getLocalizedText({ 
-                en: "Click the search icon to select a command from Obsidian", 
-                zh: "点击搜索图标从 Obsidian 中选择命令" 
-              }) }}
-            </div>
           </div>
-          
-          <!-- 图标选择 -->
-          <div class="mb-3">
-            <IconSelect
-              v-model="editingCommand.icon"
-              :label="getLocalizedText({ en: 'Icon', zh: '图标' })"
-              @update:model-value="handleIconChange"
-            />
-          </div>
-        
         </v-form>
       </div>
     </ObsidianVueModal>
@@ -166,6 +150,7 @@ import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { generalInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
+import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import IconSelect from '../../vue/components/IconSelect.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
@@ -216,6 +201,8 @@ const openCommandModal = (index: number) => {
     modalVisible.value = true;
   // TODO: 实现弹窗打开逻辑
 };
+
+// 图标选择逻辑已抽离为 IconSelectButton 组件
 
 /**
  * 添加新命令 - 预留空实现

@@ -184,7 +184,7 @@ export class GeneralManager {
             commandId: command.id,
             name: command.name,
             enabled: true,
-            icon: command.icon || 'circle-question-mark'
+            icon: command.icon || 'question-mark-glyph'
         };
         this.config.extraCommands.push(newCommand);
     }

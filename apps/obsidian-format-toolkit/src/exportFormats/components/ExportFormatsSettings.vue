@@ -47,20 +47,19 @@
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
               <!-- 格式标签 -->
-              <v-col cols="2">
-                <v-chip 
-                  :color="config.enabled ? OBSIDIAN_PRIMARY_COLOR : 'grey'" 
-                  size="small" 
-                  label
-                >
-                  {{ config.format }}
-                </v-chip>
-              </v-col>
-
-              <!-- 格式名称和图标 -->
-              <v-col cols="4">
+              <v-col cols="6">
                 <div class="d-flex align-center">
-                  <Icon :name="config.icon" size="small" class="me-2" />
+                  <v-chip class="me-2"
+                    :color="config.enabled ? OBSIDIAN_PRIMARY_COLOR : 'grey'" 
+                    size="small" 
+                    label
+                  >
+                    {{ config.format }}
+                  </v-chip>
+                
+  
+                <!-- 格式名称和图标 -->
+                  <IconSelectButton :app="props.plugin.app" :command="config" />
                   <div class="text-subtitle-2 font-weight-medium">{{ config.name }}</div>
                 </div>
               </v-col>
@@ -152,13 +151,6 @@
           density="compact"
           class="mb-3"
         />
-
-        <!-- 导出格式图标选择 -->
-        <div class="mb-3">
-          <IconSelect 
-            v-model="editingConfig.icon"
-          />
-        </div>
 
         <!-- 输出目录和文件名 -->
         <TemplateEditor :placeholders="pathPlaceholders">
@@ -277,11 +269,9 @@ import {
   EXTENSION_MAP
 } from '../types';
 import type { OutputFormat } from '../textConvert/textConverter';
-import { generateTimestamp } from '../../lib/idGenerator';
-import { getDefaultYAML, createFormatAssetStructure } from '../textConvert/defaultStyleConfig/styleConfigs';
+import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import Icon from '../../vue/components/Icon.vue';
-import IconSelect from '../../vue/components/IconSelect.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
@@ -493,5 +483,18 @@ code {
 /* 确保滑块在小屏幕上显示正常 */
 .v-slider {
   margin-top: 8px;
+}
+
+/* 格式标签芯片样式 - 规定尺寸和外观 */
+.v-chip {
+  width: 60px !important;
+  height: 24px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500;
+  border-radius: 9px;
+  /* box-sizing: border-box !important; */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 </style> 

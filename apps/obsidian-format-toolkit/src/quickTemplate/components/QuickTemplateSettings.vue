@@ -33,7 +33,7 @@
               <!-- 模板名称和图标 -->
                <v-col cols="6">
                  <div class="d-flex align-center">
-                   <Icon :name="template.icon" size="small" class="me-2" />
+                   <IconSelectButton :app="props.plugin.app" :command="template" />
                    <div class="text-subtitle-2 font-weight-medium">{{ template.name }}</div>
                  </div>
                </v-col>
@@ -108,14 +108,6 @@
           class="mb-3"
         />
 
-        <!-- 模板图标选择 -->
-         <div class="mb-3">
-           <IconSelect 
-             v-model="editingTemplate.icon"
-             @change="handleIconChange"
-           />
-         </div>
-
         <!-- 模板编辑器组件 -->
         <TemplateEditor
           :placeholders="templatePlaceholders"
@@ -167,7 +159,7 @@ import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { quickTemplateInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
-import IconSelect from '../../vue/components/IconSelect.vue';
+import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import TemplateEditor from '../../vue/components/TemplateEditor.vue';
 

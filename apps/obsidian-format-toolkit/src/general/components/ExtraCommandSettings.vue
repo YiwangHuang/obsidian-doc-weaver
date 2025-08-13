@@ -110,18 +110,9 @@
             />
           </div>
 
-          <!-- 命令ID选择 -->
-          <div class="mb-3">
-            <v-text-field
-              v-model="editingCommand.commandId"
-              :label="getLocalizedText({ en: 'Command ID', zh: '命令ID' })"
-              variant="outlined"
-              density="compact"
-              readonly
-              append-inner-icon="mdi-magnify"
-              @click:append-inner="selectObsidianCommand"
-            />
-          </div>
+          <PreviewPanel :title="getLocalizedText({ en: 'Command Original Name', zh: '命令原名' })">
+            {{ findCommand(props.plugin.app, editingCommand.commandId)?.name || getLocalizedText({ en: 'Command not found', zh: '命令未找到' }) }}
+          </PreviewPanel>
         </v-form>
       </div>
     </ObsidianVueModal>
@@ -151,10 +142,10 @@ import { getLocalizedText } from '../../lib/textUtils';
 import { generalInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
 import IconSelectButton from '../../vue/components/IconSelectButton.vue';
-import IconSelect from '../../vue/components/IconSelect.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
+import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
-import { openCommandSelector } from '../../lib/commandUtils';
+import { openCommandSelector, findCommand } from '../../lib/commandUtils';
 
 interface ExtraCommandSettingsProps {
   plugin: MyPlugin;
@@ -287,11 +278,5 @@ const handleIconChange = (iconName: string) => {
 code {
   font-family: var(--font-monospace);
   font-size: 0.9em;
-}
-
-.icon-btn-square {
-  min-width: 32px !important;
-  width: 32px;
-  height: 32px;
 }
 </style>

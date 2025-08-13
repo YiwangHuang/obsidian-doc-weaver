@@ -62,7 +62,7 @@
   text(17pt, weight: "bold")[#title]
   
   // 显示作者信息
-  if author != () {
+  if (author != ()) and (author != "") {
     v(0em) // 添加标题和作者之间的垂直间距，为0时起到换行的作用
     text(12pt, weight: "medium")[
       #if type(author) == "array" {

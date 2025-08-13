@@ -98,7 +98,8 @@
       })
     }
   } else if fill_line {
-    set par(justify: true)
+    // set par(justify: true)
+    linebreak()
     underline__builtin(stroke: stroke, offset: offset, evade: evade)[#content_to_show]
   } else {
     underline__builtin(stroke: stroke, offset: offset, evade: evade)[#content_to_show]

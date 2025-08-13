@@ -84,7 +84,7 @@
       <v-btn
         @click="addNewTemplate()"
       >
-        <Icon name="plus" class="me-2" />
+        <Icon name="plus" class="me-1" />
         {{ getLocalizedText({ en: "Add Template Configuration", zh: "添加模板配置" }) }}
       </v-btn>
     </div>
@@ -96,7 +96,7 @@
     >
       <div v-if="editingTemplate">
         <h3 class="pt-0 mt-0">
-          {{ getLocalizedText({ en: "Edit Template Configuration", zh: "编辑模板配置" }) }}: {{ editingTemplate.name }}
+          {{ getLocalizedText({ en: "Edit Template Configuration", zh: "编辑模板配置" }) }}
         </h3>
         
         <!-- 模板名称 -->

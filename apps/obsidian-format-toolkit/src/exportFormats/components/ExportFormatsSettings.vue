@@ -126,7 +126,7 @@
           @click="props.plugin.exportFormatsManager.addExportFormatItem(selectedFormat)"
           :disabled="!selectedFormat"
         >
-          <!-- <v-icon start>mdi-plus</v-icon> -->
+          <Icon name="plus" class="me-1" />
           {{ getLocalizedText({ en: "Add Export Format", zh: "添加导出格式" }) }}
         </v-btn>
       </div>
@@ -140,7 +140,7 @@
     >
       <div v-if="editingConfig" class="export-modal-form">
         <h3 class="mt-0 pt-0">
-          {{ getLocalizedText({ en: "Edit Export Format", zh: "编辑导出格式" }) }}: {{ editingConfig.name }}
+          {{ getLocalizedText({ en: "Edit Export Format", zh: "编辑导出格式" }) }}
         </h3>
         
         <!-- 格式名称 -->

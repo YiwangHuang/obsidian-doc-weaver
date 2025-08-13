@@ -31,24 +31,15 @@
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
               <!-- 命令名称和图标 -->
-               <v-col cols="6">
+               <v-col cols="7">
                  <div class="d-flex align-center">
                    <IconSelectButton :app="props.plugin.app" :command="command" />
                    <div class="text-subtitle-2 font-weight-medium">{{ command.name }}</div>
                  </div>
                </v-col>
-
-              <!-- 命令ID预览 -->
-              <v-col cols="2">
-                <div class="text-caption text-medium-emphasis">
-                  <code style="background: var(--background-modifier-border); padding: 2px 4px; border-radius: 3px;">
-                    {{ getCommandPreview(command.commandId) }}
-                  </code>
-                </div>
-              </v-col>
               
               <!-- 操作按钮 -->
-              <v-col cols="4">
+              <v-col cols="5">
                 <div class="d-flex align-center justify-end">
                   <v-switch
                     v-model="command.enabled"
@@ -84,7 +75,7 @@
       <v-btn
         @click="addNewCommand()"
       >
-        <Icon name="plus" class="me-2" />
+        <Icon name="plus" class="me-1" />
         {{ getLocalizedText({ en: "Add Command Configuration", zh: "添加命令配置" }) }}
       </v-btn>
     </div>
@@ -96,7 +87,7 @@
     >
       <div v-if="editingCommand">
         <h3 class="pt-0 mt-0">
-          {{ getLocalizedText({ en: "Edit Command Configuration", zh: "编辑命令配置" }) }}: {{ editingCommand.name }}
+          {{ getLocalizedText({ en: "Edit Command Configuration", zh: "编辑命令配置" }) }}
         </h3>
         
         <v-form class="mt-4">
@@ -118,17 +109,25 @@
     </ObsidianVueModal>
 
     <!-- 删除确认对话框 -->
-    <ConfirmDialog
-      v-model:visible="deleteConfirmVisible"
-      :obsidian-app="props.plugin.app"
-      :title="getLocalizedText({ en: 'Delete Command', zh: '删除命令' })"
-      :message="getLocalizedText({ 
-        en: 'Are you sure you want to delete this command configuration?', 
-        zh: '确定要删除这个命令配置吗？' 
-      })"
-      @confirm="confirmDelete"
-      @cancel="cancelDelete"
-    />
+    <v-dialog v-model="deleteConfirmVisible" max-width="400">
+      <v-card>
+        <v-card-title>
+          {{ getLocalizedText({ en: "Confirm Delete", zh: "确认删除" }) }}
+        </v-card-title>
+        <v-card-text>
+          {{ getLocalizedText({ en: "Are you sure you want to delete this command configuration?", zh: "确认要删除此命令配置吗？" }) }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="cancelDelete">
+            {{ getLocalizedText({ en: "Cancel", zh: "取消" }) }}
+          </v-btn>
+          <v-btn color="error" @click="confirmDelete">
+            {{ getLocalizedText({ en: "Delete", zh: "删除" }) }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -162,10 +161,7 @@ const editingCommand = ref<ExtraCommandConfig | null>(null);
 const deleteConfirmVisible = ref(false);
 const deleteCommandIndex = ref<number | null>(null);
 
-// 获取命令ID预览文本（简化显示） - 用于命令列表预览
-const getCommandPreview = (commandId: string): string => {
-    return commandId.length > 30 ? commandId.substring(0, 30) + '...' : commandId;
-};
+
 
 /**
  * 拖拽结束处理函数 - 预留空实现

@@ -86,6 +86,7 @@
       <v-btn
         @click="props.plugin.tagWrapperManager.addTagItem()"
       >
+        <Icon name="plus" class="me-1" />
         {{ getLocalizedText({ en: "Add Tag Configuration", zh: "添加标签配置" }) }}
       </v-btn>
     </div>
@@ -97,7 +98,7 @@
     >
       <div v-if="editingTag">
         <h3 class="pt-0 mt-0">
-          {{ getLocalizedText({ en: "Edit Tag Configuration", zh: "编辑标签配置" }) }}: {{ editingTag.name }}
+          {{ getLocalizedText({ en: "Edit Tag Configuration", zh: "编辑标签配置" }) }}
         </h3>
         
         <!-- 标签名称 -->

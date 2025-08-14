@@ -107,7 +107,10 @@ BaseConverter.registerProcessor({
                 .replace(/\}/g, '\\}')
                 .replace(/\*/g, '\\*')
                 .replace(/_/g, '\\_')
-                .replace(/#/g, '\\#');
+                .replace(/#/g, '\\#')
+                // TODO: 尝试找个更优雅的方案，比如在所有]后加/
+                .replace(/\./g, '\\.'); // 防止typst把.理解成代码
+
         };
 
         // 添加处理iframe的规则

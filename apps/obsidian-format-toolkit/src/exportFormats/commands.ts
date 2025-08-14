@@ -154,8 +154,8 @@ export function addExportFormatsCommands(plugin: MyPlugin): void {
                             new Notice(`选中的文本是: ${content}`);
                             const converter = new TextConverter(plugin, plugin.app.workspace.getActiveFile() as TFile);
                             console.log(await converter.convert(content, format as OutputFormat));
-                            console.log(converter.linkParser.linkList);
-                            // console.log(converter.md.parse(content, {}));
+                            // console.log(converter.linkParser.linkList);
+                            console.log(converter.md.parse(content, {}));
                             })
                     );
                 }

@@ -39,7 +39,7 @@ BaseConverter.registerProcessor({
                     }
                 }
             }
-            console.log(footnoteDict);
+            // console.log(footnoteDict);
             return true;
         });
 

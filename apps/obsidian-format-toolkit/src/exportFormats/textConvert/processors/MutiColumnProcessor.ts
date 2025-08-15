@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it';
-import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
+// import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 import { BaseConverter } from '../textConverter';
-import url from 'url';
+import type { RuleBlock } from "markdown-it/lib/parser_block.mjs";
 
 BaseConverter.registerProcessor({
     name: 'multiColumnParserRule',
@@ -18,16 +18,16 @@ BaseConverter.registerProcessor({
     formats: ['typst'],
     description: '自定义分栏格式渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
-        converter.md.renderer.rules.columns_open = (tokens, idx) => {
+        converter.md.renderer.rules.mditCol_tabs_open = (tokens, idx) => {
             const token = tokens[idx];
-            const widths = token.attrGet('widths');
+            const widths = token.meta?.columnWidths;
 
-            const result = '#grid(\n' + (widths?`columns: (${widths?.replace(/%/g, 'fr')}),\n`:'');
+            const result = '#grid(\n' + (widths?`columns: (${widths.join(',').replace(/%/g, 'fr')}),\n`:'');
             return result;
         };
-        converter.md.renderer.rules.columns_close = () => ')\n';
-        converter.md.renderer.rules.column_open = () => '[\n';
-        converter.md.renderer.rules.column_close = () => '],\n';
+        converter.md.renderer.rules.mditCol_tabs_close = () => ')\n';
+        converter.md.renderer.rules.mditCol_tab_open = () => '[\n';
+        converter.md.renderer.rules.mditCol_tab_close = () => '],\n';
     }
 });
 
@@ -48,14 +48,378 @@ BaseConverter.registerProcessor({
     }
 });
 
+interface ColRuleStore {
+    state: string | null;
+    columnIndex?: number;
+    columnWidths?: string[];
+}
 
-if (import.meta.url === url.pathToFileURL(process.argv[1]).href){
-// 创建markdown-it实例并应用插件
-const md = new MarkdownIt();
-md.use(columnsPlugin);
+const colRuleStore: ColRuleStore = {
+    state: null,
+}
 
-// 测试用例
-const testMarkdown = `
+function columnsPlugin(md: MarkdownIt) {
+  const name = "mditCol";
+  md.block.ruler.before('fence', `${name}_tabs`, getColsRule(name, colRuleStore), {
+      alt: ["paragraph", "reference", "blockquote", "list"],
+  });
+  md.block.ruler.before('fence', `${name}_tab`, getColRule(name, colRuleStore), {
+      alt: ["paragraph", "reference", "blockquote", "list"],
+  });
+}
+
+/**
+ * 创建Columns容器规则解析器的工厂函数
+ * @param name - Columns容器的名称
+ * @param store - 存储当前解析状态的对象
+ * @returns RuleBlock - markdown-it的块级规则函数
+ */
+const getColsRule = (name: string, store: ColRuleStore): RuleBlock => (state, startLine, endLine, silent) => {
+    // 获取当前行的起始和结束位置
+    let start = state.bMarks[startLine] + state.tShift[startLine];
+    let max = state.eMarks[startLine];
+
+    // 快速检查第一个字符，过滤掉大多数非容器块
+    if (state.src[start] !== ":") return false;
+    let pos = start + 1;
+
+    // 检查标记字符串的其余部分（连续的冒号）
+    while (pos <= max) {
+      if (state.src[pos] !== ":") break;
+      pos++;
+    }
+
+    const markerCount = pos - start;
+
+    // 标记至少需要3个冒号
+    if (markerCount < 3) return false;
+
+    // 提取标记和参数
+    const markup = state.src.slice(start, pos);
+    const params = state.src.slice(pos, max);
+
+    // 解析容器名称
+    const paramList = params.split("|").map(param => param.trim());
+
+    // 检查容器名称是否匹配
+    const containerMatch = findFirstMatch(paramList, ["mditCol", "col"]);
+    if (!containerMatch) return false;
+
+    // 如果处于静默模式（只验证语法），找到开始标记就返回true
+    if (silent) return true;
+
+    let nextLine = startLine;
+    let autoClosed = false;
+
+    // 搜索块的结束位置
+    while (
+      // 未闭合的块应该在文档末尾自动闭合
+      // 块也可能在父级块结束时自动闭合
+      nextLine < endLine
+    ) {
+      nextLine++;
+      start = state.bMarks[nextLine] + state.tShift[nextLine];
+      max = state.eMarks[nextLine];
+
+      // 如果遇到负缩进的非空行，应该停止列表
+      if (start < max && state.sCount[nextLine] < state.blkIndent)
+        // 例如：
+        // - ```
+        //  test
+        break;
+
+      if (
+        // 匹配开始字符":"
+        state.src[start] === ":" &&
+        // 结束围栏的缩进应该少于4个空格
+        state.sCount[nextLine] - state.blkIndent < 4
+      ) {
+        // 检查标记的其余部分
+        for (pos = start + 1; pos <= max; pos++)
+          if (state.src[pos] !== ":") break;
+
+        // 结束围栏必须至少与开始围栏一样长
+        if (pos - start >= markerCount) {
+          // 确保后面只有空格
+          pos = state.skipSpaces(pos);
+
+          if (pos >= max) {
+            // 找到了！
+            autoClosed = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // 保存原始状态并设置新状态，使子tab可以被识别
+    const originalStore = {...store};
+
+    store.state = name; // 设置状态，允许子tab被解析
+    // 重置列索引，确保每个新的columns容器都从0开始
+    store.columnIndex = -1; // 初始化为-1，这样第一个@col会递增到0
+
+    // 解析列宽
+    const widthRegex = RegExp(/^width\((.*?)\)$/);
+    const colWidths = findFirstMatch(paramList, [widthRegex]);
+    if (colWidths) {
+        // 使用 processColumnWidths 函数处理和验证列宽值
+        const extractedWidths = colWidths.match(widthRegex)?.[1];
+        if (extractedWidths) {
+            store.columnWidths = processColumnWidths(extractedWidths);
+        }
+    }
+
+    // 保存当前状态，以便稍后恢复
+    const oldParent = state.parentType;
+    const oldLineMax = state.lineMax;
+
+    // @ts-expect-error: 我们正在创建一个名为"${name}_tabs"的新类型
+    state.parentType = `${name}_tabs`;
+
+    // 这将防止延迟续行超出我们的结束标记
+    state.lineMax = nextLine - (autoClosed ? 1 : 0);
+
+    // 创建tabs容器的开始token
+    const openToken = state.push(`${name}_tabs_open`, "div", 1);
+    // openToken.tag = 'div';
+    openToken.attrSet('style', `display: flex; flex-wrap: nowrap;`); // TODO: 修改AnyBlock的多栏样式，添加flex-wrap: nowrap;
+    openToken.markup = markup;
+    openToken.block = true;
+    openToken.info = containerMatch;
+
+    // openToken.meta = { id: id.trim() }; // 保存容器ID
+    openToken.map = [startLine, nextLine - (autoClosed ? 1 : 0)];
+
+    
+    if (store.columnWidths) {
+        // openToken.attrSet('widths', store.columnWidths.join(',')); // 考虑删除
+        openToken.meta = {
+            columnWidths: store.columnWidths,
+        }
+    }
+
+    // 递归解析tabs容器内的内容
+    state.md.block.tokenize(
+      state,
+      startLine + 1,
+      nextLine - (autoClosed ? 1 : 0),
+    );
+
+    // 恢复原始状态 - 修复：正确恢复全局store对象的属性
+    Object.assign(store, originalStore);
+
+    // 创建tabs容器的结束token
+    const closeToken = state.push(`${name}_tabs_close`, "div", -1);
+    // closeToken.tag = 'div';
+    closeToken.markup = state.src.slice(start, pos);
+    closeToken.block = true;
+
+    // 恢复解析器状态
+    state.parentType = oldParent;
+    state.lineMax = oldLineMax;
+    state.line = nextLine + (autoClosed ? 1 : 0);
+
+    return true;
+  };
+
+const COL_MARKER = `@col`;
+
+/**
+ * 创建Col规则解析器的工厂函数
+ * @param name - Col容器的名称
+ * @param store - 存储当前解析状态的对象
+ * @returns RuleBlock - markdown-it的块级规则函数
+ */
+const getColRule = (name: string, store: ColRuleStore): RuleBlock => (state, startLine, endLine, silent) => {
+    // 如果当前状态不匹配，直接返回false
+    if (store.state !== name) return false;
+
+    // 获取当前行的起始位置和结束位置
+    let start = state.bMarks[startLine] + state.tShift[startLine];
+    let max = state.eMarks[startLine];
+
+    /*
+    * 快速检查第一个字符，
+    * 这可以过滤掉大部分非tab块
+    */
+    if (state.src.charAt(start) !== "@") return false;
+
+    let index;
+
+    // 检查剩余的标记字符串是否匹配TAB_MARKER
+    for (index = 0; index < COL_MARKER.length; index++){
+        if (COL_MARKER[index] !== state.src[start + index]) return false;
+    }
+
+    // 提取标记字符串和信息字符串
+    const markup = state.src.slice(start, start + index);
+    // const info = state.src.slice(start + index, max);
+
+    // 如果处于静默模式（只验证语法），找到开始标记就返回true
+    if (silent) return true;
+
+    let nextLine = startLine;
+    let autoClosed = false;
+
+    // 搜索块的结束位置
+    while (
+    // 未闭合的块应该在文档末尾自动闭合
+    // 块也可能在父级块结束时自动闭合
+    nextLine < endLine
+    ) {
+    nextLine++;
+    start = state.bMarks[nextLine] + state.tShift[nextLine];
+    max = state.eMarks[nextLine];
+
+    // 如果遇到负缩进的非空行，应该停止列表
+    if (start < max && state.sCount[nextLine] < state.blkIndent)
+        // 例如：
+        // - ```
+        //  test
+        break;
+
+    if (
+        // 匹配开始字符"@"
+        state.src[start] === "@" &&
+        // 标记的缩进不应该超过开始围栏的缩进
+        state.sCount[nextLine] <= state.sCount[startLine]
+    ) {
+        let openMakerMatched = true;
+
+        // 检查是否完全匹配TAB_MARKER
+        for (index = 0; index < COL_MARKER.length; index++)
+        if (COL_MARKER[index] !== state.src[start + index]) {
+            openMakerMatched = false;
+            break;
+        }
+
+        if (openMakerMatched) {
+        // 找到匹配的结束标记！
+        autoClosed = true;
+        break;
+        }
+    }
+    }
+
+    // 保存当前状态，以便稍后恢复
+    const oldParent = state.parentType;
+    const oldLineMax = state.lineMax;
+
+    // @ts-expect-error: 我们正在创建一个名为"tab"的新类型
+    state.parentType = `tab`;
+
+    // 这将防止延迟续行超出我们的结束标记
+    state.lineMax = nextLine - (autoClosed ? 1 : 0);
+
+    // 创建开始token
+    const openToken = state.push(`${name}_tab_open`, "div", 1);
+
+    // 递增列索引，确保每个@col获取正确的宽度索引
+    store.columnIndex = (store.columnIndex ?? -1) + 1;
+
+    // 设置token属性
+    // openToken.tag = 'div';
+    openToken.block = true;
+    openToken.markup = markup;
+
+    const width = store.columnWidths?.[store.columnIndex];
+    if (width) {
+        openToken.attrSet('style', `flex: 0 1 ${width};`);
+        openToken.meta = {
+            columnWidth: width,
+        };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    // if (id) openToken.meta.id = id.trim(); // 如果有ID，添加到meta中
+    openToken.map = [startLine, nextLine - (autoClosed ? 1 : 0)];
+
+    // 递归解析tab内容
+    state.md.block.tokenize(
+    state,
+    startLine + 1,
+    nextLine + (autoClosed ? 0 : 1),
+    );
+
+    // 创建结束token
+    const closeToken = state.push(`${name}_tab_close`, "div", -1);
+    // closeToken.tag = 'div';
+    closeToken.block = true;
+    closeToken.markup = "";
+
+    // 恢复原始状态
+    state.parentType = oldParent;
+    state.lineMax = oldLineMax;
+    state.line = nextLine + (autoClosed ? 0 : 1);
+
+    return true;
+};
+
+/**
+ * 在字符串数组中查找第一个与任一模式完全匹配的元素。
+ * 
+ * @param strings - 待检查的字符串数组。
+ * @param patterns - 字符串或正则表达式组成的数组，用于匹配的模式。
+ *                   如果是字符串，则进行完全相等判断；
+ *                   如果是正则表达式，则必须显式包含 ^ 和 $ 才能实现完全匹配。
+ * 
+ * @returns 第一个匹配成功的字符串；若无匹配则返回 undefined。
+ * 
+ * 注意：
+ * - RegExp.test(str) 默认是 **部分匹配**，即模式在字符串任意位置出现即可返回 true。
+ *   如果需要完全匹配，应在正则表达式中加上 `^` 开头和 `$` 结尾。
+ */
+function findFirstMatch(
+  strings: string[],
+  patterns: (string | RegExp)[]
+): string | undefined {
+  for (const str of strings) {
+    for (const pattern of patterns) {
+      if (typeof pattern === "string") {
+        if (str === pattern) return str; // 字符串模式，必须完全相等
+      } else {
+        // 正则模式：调用者应保证正则写法决定是完全还是部分匹配
+        if (pattern.test(str)) return str;
+      }
+    }
+  }
+  return undefined;
+}
+
+/**
+* 处理和验证列宽值
+* 每个值应该是数字加%或px，不满足的一律保留数字并加%
+* 
+* @param colWidths - 原始列宽字符串，格式如 "78%,22%,10%"
+* @returns 处理后的列宽数组，每个元素都是有效的宽度值
+*/
+function processColumnWidths(colWidths: string): string[] {
+  // 分割列宽字符串并处理每个值
+  return colWidths.split(',').map(width => {
+      const trimmedWidth = width.trim();
+      
+      // 检查是否已经是有效的格式（数字+% 或 数字+px）
+      const validWidthRegex = /^\d+(?:\.\d+)?(?:%|px)$/;
+      
+      if (validWidthRegex.test(trimmedWidth)) {
+          // 已经是有效格式，直接返回
+          return trimmedWidth;
+      }
+      
+      // 提取数字部分
+      const numberMatch = trimmedWidth.match(/^(\d+(?:\.\d+)?)/);
+      if (numberMatch) {
+          // 有数字部分，添加%单位
+          return numberMatch[1] + '%';
+      }
+      
+      // 没有数字部分，返回默认值
+      return '100%';
+  });
+}
+
+/*
+测试文本
 ::: col|width(78%,22%,10%)
 @col
 
@@ -74,179 +438,4 @@ Second paragraph in **second** column.
 @col
 Content for the third column.
 :::
-`;
-
-// 执行测试
-// const result = md.render(testMarkdown);
-console.log(md.parse(testMarkdown, {}));
-console.log(new BaseConverter().convert(testMarkdown, 'quarto'));  // 核心规则
-// console.log(result);
-}
-
-
-
-// 定义列数据的接口，用于存储列的状态和内容
-interface ColumnData {
-    type: 'column_open' | 'column_close';  // 列的开始或结束标记
-    content?: string;                      // 列的内容（仅在column_close时使用）
-    widths?: string[];                     // 列宽度数组
-}
-
-/**
- * 解析列属性字符串
- * @param marker 标记字符串，例如 "::: col|width(78%,22%)|align(left)"
- * @returns 属性数组，例如 ["col", "width(78%,22%)", "align(left)"]
- */
-function parseColumnAttributes(marker: string): string[] {
-const colonMatch = marker.match(/^:::\s?(.+)$/);
-if (!colonMatch) return [];
-
-return colonMatch[1].split('|').map(attr => attr.trim());
-}
-
-/**
- * 自定义markdown-it插件，用于处理多列布局
- * 支持在列内嵌套其他围栏块
- * 语法示例：
- * ::: col|width(78%,22%)
- * @col
- * 第一列内容
- * ::: info
- * 嵌套的信息块
- * :::
- * @col
- * 第二列内容
- * :::
- */
-function columnsPlugin(md: MarkdownIt): void {
-    // 在fence规则之前注册新的columns规则
-    md.block.ruler.before('fence', 'columns', (
-        state: StateBlock,
-        startLine: number,
-        endLine: number,
-        silent: boolean
-    ): boolean => {
-        // 获取当前行的内容
-        const start = state.bMarks[startLine] + state.tShift[startLine];
-        const max = state.eMarks[startLine];
-        const marker = state.src.slice(start, max).trim();
-
-        // 检查是否为columns块的开始标记
-        if (!(/^:::\s?col/).test(marker)) return false;
-
-        // 解析所有属性
-        const attrs = parseColumnAttributes(marker);
-        // 从属性数组中查找width属性
-        const widthMatch = attrs.find(attr => /width\((.*?)\)/.test(attr))?.match(/width\((.*?)\)/);
-        const widths = widthMatch ? widthMatch[1].split(',').map(w => w.trim()) : undefined;
-
-        let nextLine = startLine + 1;
-        const columns: ColumnData[] = [];     // 存储所有列的数据
-        let currentContent: string[] = [];    // 存储当前列的内容
-        let inColumn = false;                 // 标记是否在列内部
-        let nestLevel = 0;                    // 追踪嵌套层级
-
-        // 逐行解析内容，直到遇到结束标记
-        while (nextLine < endLine) {
-        const lineStart = state.bMarks[nextLine] + state.tShift[nextLine];
-        const lineEnd = state.eMarks[nextLine];
-        const line = state.src.slice(lineStart, lineEnd);  // 获取完整行内容
-        const trimmedLine = line.trim();
-
-        // 检查是否为围栏块标记
-        if (trimmedLine.startsWith(':::')) {
-            if (trimmedLine === ':::') {
-            // 结束标记
-            if (nestLevel === 0) {
-                // 如果在列内且有内容，保存最后一列
-                if (inColumn && currentContent.length > 0) {
-                columns.push({ 
-                    type: 'column_close',
-                    content: currentContent.join('\n')
-                });
-                }
-                break;
-            } else {
-                // 嵌套块的结束
-                nestLevel--;
-                currentContent.push(line);
-            }
-            } else {
-            // 开始标记
-            nestLevel++;
-            currentContent.push(line);
-            }
-        } else if (trimmedLine === '@col' && nestLevel === 0) {
-            // 只在最外层处理列标记
-            if (inColumn) {
-            columns.push({ 
-                type: 'column_close',
-                content: currentContent.join('\n')
-            });
-            currentContent = [];
-            }
-            columns.push({ 
-            type: 'column_open',
-            widths: widths // 保存宽度信息
-            });
-            inColumn = true;
-        } else if (inColumn) {
-            // 在列内部，收集内容
-            currentContent.push(line);
-        }
-        nextLine++;
-        }
-
-        // 如果是验证模式，直接返回true
-        if (silent) return true;
-
-        // 更新解析器状态，移动到下一个待处理行
-        state.line = nextLine + 1;
-
-        // 创建columns容器的开始标记
-        const columnsOpenToken = state.push('columns_open', 'div', 1);
-        columnsOpenToken.attrSet('class', 'columns');
-        if (widths) {
-            columnsOpenToken.attrSet('widths', widths.join(','));
-        }
-
-        // 处理每个列
-        let columnIndex = 0;
-        columns.forEach((col) => {
-        if (col.type === 'column_open') {
-            // 创建列容器的开始标记
-            const columnToken = state.push('column_open', 'div', 1);
-            columnsOpenToken.attrSet('class', 'columns');
-            // 设置列宽度
-            const width = col.widths?.[columnIndex] || `${100 / columns.filter(c => c.type === 'column_open').length}%`;
-            columnToken.attrSet('width', width);
-            columnIndex++;
-        } else if (col.type === 'column_close' && col.content) {
-            // 直接在当前状态下解析内容
-            state.md.block.parse(
-            col.content,
-            state.md,
-            state.env,
-            state.tokens
-            );
-            
-            // 创建列容器的结束标记
-            state.push('column_close', 'div', -1);
-        }
-        });
-
-        // 创建columns容器的结束标记
-        state.push('columns_close', 'div', -1);
-        return true;
-    });
-
-    // // 定义HTML渲染规则
-    // md.renderer.rules.columns_open = () => '<div class="columns">\n';
-    // md.renderer.rules.columns_close = () => '</div>\n';
-    // md.renderer.rules.column_open = (tokens, idx) => {
-    //     const token = tokens[idx];
-    //     const style = token.attrGet('style');
-    //     return `<div class="column" style="${style}">\n`;
-    // };
-    // md.renderer.rules.column_close = () => '</div>\n';
-}
+*/

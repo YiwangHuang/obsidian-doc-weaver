@@ -1,7 +1,8 @@
-import MarkdownIt from 'markdown-it';
-import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
+import type MarkdownIt from 'markdown-it';
+import type { Token } from 'markdown-it';
+// import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 import { BaseConverter } from '../textConverter';
-import * as url from 'url';
+import type { RuleBlock } from "markdown-it/lib/parser_block.mjs";
 
 
 
@@ -14,17 +15,19 @@ BaseConverter.registerProcessor({
     }
 });
 
-BaseConverter.registerProcessor({
-    name: 'calloutParseRule_vuepress',
-    formats: ['vuepress',],
-    description: '解析 Callout 语法', 
-    mditRuleSetup: (converter: BaseConverter) => {
-        converter.md.disable(['blockquote']);
-    },
-    postProcessor: (text: string, converter: BaseConverter) => {
-        return text.replace(/&gt;/g, '>'); // TODO: 暂时解决办法：用后置处理器替换&gt;为>
-    }
-});
+
+
+// BaseConverter.registerProcessor({
+//     name: 'calloutParseRule_vuepress',
+//     formats: ['vuepress',],
+//     description: '解析 Callout 语法', 
+//     mditRuleSetup: (converter: BaseConverter) => {
+//         converter.md.disable(['blockquote']);
+//     },
+//     postProcessor: (text: string, converter: BaseConverter) => {
+//         return text.replace(/&gt;/g, '>'); // TODO: 暂时解决办法：用后置处理器替换&gt;为>
+//     }
+// });
 
 BaseConverter.registerProcessor({
     name: 'calloutRenderRule_typst',
@@ -33,187 +36,306 @@ BaseConverter.registerProcessor({
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules.callout_open = (tokens, idx) => {
             const token = tokens[idx];
-            const attrs = token.meta as CalloutAttributes;            
-            return `
-#callout(
-type: "${attrs.type}",
-${attrs.collapse ? 'collapse: true' : 'collapse: false'},
-${attrs.title ? `title: [${converter.md.renderInline(attrs.title)}],` : ''}
+            const calloutType = token.attrGet('data-callout');
+            const calloutFold = token.attrGet('data-callout-fold');
+            const calloutTitle = token.attrGet('data-callout-title');
+            return `#callout(
+type: "${calloutType}",
+${calloutFold !== '' ? `collapse: ${calloutFold === '-'},` : ''}
+${calloutTitle ? `title: [${converter.md.renderInline(calloutTitle)}],` : ''}
 [\n`;
         };
         converter.md.renderer.rules.callout_close = () => {
             return ']\n)\n';
-        };
+        }
     }
 });
 
-BaseConverter.registerProcessor({
-    name: 'calloutRenderRule_quarto',
-    formats: ['quarto'],
-    mditRuleSetup: (converter: BaseConverter) => {
-        converter.md.renderer.rules.callout_open = (tokens, idx) => {
-            const token = tokens[idx];
-            const attrs = token.meta as CalloutAttributes;
+// BaseConverter.registerProcessor({
+//     name: 'calloutRenderRule_quarto',
+//     formats: ['quarto'],
+//     mditRuleSetup: (converter: BaseConverter) => {
+//         converter.md.renderer.rules.callout_open = (tokens, idx) => {
+//             const token = tokens[idx];
+//             const attrs = token.meta as CalloutAttributes;
             
-            return `\n::: {.callout-${attrs.type} ${attrs.title ? `title="${converter.md.renderInline(attrs.title)}"` : ''} ${attrs.collapse === undefined ? '' : `collapse="${attrs.collapse}"`}}\n`;
-        };
-        converter.md.renderer.rules.callout_close = () => {
-            return ':::\n';
-        };
-    }
-});
+//             return `\n::: {.callout-${attrs.type} ${attrs.title ? `title="${converter.md.renderInline(attrs.title)}"` : ''} ${attrs.collapse === undefined ? '' : `collapse="${attrs.collapse}"`}}\n`;
+//         };
+//         converter.md.renderer.rules.callout_close = () => {
+//             return ':::\n';
+//         };
+//     }
+// });
 
 // 定义支持的 callout 类型
 const CALLOUT_TYPES = [
-    'note',
-    'info',
-    'warning',
+    'abstract',
+    'tldr',
+    'summary',
+    'bug',
     'danger',
+    'error',
+    'done',
+    'example',
+    'failure',
+    'missing',
+    'info',
+    'note',
+    'question',
+    'help',
+    'quote',
+    'success',
+    'check',
     'tip',
+    'hint',
     'important',
     'todo',
-    'done',
-    'question'
-] as const;
+    'warning',
+    'caution',
+    'attention',
+];
 
-type CalloutType = typeof CALLOUT_TYPES[number];
 
 // 用于验证 callout 标记的正则表达式，支持 collapse 和 title
 // 格式：[!type][(+|-)][ title]
-const CALLOUT_MARKER_REGEX = /^\[!(.*?)\]([+-])?(?:\s+(.*))?$/;
+// const CALLOUT_MARKER_REGEX = /^\[!(.*?)\]([+-])?(?:\s+(.*))?$/;
 
-interface CalloutAttributes {
-    type: CalloutType;
-    collapse?: boolean;
-    title?: string;
-}
+
 
 function calloutPlugin(md: MarkdownIt) {
-    md.block.ruler.before('fence', 'callout', (
-        state: StateBlock,
-        startLine: number,
-        endLine: number,
-        silent: boolean
-    ): boolean => {
-        let pos = state.bMarks[startLine] + state.tShift[startLine];
-        let max = state.eMarks[startLine];
-        
-        // 检查是否以 > 开头
-        if (state.src[pos] !== '>') {
-            return false;
-        }
-        pos++;
-
-        // 跳过空格
-        while (pos < max && state.src[pos] === ' ') {
-            pos++;
-        }
-
-        // 获取第一行内容
-        const firstLine = state.src.slice(pos, max);
-        const match = firstLine.match(CALLOUT_MARKER_REGEX);
-        
-        if (!match || !CALLOUT_TYPES.includes(match[1].toLowerCase() as CalloutType)) {
-            return false;
-        }
-
-        // 解析属性
-        const attrs: CalloutAttributes = {
-            type: match[1].toLowerCase() as CalloutType,
-        };
-
-        // 解析 collapse 属性
-        if (match[2]) {
-            attrs.collapse = match[2] === '-';
-        }
-
-        // 解析 title
-        if (match[3]) {
-            attrs.title = match[3].trim();
-        }
-        
-        if (silent) {
-            return true;
-        }
-
-        let nextLine = startLine + 1;
-        const lines: string[] = [];
-
-        // 收集所有以 > 开头的后续行作为 callout 内容
-        while (nextLine < endLine) {
-            pos = state.bMarks[nextLine] + state.tShift[nextLine];
-            max = state.eMarks[nextLine];
-
-            if (state.src[pos] !== '>') {
-                break;
+    md.core.ruler.after("block", "obsidian-callouts", (state) => {
+        const tokens = state.tokens;
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            if (token.type === "blockquote_open") {
+                inspectBlockquoteContent(tokens, i);
             }
-
-            pos++; // 跳过 >
-            // 跳过一个空格（如果有的话）
-            if (state.src[pos] === ' ') {
-                pos++;
-            }
-
-            // 保存每一行，包括空行
-            lines.push(state.src.slice(pos, max));
-            nextLine++;
         }
-
-        // 创建 token
-        const token = state.push('callout_open', 'div', 1);
-        token.markup = '>';
-        token.block = true;
-        token.meta = attrs;  // 存储解析的属性
-        token.map = [startLine, nextLine];
-
-        // 处理内容
-        if (lines.length > 0) {
-            // 使用 state.md.block.parse 来处理内容，这样可以支持所有块级格式
-            const content = lines.join('\n');
-            state.md.block.parse(
-                content,
-                state.md,
-                state.env,
-                state.tokens
-            );
-        }
-
-        state.push('callout_close', 'div', -1);
-        state.line = nextLine;
-        
-        return true;
+    });
+    md.block.ruler.before('fence', 'callout_container', getCalloutContainerRule(), {
+        alt: ["paragraph", "reference", "blockquote", "list"],
     });
 }
 
-// 测试代码
-if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
-    const text = `
-> [!info]+ 这是一个带标题的可折叠信息块
->
-> 
-> 这是一个信息块
->
-> 第二行内容
-> - 列表项1
-> - 列表项2
->
-> ### 三级标题
-> 第三行*内容*
 
-> [!warning]- 这是一个带标题的不可折叠警告块
-> 警告内容
 
-> [!tip] 这是一个只有标题的提示块
-> 提示内容
 
-普通文本
+const QUOTE_CALLOUT_REXGEX = /^\[!([^\]]+)\](\+|-|) *(.*)? */;
 
-> 普通quote
-> 1
-> 2
-`;
+// 容器语法的正则表达式，匹配 tip+ title 格式（已去除开头的:::）
+const CONTAINER_CALLOUT_REGEX = /^\s*([a-zA-Z]+)([+-]?)\s*(.*)?$/;
 
-    const converter = new BaseConverter('quarto');
-    console.log(converter.convert(text));
-    // console.log(converter.md.parse(text, {}));
+/**
+ * 创建容器 callout 规则解析器
+ * @returns RuleBlock - markdown-it的块级规则函数
+ */
+const getCalloutContainerRule = (): RuleBlock => (state, startLine, endLine, silent) => {
+    // 获取当前行的起始和结束位置
+    let start = state.bMarks[startLine] + state.tShift[startLine];
+    let max = state.eMarks[startLine];
+
+    // 快速检查第一个字符，过滤掉大多数非容器块
+    if (state.src[start] !== ":") return false;
+    let pos = start + 1;
+
+    // 检查标记字符串的其余部分（连续的冒号）
+    while (pos <= max) {
+        if (state.src[pos] !== ":") break;
+        pos++;
+    }
+
+    const markerCount = pos - start;
+
+    // 标记至少需要3个冒号
+    if (markerCount < 3) return false;
+
+    // 提取标记和参数
+    const markup = state.src.slice(start, pos);
+    const params = state.src.slice(pos, max).trim();
+
+    // 解析容器参数
+    const match = params.match(CONTAINER_CALLOUT_REGEX);
+    if (!match) return false;
+
+    const [, calloutType, foldIndicator, title] = match;
+
+    // 验证 callout 类型是否支持
+    if (!CALLOUT_TYPES.includes(calloutType.toLowerCase())) return false;
+
+    // 如果处于静默模式（只验证语法），找到开始标记就返回true
+    if (silent) return true;
+
+    let nextLine = startLine;
+    let autoClosed = false;
+
+    // 搜索块的结束位置
+    while (nextLine < endLine) {
+        nextLine++;
+        start = state.bMarks[nextLine] + state.tShift[nextLine];
+        max = state.eMarks[nextLine];
+
+        // 如果遇到负缩进的非空行，应该停止列表
+        if (start < max && state.sCount[nextLine] < state.blkIndent) break;
+
+        if (
+            // 匹配开始字符":"
+            state.src[start] === ":" &&
+            // 结束围栏的缩进应该少于4个空格
+            state.sCount[nextLine] - state.blkIndent < 4
+        ) {
+            // 检查标记的其余部分
+            for (pos = start + 1; pos <= max; pos++)
+                if (state.src[pos] !== ":") break;
+
+            // 结束围栏必须至少与开始围栏一样长
+            if (pos - start >= markerCount) {
+                // 确保后面只有空格
+                pos = state.skipSpaces(pos);
+
+                if (pos >= max) {
+                    // 找到了！
+                    autoClosed = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    // 保存当前状态，以便稍后恢复
+    const oldParent = state.parentType;
+    const oldLineMax = state.lineMax;
+
+    // 设置新的父类型
+    // @ts-expect-error: 我们正在创建一个名为"callout_container"的新类型
+    state.parentType = 'callout_container';
+
+    // 这将防止延迟续行超出我们的结束标记
+    state.lineMax = nextLine - (autoClosed ? 1 : 0);
+
+    // 创建开始token，参照 inspectBlockquoteContent 的格式
+    const openToken = state.push('callout_open', 'blockquote', 1); // 标签用blockquote，跟 inspectBlockquoteContent 的格式一致
+    openToken.markup = markup;
+    openToken.block = true;
+    openToken.attrPush(['class', 'callout']);
+    openToken.attrPush(['data-callout', calloutType.toLowerCase()]);
+    openToken.attrPush(['data-callout-fold', foldIndicator || '']);
+    if (title) {
+        openToken.attrPush(['data-callout-title', title]);
+    }
+    openToken.map = [startLine, nextLine - (autoClosed ? 1 : 0)];
+
+    // 递归解析容器内的内容
+    state.md.block.tokenize(
+        state,
+        startLine + 1,
+        nextLine - (autoClosed ? 1 : 0)
+    );
+
+    // 创建结束token，参照 inspectBlockquoteContent 的格式
+    const closeToken = state.push('callout_close', 'blockquote', -1); // 标签用blockquote，跟 inspectBlockquoteContent 的格式一致
+    closeToken.markup = state.src.slice(start, pos);
+    closeToken.block = true;
+    closeToken.attrPush(['data-callout', calloutType.toLowerCase()]);
+    closeToken.attrPush(['data-callout-fold', foldIndicator || '']);
+
+    // 恢复解析器状态
+    state.parentType = oldParent;
+    state.lineMax = oldLineMax;
+    state.line = nextLine + (autoClosed ? 1 : 0);
+
+    return true;
+};
+
+export function inspectBlockquoteContent(iterable: Token[], startIdx: number) {
+    let content = "";
+    let blockquoteDepth = 0;
+    let endIdx = startIdx;
+    let contentIdx = startIdx;
+
+    // Iterate over the tokens starting from startIdx
+    for (let i = startIdx; i < iterable.length; i++) {
+        const token = iterable[i];
+
+        if (token.type === "blockquote_open") {
+            blockquoteDepth++;
+        } else if (token.type === "blockquote_close") {
+            endIdx = i;
+            blockquoteDepth--;
+        }
+
+        // TODO: with rule, nested blockquotes may never be a thing
+        if (blockquoteDepth === 0) {
+            break;
+        } else if (blockquoteDepth > 1) {
+            continue;
+        }
+
+        if (token.type === "inline") {
+            if (contentIdx === startIdx && token.content.match(QUOTE_CALLOUT_REXGEX)) {
+                contentIdx = i;
+            }
+            // If the token is a text token, append its content to content
+            content = content + token.content;
+        } else if (token.type === "paragraph_close") {
+            // If the token is a paragraph_close token, append a newline to content
+            content += "\n";
+        }
+    }
+
+    const match = content.match(QUOTE_CALLOUT_REXGEX);
+    if (match && startIdx !== endIdx) {
+        const calloutType = match[1].toLowerCase();
+        const calloutFold = match[2];
+        const calloutTitle = match[3];
+
+        iterable[startIdx].type = "callout_open";
+        iterable[startIdx].attrPush(["class", "callout"]);
+        iterable[startIdx].attrPush(["data-callout", calloutType]);
+        iterable[startIdx].attrPush(["data-callout-fold", calloutFold]);
+        if (calloutTitle) {
+            iterable[startIdx].attrPush(["data-callout-title", calloutTitle]);
+        }
+
+        iterable[endIdx].type = "callout_close";
+        iterable[endIdx].attrPush(["data-callout", calloutType]);
+        iterable[endIdx].attrPush(["data-callout-fold", calloutFold]);
+
+        if (
+            contentIdx !== startIdx &&
+            iterable[contentIdx] &&
+            iterable[contentIdx].children
+        ) {
+            iterable[contentIdx].content = iterable[contentIdx].content
+                .replace(QUOTE_CALLOUT_REXGEX, "")
+                .trim();
+        }
+    }
 }
+
+
+
+// 测试用例注释（已移除实际测试变量）
+/*
+测试文本示例：
+::: tip+ 这是一个带标题的可折叠信息块
+
+这是一个信息块
+
+第二行内容
+- 列表项1  
+- 列表项2
+
+### 三级标题
+第三行*内容*
+
+:::
+
+::: warning- 这是一个带标题的不可折叠警告块
+警告内容
+:::
+
+::: note
+普通提示块
+:::
+*/
+

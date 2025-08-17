@@ -5,7 +5,7 @@ import type { RuleBlock } from "markdown-it/lib/parser_block.mjs";
 
 BaseConverter.registerProcessor({
     name: 'multiColumnParserRule',
-    formats: ['quarto', 'typst'],
+    formats: ['quarto', 'typst', 'vuepress'],
     description: '自定义分栏格式解析规则',
     mditRuleSetup: (converter: BaseConverter) => {
         columnsPlugin(converter.md);
@@ -18,16 +18,16 @@ BaseConverter.registerProcessor({
     formats: ['typst'],
     description: '自定义分栏格式渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
-        converter.md.renderer.rules.mditCol_tabs_open = (tokens, idx) => {
+        converter.md.renderer.rules.columns_open = (tokens, idx) => {
             const token = tokens[idx];
             const widths = token.meta?.columnWidths;
 
             const result = '#grid(\n' + (widths?`columns: (${widths.join(',').replace(/%/g, 'fr')}),\n`:'');
             return result;
         };
-        converter.md.renderer.rules.mditCol_tabs_close = () => ')\n';
-        converter.md.renderer.rules.mditCol_tab_open = () => '[\n';
-        converter.md.renderer.rules.mditCol_tab_close = () => '],\n';
+        converter.md.renderer.rules.columns_close = () => ')\n';
+        converter.md.renderer.rules.column_open = () => '[\n';
+        converter.md.renderer.rules.column_close = () => '],\n';
     }
 });
 
@@ -48,22 +48,38 @@ BaseConverter.registerProcessor({
     }
 });
 
+BaseConverter.registerProcessor({
+    name: 'multiColumnRendererRule_vuepress',
+    formats: ['vuepress'],
+    description: 'html + markdown 混编文件中需要确保paragraph块前的空行',
+    mditRuleSetup: (converter: BaseConverter) => {
+      converter.md.renderer.rules.columns_close = (tokens, idx, options, env, self) => {
+        return self.renderToken(tokens, idx, options) + '\n';
+      };
+
+      converter.md.renderer.rules.column_open = (tokens, idx, options, env, self) => {
+        return self.renderToken(tokens, idx, options) + '\n';
+      };
+    }
+});
+
 interface ColRuleStore {
     state: string | null;
     columnIndex?: number;
     columnWidths?: string[];
 }
 
+const COL_STATE = "inColumns";
+
 const colRuleStore: ColRuleStore = {
     state: null,
 }
 
 function columnsPlugin(md: MarkdownIt) {
-  const name = "mditCol";
-  md.block.ruler.before('fence', `${name}_tabs`, getColsRule(name, colRuleStore), {
+  md.block.ruler.before('fence', `columns`, getColsRule(colRuleStore), {
       alt: ["paragraph", "reference", "blockquote", "list"],
   });
-  md.block.ruler.before('fence', `${name}_tab`, getColRule(name, colRuleStore), {
+  md.block.ruler.before('fence', `column`, getColRule(colRuleStore), {
       alt: ["paragraph", "reference", "blockquote", "list"],
   });
 }
@@ -74,7 +90,7 @@ function columnsPlugin(md: MarkdownIt) {
  * @param store - 存储当前解析状态的对象
  * @returns RuleBlock - markdown-it的块级规则函数
  */
-const getColsRule = (name: string, store: ColRuleStore): RuleBlock => (state, startLine, endLine, silent) => {
+const getColsRule = (store: ColRuleStore): RuleBlock => (state, startLine, endLine, silent) => {
     // 获取当前行的起始和结束位置
     let start = state.bMarks[startLine] + state.tShift[startLine];
     let max = state.eMarks[startLine];
@@ -155,7 +171,7 @@ const getColsRule = (name: string, store: ColRuleStore): RuleBlock => (state, st
     // 保存原始状态并设置新状态，使子tab可以被识别
     const originalStore = {...store};
 
-    store.state = name; // 设置状态，允许子tab被解析
+    store.state = COL_STATE; // 设置状态，允许子tab被解析
     // 重置列索引，确保每个新的columns容器都从0开始
     store.columnIndex = -1; // 初始化为-1，这样第一个@col会递增到0
 
@@ -175,13 +191,13 @@ const getColsRule = (name: string, store: ColRuleStore): RuleBlock => (state, st
     const oldLineMax = state.lineMax;
 
     // @ts-expect-error: 我们正在创建一个名为"${name}_tabs"的新类型
-    state.parentType = `${name}_tabs`;
+    state.parentType = `columns`;
 
     // 这将防止延迟续行超出我们的结束标记
     state.lineMax = nextLine - (autoClosed ? 1 : 0);
 
     // 创建tabs容器的开始token
-    const openToken = state.push(`${name}_tabs_open`, "div", 1);
+    const openToken = state.push(`columns_open`, "div", 1);
     // openToken.tag = 'div';
     openToken.attrSet('style', `display: flex; flex-wrap: nowrap;`); // TODO: 修改AnyBlock的多栏样式，添加flex-wrap: nowrap;
     openToken.markup = markup;
@@ -210,7 +226,7 @@ const getColsRule = (name: string, store: ColRuleStore): RuleBlock => (state, st
     Object.assign(store, originalStore);
 
     // 创建tabs容器的结束token
-    const closeToken = state.push(`${name}_tabs_close`, "div", -1);
+    const closeToken = state.push(`columns_close`, "div", -1);
     // closeToken.tag = 'div';
     closeToken.markup = state.src.slice(start, pos);
     closeToken.block = true;
@@ -231,9 +247,9 @@ const COL_MARKER = `@col`;
  * @param store - 存储当前解析状态的对象
  * @returns RuleBlock - markdown-it的块级规则函数
  */
-const getColRule = (name: string, store: ColRuleStore): RuleBlock => (state, startLine, endLine, silent) => {
+const getColRule = (store: ColRuleStore): RuleBlock => (state, startLine, endLine, silent) => {
     // 如果当前状态不匹配，直接返回false
-    if (store.state !== name) return false;
+    if (store.state !== COL_STATE) return false;
 
     // 获取当前行的起始位置和结束位置
     let start = state.bMarks[startLine] + state.tShift[startLine];
@@ -313,7 +329,7 @@ const getColRule = (name: string, store: ColRuleStore): RuleBlock => (state, sta
     state.lineMax = nextLine - (autoClosed ? 1 : 0);
 
     // 创建开始token
-    const openToken = state.push(`${name}_tab_open`, "div", 1);
+    const openToken = state.push(`column_open`, "div", 1);
 
     // 递增列索引，确保每个@col获取正确的宽度索引
     store.columnIndex = (store.columnIndex ?? -1) + 1;
@@ -342,7 +358,7 @@ const getColRule = (name: string, store: ColRuleStore): RuleBlock => (state, sta
     );
 
     // 创建结束token
-    const closeToken = state.push(`${name}_tab_close`, "div", -1);
+    const closeToken = state.push(`column_close`, "div", -1);
     // closeToken.tag = 'div';
     closeToken.block = true;
     closeToken.markup = "";

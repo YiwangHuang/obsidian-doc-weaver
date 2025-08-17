@@ -8,7 +8,7 @@ import type { RuleBlock } from "markdown-it/lib/parser_block.mjs";
 
 BaseConverter.registerProcessor({
     name: 'calloutParseRule',
-    formats: ['quarto','typst'],
+    formats: ['quarto','typst', 'vuepress'],
     description: '解析 Callout 语法',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.use(calloutPlugin);
@@ -48,6 +48,26 @@ ${calloutTitle ? `title: [${converter.md.renderInline(calloutTitle)}],` : ''}
         converter.md.renderer.rules.callout_close = () => {
             return ']\n)\n';
         }
+    }
+});
+
+BaseConverter.registerProcessor({
+    name: 'calloutRenderRule_vuepress',
+    formats: ['vuepress'],
+    description: 'html + markdown 混编文件中需要确保paragraph块前的空行',
+    mditRuleSetup: (converter: BaseConverter) => {
+        converter.md.renderer.rules.blockquote_open = (tokens, idx, options, env, self) => {
+            return self.renderToken(tokens, idx, options) + '\n';
+        };
+        converter.md.renderer.rules.blockquote_close = (tokens, idx, options, env, self) => {
+            return self.renderToken(tokens, idx, options) + '\n';
+        };
+        converter.md.renderer.rules.callout_open = (tokens, idx, options, env, self) => {
+            return self.renderToken(tokens, idx, options) + '\n';
+        };    
+        converter.md.renderer.rules.callout_close = (tokens, idx, options, env, self) => {
+            return self.renderToken(tokens, idx, options) + '\n';
+        };
     }
 });
 

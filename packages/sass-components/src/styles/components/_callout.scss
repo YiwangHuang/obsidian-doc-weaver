@@ -1,0 +1,88 @@
+// Callout 组件样式
+// 为 CalloutProcessor.ts 导出的 callout 块提供样式支持
+
+@use "../base/variables" as *;
+@use "sass:map";
+
+// Mixin: 生成 callout 样式（简化重复代码）
+@mixin callout-style($color, $svg-template) {
+  border-left-color: $color;
+  background-color: rgba($color, $callout-background-opacity);
+  
+  .callout-title {
+    color: $color;
+    
+    &::before {
+      background-image: url(#{colored-svg($svg-template, $color)});
+    }
+  }
+}
+
+// 基础 callout 样式
+.callout {
+  margin: $callout-margin;
+  padding: $callout-padding;
+  border-left: $callout-border-width solid;
+  border-radius: $callout-border-radius;
+  font-family: $callout-font-family;
+  font-size: $callout-font-size;
+  line-height: $callout-line-height;
+  
+  // 默认样式（info 类型）
+  $default-color: map-get(map-get($callout-groups, "info"), color);
+  @include callout-style($default-color, map-get($callout-svg-templates, "info"));
+  
+  // callout 标题样式
+  .callout-title {
+    font-weight: $callout-title-font-weight;
+    margin-bottom: $callout-title-margin-bottom;
+    display: flex;
+    align-items: center;
+    
+    // 默认图标样式
+    &::before {
+      content: "";
+      width: $callout-icon-size;
+      height: $callout-icon-size;
+      margin-right: $callout-icon-margin-right;
+      flex-shrink: 0;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      display: inline-block;
+    }
+  }
+  
+  // callout 内容样式
+  .callout-content {
+    color: inherit;
+    
+    // 移除最后一个元素的下边距
+    > *:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  // 生成所有 callout 类型样式（简洁的分组方式）
+  @each $group-name, $group-config in $callout-groups {
+    $color: map-get($group-config, color);
+    $types: map-get($group-config, types);
+    
+    // 为该组的所有类型生成样式
+    @each $type in $types {
+      &[data-callout="#{$type}"] {
+        @include callout-style($color, map-get($callout-svg-templates, $type));
+      }
+    }
+  }
+
+  
+  // 可折叠样式支持（基于 data-callout-fold 属性）
+  &[data-callout-fold="+"] {
+    // 可展开状态的特殊样式（如果需要）
+  }
+  
+  &[data-callout-fold="-"] {
+    // 不可折叠状态的特殊样式（如果需要）
+  }
+}

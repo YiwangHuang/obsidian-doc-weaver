@@ -1,0 +1,43 @@
+{
+  "name": "@obsidian-toolkit/sass-components",
+  "version": "1.0.0",
+  "description": "SASS components library for Obsidian toolkit",
+  "main": "dist/index.css",
+  "type": "module",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "sass src/styles/index.scss:dist/index.css --style=compressed && sass src/styles/index.scss:dist/index.min.css --style=compressed",
+    "build:expanded": "sass src/styles/index.scss:dist/index.css --style=expanded",
+    "watch": "sass src/styles/index.scss:dist/index.css --watch",
+    "dev": "pnpm run watch",
+    "clean": "rimraf dist",
+    "lint": "stylelint \"src/**/*.scss\"",
+    "test": "echo \"Running SASS compilation test...\" && pnpm run build",
+    "serve": "cd examples && python3 -m http.server 8080 || python -m http.server 8080"
+  },
+  "keywords": [
+    "sass",
+    "css",
+    "components",
+    "obsidian",
+    "ui",
+    "styling"
+  ],
+  "author": "Obsidian Toolkit Team",
+  "license": "MIT",
+  "devDependencies": {
+    "sass": "^1.77.0",
+    "stylelint": "^16.0.0",
+    "stylelint-config-standard-scss": "^13.0.0",
+    "rimraf": "^5.0.0"
+  },
+  "engines": {
+    "node": ">= 16"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

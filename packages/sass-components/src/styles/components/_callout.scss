@@ -35,6 +35,7 @@
   // callout 标题样式
   .callout-title {
     font-weight: $callout-title-font-weight;
+    margin-top: $callout-title-margin-top;
     margin-bottom: $callout-title-margin-bottom;
     display: flex;
     align-items: center;
@@ -70,19 +71,51 @@
     
     // 为该组的所有类型生成样式
     @each $type in $types {
-      &[data-callout="#{$type}"] {
+      &[callout-type="#{$type}"] {
         @include callout-style($color, map-get($callout-svg-templates, $type));
       }
     }
   }
 
   
-  // 可折叠样式支持（基于 data-callout-fold 属性）
-  &[data-callout-fold="+"] {
-    // 可展开状态的特殊样式（如果需要）
+  // 折叠功能支持（使用 details 元素）
+  &[open] {
+    summary.callout-title::after {
+      transform: rotate(90deg);
+    }
   }
   
-  &[data-callout-fold="-"] {
-    // 不可折叠状态的特殊样式（如果需要）
+  &:not([open]) {
+    summary.callout-title::after {
+      transform: rotate(0deg);
+    }
+  }
+  
+  .callout-title p {
+    display: inline;
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
+  }
+
+  // 当 callout-title 作为 summary 时的可折叠样式
+  summary.callout-title {
+    cursor: pointer;
+    user-select: none;
+    
+    // 使用 ::after 生成折叠指示器
+    &::after {
+      content: "";
+      background-color: currentColor;
+      mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0ibTkgMThsNi02bC02LTYiLz48L3N2Zz4=");
+      mask-size: 100%;
+      -webkit-mask-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0ibTkgMThsNi02bC02LTYiLz48L3N2Zz4=");
+      -webkit-mask-size: 100%;
+      height: 18px;
+      width: 18px;
+      transition: transform 200ms ease-in-out;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
   }
 }

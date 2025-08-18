@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Callout 组件样式测试 - SASS Components Library</title>
     <link rel="stylesheet" href="../dist/index.css">
+
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -59,181 +60,181 @@
         <h2>信息类型 (蓝色系)</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="info" data-callout-title="信息提示">
+            <blockquote class="callout" callout-type="info">
                 <div class="callout-title">信息提示</div>
                 <div class="callout-content">
                     <p>这是一个信息类型的 callout，用于展示重要信息。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="info"</div>
+            <div class="source-code">callout-type="info"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="note">
+            <blockquote class="callout" callout-type="note">
                 <div class="callout-title">笔记</div>
                 <div class="callout-content">
                     <p>这是一个笔记类型的 callout，用于记录要点。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="note"</div>
+            <div class="source-code">callout-type="note"</div>
         </div>
         
         <h2>摘要类型 (青蓝色系)</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="abstract">
+            <blockquote class="callout" callout-type="abstract">
                 <div class="callout-title">摘要</div>
                 <div class="callout-content">
                     <p>这是一个摘要类型的 callout，用于概括要点。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="abstract"</div>
+            <div class="source-code">callout-type="abstract"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="tldr">
+            <blockquote class="callout" callout-type="tldr">
                 <div class="callout-title">TLDR (太长不看)</div>
                 <div class="callout-content">
                     <p>这是一个 TLDR 类型的 callout，用于快速概要。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="tldr"</div>
+            <div class="source-code">callout-type="tldr"</div>
         </div>
         
         <h2>成功类型 (绿色系)</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="success">
+            <blockquote class="callout" callout-type="success">
                 <div class="callout-title">成功</div>
                 <div class="callout-content">
                     <p>这是一个成功类型的 callout，用于表示操作成功。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="success"</div>
+            <div class="source-code">callout-type="success"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="done">
+            <blockquote class="callout" callout-type="done">
                 <div class="callout-title">已完成</div>
                 <div class="callout-content">
                     <p>这是一个已完成类型的 callout，用于表示任务完成。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="done"</div>
+            <div class="source-code">callout-type="done"</div>
         </div>
         
         <h2>警告类型 (黄色系)</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="warning">
+            <blockquote class="callout" callout-type="warning">
                 <div class="callout-title">警告</div>
                 <div class="callout-content">
                     <p>这是一个警告类型的 callout，用于提醒注意事项。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="warning"</div>
+            <div class="source-code">callout-type="warning"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="caution">
+            <blockquote class="callout" callout-type="caution">
                 <div class="callout-title">注意</div>
                 <div class="callout-content">
                     <p>这是一个注意类型的 callout，用于强调谨慎操作。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="caution"</div>
+            <div class="source-code">callout-type="caution"</div>
         </div>
         
         <h2>错误/危险类型 (红色系)</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="danger">
+            <blockquote class="callout" callout-type="danger">
                 <div class="callout-title">危险</div>
                 <div class="callout-content">
                     <p>这是一个危险类型的 callout，用于警示严重风险。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="danger"</div>
+            <div class="source-code">callout-type="danger"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="error">
+            <blockquote class="callout" callout-type="error">
                 <div class="callout-title">错误</div>
                 <div class="callout-content">
                     <p>这是一个错误类型的 callout，用于标识错误信息。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="error"</div>
+            <div class="source-code">callout-type="error"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="bug">
+            <blockquote class="callout" callout-type="bug">
                 <div class="callout-title">Bug</div>
                 <div class="callout-content">
                     <p>这是一个 bug 类型的 callout，用于标记程序错误。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="bug"</div>
+            <div class="source-code">callout-type="bug"</div>
         </div>
         
         <h2>提示类型 (紫色系)</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="tip">
+            <blockquote class="callout" callout-type="tip">
                 <div class="callout-title">提示</div>
                 <div class="callout-content">
                     <p>这是一个提示类型的 callout，用于分享有用的技巧。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="tip"</div>
+            <div class="source-code">callout-type="tip"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="important">
+            <blockquote class="callout" callout-type="important">
                 <div class="callout-title">重要</div>
                 <div class="callout-content">
                     <p>这是一个重要类型的 callout，用于突出关键信息。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="important"</div>
+            <div class="source-code">callout-type="important"</div>
         </div>
         
         <h2>问题类型 (橙色系)</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="question">
+            <blockquote class="callout" callout-type="question">
                 <div class="callout-title">问题</div>
                 <div class="callout-content">
                     <p>这是一个问题类型的 callout，用于提出疑问。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="question"</div>
+            <div class="source-code">callout-type="question"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="help">
+            <blockquote class="callout" callout-type="help">
                 <div class="callout-title">帮助</div>
                 <div class="callout-content">
                     <p>这是一个帮助类型的 callout，用于提供协助信息。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="help"</div>
+            <div class="source-code">callout-type="help"</div>
         </div>
         
         <h2>其他类型</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="quote">
+            <blockquote class="callout" callout-type="quote">
                 <div class="callout-title">引用</div>
                 <div class="callout-content">
                     <p>这是一个引用类型的 callout，用于引述他人观点。</p>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="quote"</div>
+            <div class="source-code">callout-type="quote"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="example">
+            <blockquote class="callout" callout-type="example">
                 <div class="callout-title">示例</div>
                 <div class="callout-content">
                     <p>这是一个示例类型的 callout，用于展示具体例子。</p>
@@ -242,11 +243,11 @@
 }</code></pre>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="example"</div>
+            <div class="source-code">callout-type="example"</div>
         </div>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="todo">
+            <blockquote class="callout" callout-type="todo">
                 <div class="callout-title">待办</div>
                 <div class="callout-content">
                     <p>这是一个待办类型的 callout，用于标记未完成的任务。</p>
@@ -257,18 +258,75 @@
                     </ul>
                 </div>
             </blockquote>
-            <div class="source-code">data-callout="todo"</div>
+            <div class="source-code">callout-type="todo"</div>
         </div>
         
         <h2>不带标题的 Callout</h2>
         
         <div class="callout-demo">
-            <blockquote class="callout" data-callout="info">
+            <blockquote class="callout" callout-type="info">
                 <div class="callout-content">
                     <p>这是一个没有标题的 callout 示例，展示了纯内容的样式效果。</p>
                 </div>
             </blockquote>
             <div class="source-code">不包含 callout-title 元素</div>
+        </div>
+        
+        <h2>折叠功能演示</h2>
+        
+        <div class="callout-demo">
+            <details class="callout" callout-type="tip" open>
+                <summary class="callout-title">
+                    可折叠提示（初始展开）
+                </summary>
+                <div class="callout-content">
+                    <p>这是一个可折叠的 callout，初始状态为展开。点击标题可以收起内容。</p>
+                    <ul>
+                        <li>点击标题栏可以切换显示/隐藏</li>
+                        <li>使用 details 元素，原生HTML功能</li>
+                        <li>带有平滑的动画效果</li>
+                    </ul>
+                </div>
+            </details>
+            <div class="source-code">
+                &lt;details class="callout" open&gt;<br>
+                &nbsp;&nbsp;&lt;summary class="callout-title"&gt;标题&lt;/summary&gt;<br>
+                &nbsp;&nbsp;&lt;div class="callout-content"&gt;...&lt;/div&gt;<br>
+                &lt;/details&gt;
+            </div>
+        </div>
+        
+        <div class="callout-demo">
+            <details class="callout" callout-type="warning">
+                <summary class="callout-title">
+                    可折叠警告（初始收起）
+                </summary>
+                <div class="callout-content">
+                    <p>这是一个可折叠的 callout，初始状态为收起。点击标题可以展开内容。</p>
+                    <p>这里有更多的内容需要用户主动展开才能看到，适合放置详细说明或不太重要的补充信息。</p>
+                </div>
+            </details>
+            <div class="source-code">
+                &lt;details class="callout"&gt;<br>
+                &nbsp;&nbsp;&lt;summary class="callout-title"&gt;标题&lt;/summary&gt;<br>
+                &nbsp;&nbsp;&lt;div class="callout-content"&gt;...&lt;/div&gt;<br>
+                &lt;/details&gt;
+            </div>
+        </div>
+        
+        <div class="callout-demo">
+            <blockquote class="callout" callout-type="info">
+                <div class="callout-title">无折叠功能</div>
+                <div class="callout-content">
+                    <p>这是一个普通的 callout，没有折叠功能。标题不可点击，内容始终显示。</p>
+                </div>
+            </blockquote>
+            <div class="source-code">
+                &lt;blockquote class="callout"&gt;<br>
+                &nbsp;&nbsp;&lt;div class="callout-title"&gt;标题&lt;/div&gt;<br>
+                &nbsp;&nbsp;&lt;div class="callout-content"&gt;...&lt;/div&gt;<br>
+                &lt;/blockquote&gt;
+            </div>
         </div>
         
         <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280;">

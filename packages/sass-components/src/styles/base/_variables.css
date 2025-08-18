@@ -1,0 +1,24 @@
+:root {
+  --callout-border-width: 0px;
+  --callout-border-opacity: 0.25;
+  --callout-padding: 12px 12px 12px 24px;
+  --callout-radius: 6px;
+  --callout-title-color: inherit;
+  --callout-title-padding: 0;
+  --callout-title-size: inherit;
+  --callout-title-weight: 600;
+  --callout-content-padding: 0;
+  --callout-content-background: transparent;
+  --callout-collapse-icon: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0ibTkgMThsNi02bC02LTYiLz48L3N2Zz4=");
+  --callout-info: 59, 130, 246;
+  --callout-abstract: 6, 182, 212;
+  --callout-success: 16, 185, 129;
+  --callout-warning: 245, 158, 11;
+  --callout-danger: 239, 68, 68;
+  --callout-tip: 139, 92, 246;
+  --callout-question: 249, 115, 22;
+  --callout-quote: 107, 114, 128;
+  --callout-example: 20, 184, 166;
+  --callout-todo: 236, 72, 153;
+  --callout-default: 59, 130, 246;
+}

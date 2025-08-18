@@ -36,9 +36,9 @@ BaseConverter.registerProcessor({
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules.callout_open = (tokens, idx) => {
             const token = tokens[idx];
-            const calloutType = token.attrGet('data-callout');
-            const calloutFold = token.attrGet('data-callout-fold');
-            const calloutTitle = token.attrGet('data-callout-title');
+            const calloutType = token.attrGet('callout-type');
+            const calloutFold = token.attrGet('callout-fold');
+            const calloutTitle = token.attrGet('callout-title');
             return `#callout(
 type: "${calloutType}",
 ${calloutFold !== '' ? `collapse: ${calloutFold === '-'},` : ''}
@@ -63,10 +63,25 @@ BaseConverter.registerProcessor({
             return self.renderToken(tokens, idx, options) + '\n';
         };
         converter.md.renderer.rules.callout_open = (tokens, idx, options, env, self) => {
-            return self.renderToken(tokens, idx, options) + '\n';
+            const token = tokens[idx];
+            const calloutType = token.attrGet('callout-type');
+            const calloutFold = token.attrGet('callout-fold');
+            const calloutTitle = token.attrGet('callout-title');
+            if (calloutFold === '+' || calloutFold === '-') {
+                return `<details class="callout" callout-type="${calloutType}" ${calloutFold === '+' ? 'open' : ''}>
+<summary class="callout-title">\n\n${calloutTitle}\n\n</summary>\n<div class="callout-content">\n\n`;
+            } else {
+                return `<blockquote class="callout" callout-type="${calloutType}">\n<div class="callout-title">\n\n${calloutTitle}\n\n</div>\n<div class="callout-content">\n\n`;
+            }
         };    
         converter.md.renderer.rules.callout_close = (tokens, idx, options, env, self) => {
-            return self.renderToken(tokens, idx, options) + '\n';
+            const token = tokens[idx];
+            const calloutFold = token.attrGet('callout-fold');
+            if (calloutFold === '+' || calloutFold === '-') {
+                return '\n</div>\n</details>\n\n';
+            } else {
+                return '\n</div>\n</blockquote>\n\n';
+            }
         };
     }
 });
@@ -177,10 +192,13 @@ const getCalloutContainerRule = (): RuleBlock => (state, startLine, endLine, sil
     const match = params.match(CONTAINER_CALLOUT_REGEX);
     if (!match) return false;
 
-    const [, calloutType, foldIndicator, title] = match;
-
+    // const [, calloutType, foldIndicator, title] = match;
+    const calloutType = match[1].toLowerCase();
+    const foldIndicator = match[2];
+    const title = match[3]?.trim();
+    
     // 验证 callout 类型是否支持
-    if (!CALLOUT_TYPES.includes(calloutType.toLowerCase())) return false;
+    if (!CALLOUT_TYPES.includes(calloutType)) return false;
 
     // 如果处于静默模式（只验证语法），找到开始标记就返回true
     if (silent) return true;
@@ -237,10 +255,12 @@ const getCalloutContainerRule = (): RuleBlock => (state, startLine, endLine, sil
     openToken.markup = markup;
     openToken.block = true;
     openToken.attrPush(['class', 'callout']);
-    openToken.attrPush(['data-callout', calloutType.toLowerCase()]);
-    openToken.attrPush(['data-callout-fold', foldIndicator || '']);
-    if (title) {
-        openToken.attrPush(['data-callout-title', title]);
+    openToken.attrPush(['callout-type', calloutType]);
+    openToken.attrPush(['callout-fold', foldIndicator || '']);
+    if (title && title !== '') {
+        openToken.attrPush(['callout-title', title]);
+    } else {
+        openToken.attrPush(['callout-title', calloutType.charAt(0).toUpperCase() + calloutType.slice(1)]);
     }
     openToken.map = [startLine, nextLine - (autoClosed ? 1 : 0)];
 
@@ -255,8 +275,8 @@ const getCalloutContainerRule = (): RuleBlock => (state, startLine, endLine, sil
     const closeToken = state.push('callout_close', 'blockquote', -1); // 标签用blockquote，跟 inspectBlockquoteContent 的格式一致
     closeToken.markup = state.src.slice(start, pos);
     closeToken.block = true;
-    closeToken.attrPush(['data-callout', calloutType.toLowerCase()]);
-    closeToken.attrPush(['data-callout-fold', foldIndicator || '']);
+    closeToken.attrPush(['callout-type', calloutType]);
+    closeToken.attrPush(['callout-fold', foldIndicator || '']);
 
     // 恢复解析器状态
     state.parentType = oldParent;
@@ -306,19 +326,21 @@ export function inspectBlockquoteContent(iterable: Token[], startIdx: number) {
     if (match && startIdx !== endIdx) {
         const calloutType = match[1].toLowerCase();
         const calloutFold = match[2];
-        const calloutTitle = match[3];
+        const calloutTitle = match[3]?.trim();
 
         iterable[startIdx].type = "callout_open";
         iterable[startIdx].attrPush(["class", "callout"]);
-        iterable[startIdx].attrPush(["data-callout", calloutType]);
-        iterable[startIdx].attrPush(["data-callout-fold", calloutFold]);
-        if (calloutTitle) {
-            iterable[startIdx].attrPush(["data-callout-title", calloutTitle]);
+        iterable[startIdx].attrPush(["callout-type", calloutType]);
+        iterable[startIdx].attrPush(["callout-fold", calloutFold]);
+        if (calloutTitle && calloutTitle !== '') {
+            iterable[startIdx].attrPush(["callout-title", calloutTitle]);
+        } else {
+            iterable[startIdx].attrPush(["callout-title", calloutType.charAt(0).toUpperCase() + calloutType.slice(1)]);
         }
 
         iterable[endIdx].type = "callout_close";
-        iterable[endIdx].attrPush(["data-callout", calloutType]);
-        iterable[endIdx].attrPush(["data-callout-fold", calloutFold]);
+        iterable[endIdx].attrPush(["callout-type", calloutType]);
+        iterable[endIdx].attrPush(["callout-fold", calloutFold]);
 
         if (
             contentIdx !== startIdx &&

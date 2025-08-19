@@ -5,7 +5,7 @@ import type { RuleBlock } from "markdown-it/lib/parser_block.mjs";
 
 BaseConverter.registerProcessor({
     name: 'multiColumnParserRule',
-    formats: ['quarto', 'typst', 'vuepress'],
+    formats: ['quarto', 'typst', 'HMD'],
     description: '自定义分栏格式解析规则',
     mditRuleSetup: (converter: BaseConverter) => {
         columnsPlugin(converter.md);
@@ -49,8 +49,8 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'multiColumnRendererRule_vuepress',
-    formats: ['vuepress'],
+    name: 'multiColumnRendererRule_HMD',
+    formats: ['HMD'],
     description: 'html + markdown 混编文件中需要确保paragraph块前的空行',
     mditRuleSetup: (converter: BaseConverter) => {
       converter.md.renderer.rules.columns_close = (tokens, idx, options, env, self) => {
@@ -340,7 +340,7 @@ const getColRule = (store: ColRuleStore): RuleBlock => (state, startLine, endLin
     openToken.block = true;
     openToken.markup = markup;
     openToken.attrPush(['class', 'dw-column']);
-    
+
     const width = store.columnWidths?.[store.columnIndex];
     if (width) {
         openToken.attrPush(['style', `flex: 0 1 ${width};`]);

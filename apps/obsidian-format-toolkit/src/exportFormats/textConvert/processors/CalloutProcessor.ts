@@ -8,26 +8,12 @@ import type { RuleBlock } from "markdown-it/lib/parser_block.mjs";
 
 BaseConverter.registerProcessor({
     name: 'calloutParseRule',
-    formats: ['quarto','typst', 'vuepress'],
+    formats: ['quarto','typst', 'HMD'],
     description: '解析 Callout 语法',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.use(calloutPlugin);
     }
 });
-
-
-
-// BaseConverter.registerProcessor({
-//     name: 'calloutParseRule_vuepress',
-//     formats: ['vuepress',],
-//     description: '解析 Callout 语法', 
-//     mditRuleSetup: (converter: BaseConverter) => {
-//         converter.md.disable(['blockquote']);
-//     },
-//     postProcessor: (text: string, converter: BaseConverter) => {
-//         return text.replace(/&gt;/g, '>'); // TODO: 暂时解决办法：用后置处理器替换&gt;为>
-//     }
-// });
 
 BaseConverter.registerProcessor({
     name: 'calloutRenderRule_typst',
@@ -52,8 +38,8 @@ ${calloutTitle ? `title: [${converter.md.renderInline(calloutTitle)}],` : ''}
 });
 
 BaseConverter.registerProcessor({
-    name: 'calloutRenderRule_vuepress',
-    formats: ['vuepress'],
+    name: 'calloutRenderRule_HMD',
+    formats: ['HMD'],
     description: 'html + markdown 混编文件中需要确保paragraph块前的空行',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules.blockquote_open = (tokens, idx, options, env, self) => {

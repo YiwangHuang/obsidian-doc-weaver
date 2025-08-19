@@ -137,8 +137,8 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'simpleReplace_vuepress',
-    formats: ['vuepress','quarto'],
+    name: 'simpleReplace_HMD',
+    formats: ['HMD','quarto'],
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.disable(['heading','emphasis']);//
     }

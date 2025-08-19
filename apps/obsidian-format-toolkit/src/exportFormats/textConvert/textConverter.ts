@@ -10,11 +10,11 @@ import * as placeholders from '../../lib/constant';
 import { LinkParser } from './linkParser';
 
 // 支持的输出格式类型
-export type OutputFormat = 'quarto' | 'vuepress' | 'typst' | 'plain';
+export type OutputFormat = 'quarto' | 'HMD' | 'typst' | 'plain'; //HMD: Hybrid/HTML Markdown
 
 export const extensionNameOfFormat: Record<OutputFormat, string> = {
     'quarto': 'qmd',
-    'vuepress': 'md',
+    'HMD': 'md',
     'typst': 'typ',
     'plain': 'md'
 }

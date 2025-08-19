@@ -441,7 +441,7 @@ LinkParser.registerRule({
     processors: [
         {
             description: "定义解析图片链接的处理器，适用所有输出格式",
-            formats: ['typst', 'vuepress', 'quarto','plain'],
+            formats: ['typst', 'HMD', 'quarto','plain'],
             processor: (linkPart, parser, mdState, linkToken) => {
                 const attachmentPath = parser.findLinkPath(linkPart);
                 if(attachmentPath === null){
@@ -472,7 +472,7 @@ LinkParser.registerRule({
     processors: [
         {
             description: "定义解析媒体链接的处理器，适用所有输出格式",
-            formats: ['vuepress', 'quarto','plain'],
+            formats: ['HMD', 'quarto','plain'],
             processor: (linkPart, parser, mdState, linkToken) => {
                 const attachmentPath = parser.findLinkPath(linkPart);
                 if(attachmentPath === null){
@@ -511,7 +511,7 @@ LinkParser.registerRule({
     processors: [
         {
             description: "定义解析嵌入笔记链接的处理器，适用所有输出格式",
-            formats: ['typst', 'vuepress', 'quarto'], // 仅支持typst和quarto格式
+            formats: ['typst', 'HMD', 'quarto'], // 仅支持typst和quarto格式
             processor: (linkPart, parser, mdState, linkToken) => {
                 
                 if(!parser.isRecursiveEmbedNote){ //TODO: 考虑深度拷贝时，拷贝excalidraw文件

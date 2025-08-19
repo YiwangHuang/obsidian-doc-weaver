@@ -8,7 +8,7 @@ const passthrough = {
 
 BaseConverter.registerProcessor({
     name: 'mathParserRule',
-    formats: ['quarto', 'typst', 'vuepress'],
+    formats: ['quarto', 'typst', 'HMD'],
     description: '自定义数学公式解析规则',
     preProcessor: (text: string) => {
         const lines = text.split('\n');
@@ -67,8 +67,8 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'mathRendererRule_vuepress',
-    formats: ['vuepress'],
+    name: 'mathRendererRule_HMD',
+    formats: ['HMD'],
     description: '自定义数学公式渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules.math_block = (tokens, idx) => {

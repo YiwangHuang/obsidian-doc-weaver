@@ -12,7 +12,7 @@ const OBSIDIAN_LINK = 'obsidian_link';
 
 BaseConverter.registerProcessor({
     name: 'obsidianLinkParserRule',
-    formats: ['quarto', 'vuepress', 'typst', 'plain'],
+    formats: ['quarto', 'HMD', 'typst', 'plain'],
     description: '自定义双链接解析规则',
     // 确保![[...]]前后都有空行，够能被块级规则(block.ruler)识别
     preProcessor: (text: string) => {
@@ -52,8 +52,8 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'obsidianLinkRendererRule_vuepress',
-    formats: ['vuepress','quarto'],
+    name: 'obsidianLinkRendererRule_HMD',
+    formats: ['HMD','quarto'],
     description: '自定义双链接渲染规则',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {

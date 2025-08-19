@@ -68,7 +68,7 @@ export class ExportFormatsManager {
         const getDefaultIcon = (format: OutputFormat): string => {
             switch (format) {
                 case 'typst': return 'file-text';
-                case 'vuepress': return 'book';
+                case 'HMD': return 'book';
                 case 'quarto': return 'file-code';
                 case 'plain': return 'file';
                 default: return 'download';

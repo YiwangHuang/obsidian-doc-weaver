@@ -109,10 +109,10 @@ export const EXPORT_FORMATS_CONSTANTS = {
 /**
  * 导出格式类型选项
  */
-export const FORMAT_OPTIONS = [
+export const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
     { value: 'typst', label: 'Typst' },
-    { value: 'vuepress', label: 'VuePress' },
-] as { value: OutputFormat; label: string }[];
+    { value: 'HMD', label: 'HMD' },
+];
 
 // TODO: 暂时不支持，后续待开发
 // { value: 'quarto', label: 'Quarto' },
@@ -132,7 +132,7 @@ export const EXCALIDRAW_EXPORT_OPTIONS = [
  */
 export const EXTENSION_MAP: Record<OutputFormat, string> = {
     'typst': 'typ',
-    'vuepress': 'md',
+    'HMD': 'md',
     'quarto': 'qmd',
     'plain': 'md'
 } as const; 

@@ -6,7 +6,7 @@ import { BaseConverter } from '../textConverter';
  */
 BaseConverter.registerProcessor({
     name: 'paragraphProcessor',
-    formats: ['quarto', 'vuepress', 'typst'],
+    formats: ['quarto', 'HMD', 'typst'],
     description: '处理段落格式',
     mditRuleSetup: (converter: BaseConverter) => {
         // 禁用列表规则
@@ -27,7 +27,7 @@ BaseConverter.registerProcessor({
  */
 BaseConverter.registerProcessor({
     name: 'listProcessor',
-    formats: ['quarto', 'vuepress', 'typst'],
+    formats: ['quarto', 'HMD', 'typst'],
     description: '处理列表，保持原始格式',
     mditRuleSetup: (converter: BaseConverter) => {
         const md = converter.md;

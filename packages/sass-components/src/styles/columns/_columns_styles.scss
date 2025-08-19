@@ -1,0 +1,30 @@
+// Columns 组件样式定义
+// 为多栏布局提供样式支持
+
+@use "./_columns_variables" as *;
+
+// 基础 columns 样式
+.columns {
+  // 移动端默认堆叠布局
+  display: block;
+  
+  // 当 blockquote 和 .columns 搭配时，清空 blockquote 自带的样式
+  &.blockquote {
+    all: unset;
+  }
+}
+
+// Column 样式
+.column {
+  // 基础 padding
+  padding: $column-padding;
+}
+
+// 移动端适配：768px 以上使用 flex 布局
+@media (min-width: $columns-breakpoint-md) {
+  .columns {
+    display: flex;
+    flex-wrap: nowrap;
+    // gap: 1rem;
+  }
+}

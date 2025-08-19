@@ -1,8 +1,7 @@
 // SASS Components Library 主入口文件
-// 为 Obsidian Format Toolkit 提供 callout 组件样式
+// 为 Obsidian Format Toolkit 提供组件样式
 
-// 导入基础变量
-@use "base/variables";
 
 // 导入组件样式
-@use "components/callout";
+@use "callout";
+@use "columns";

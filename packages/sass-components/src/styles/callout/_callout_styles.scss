@@ -1,7 +1,7 @@
 // Callout 组件样式
 // 为 CalloutProcessor.ts 导出的 callout 块提供样式支持
 
-@use "../base/variables" as *;
+@use "./_callout_variables" as *;
 @use "sass:map";
 
 // Mixin: 生成 callout 样式（简化重复代码）

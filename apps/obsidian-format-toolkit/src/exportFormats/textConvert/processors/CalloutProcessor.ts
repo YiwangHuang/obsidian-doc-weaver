@@ -71,7 +71,7 @@ BaseConverter.registerProcessor({
                 return `<details class="callout" callout-type="${calloutType}" ${calloutFold === '+' ? 'open' : ''}>
 <summary class="callout-title">\n\n${calloutTitle}\n\n</summary>\n<div class="callout-content">\n\n`;
             } else {
-                return `<blockquote class="callout" callout-type="${calloutType}">\n<div class="callout-title">\n\n${calloutTitle}\n\n</div>\n<div class="callout-content">\n\n`;
+                return `<div class="callout" callout-type="${calloutType}">\n<div class="callout-title">\n\n${calloutTitle}\n\n</div>\n<div class="callout-content">\n\n`;
             }
         };    
         converter.md.renderer.rules.callout_close = (tokens, idx, options, env, self) => {
@@ -80,7 +80,7 @@ BaseConverter.registerProcessor({
             if (calloutFold === '+' || calloutFold === '-') {
                 return '\n</div>\n</details>\n\n';
             } else {
-                return '\n</div>\n</blockquote>\n\n';
+                return '\n</div>\n</div>\n\n';
             }
         };
     }

@@ -200,6 +200,7 @@ const getColsRule = (store: ColRuleStore): RuleBlock => (state, startLine, endLi
     const openToken = state.push(`columns_open`, "div", 1);
     // openToken.tag = 'div';
     openToken.attrSet('style', `display: flex; flex-wrap: nowrap;`); // TODO: 修改AnyBlock的多栏样式，添加flex-wrap: nowrap;
+    openToken.attrPush(['class', 'dw-columns']);
     openToken.markup = markup;
     openToken.block = true;
     openToken.info = containerMatch;
@@ -338,10 +339,11 @@ const getColRule = (store: ColRuleStore): RuleBlock => (state, startLine, endLin
     // openToken.tag = 'div';
     openToken.block = true;
     openToken.markup = markup;
-
+    openToken.attrPush(['class', 'dw-column']);
+    
     const width = store.columnWidths?.[store.columnIndex];
     if (width) {
-        openToken.attrSet('style', `flex: 0 1 ${width};`);
+        openToken.attrPush(['style', `flex: 0 1 ${width};`]);
         openToken.meta = {
             columnWidth: width,
         };

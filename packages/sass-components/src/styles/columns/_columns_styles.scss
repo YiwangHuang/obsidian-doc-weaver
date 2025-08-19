@@ -4,27 +4,31 @@
 @use "./_columns_variables" as *;
 
 // 基础 columns 样式
-.columns {
-  // 移动端默认堆叠布局
-  display: block;
+.dw-columns {
+  // 桌面端默认 flex 布局
+  display: flex;
+  flex-wrap: nowrap;
+  gap: $columns-gap;
   
   // 当 blockquote 和 .columns 搭配时，清空 blockquote 自带的样式
-  &.blockquote {
-    all: unset;
+  .dw-column {
+    flex: auto;
   }
 }
 
 // Column 样式
-.column {
+.dw-column {
   // 基础 padding
   padding: $column-padding;
 }
 
-// 移动端适配：768px 以上使用 flex 布局
-@media (min-width: $columns-breakpoint-md) {
-  .columns {
-    display: flex;
-    flex-wrap: nowrap;
-    // gap: 1rem;
+// 移动端适配：768px 以下改为堆叠布局，使用 !important 覆盖内联样式
+@media (max-width: #{$columns-breakpoint-md - 1px}) {
+  .dw-columns {
+    display: block !important;  // 移动端改为堆叠布局
+    
+    .dw-column {
+      flex: none !important;  // 移除 flex 属性
+    }
   }
 }

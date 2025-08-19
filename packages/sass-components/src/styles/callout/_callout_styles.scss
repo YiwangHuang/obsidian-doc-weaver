@@ -11,7 +11,10 @@
   
   .callout-title {
     color: $color;
-    
+    // 确保标题中的 p 标签颜色为 $color，以防某些情况下 p 标签的样式被覆盖
+    & p{
+      color: $color !important;
+    }
     &::before {
       background-image: url(#{colored-svg($svg-template, $color)});
     }

@@ -128,13 +128,17 @@ export class QuickTemplateManager {
         try {
             // 获取选中的文本
             const selectedText = editor.somethingSelected() ? editor.getSelection() : "";
+
+            debugLog('executeTemplateInsertion', {selectedText});
+
             // 处理模板内容，替换占位符
             const processedTemplate = this.replacePlaceholders(template.template, selectedText);
-            
+            debugLog('processedTemplate', {processedTemplate});
             // 插入处理后的模板内容
             if (editor.somethingSelected()) {
                 // 如果有选中文本，替换选中文本
                 editor.replaceSelection(processedTemplate);
+                // editor.replaceSelection(`$$\n\\sin\n$$`);
             } else {
                 // 如果没有选中文本，在光标位置插入
                 editor.replaceRange(processedTemplate, editor.getCursor());
@@ -154,9 +158,18 @@ export class QuickTemplateManager {
      * @returns 处理后的模板内容
      */
     private replacePlaceholders(template: string, selectedText: string): string {
+        // 转义selectedText中的特殊字符，避免在replace中被错误解释
+        // 在JavaScript的replace方法中，$$ 会被解释为单个$，$& 表示匹配的文本等
+        const escapedSelectedText = selectedText.replace(/\$/g, '$$$$');
+        
+        debugLog('replacePlaceholders escape', {
+            original: selectedText,
+            escaped: escapedSelectedText
+        });
+        
         // 1. 替换选中文本占位符，然后替换日期占位符
         return replaceDatePlaceholders(
-            template.replace(/\{\{selectedText\}\}/g, selectedText)
+            template.replace(/\{\{selectedText\}\}/g, escapedSelectedText)
         );
     }
 

@@ -10,9 +10,9 @@
   flex-wrap: nowrap;
   gap: $columns-gap;
   
-  // 当 blockquote 和 .columns 搭配时，清空 blockquote 自带的样式
+  // .dw-columns自带的样式，自定义分栏比例情况下，会被内联样式覆盖
   .dw-column {
-    flex: auto;
+    flex: 1 1 auto;
   }
 }
 

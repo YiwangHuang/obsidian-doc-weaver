@@ -15,8 +15,8 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'calloutParseRule_vuepress',
-    formats: ['vuepress',],
+    name: 'calloutParseRule_HMD',
+    formats: ['HMD',],
     description: '解析 Callout 语法', 
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.disable(['blockquote']);

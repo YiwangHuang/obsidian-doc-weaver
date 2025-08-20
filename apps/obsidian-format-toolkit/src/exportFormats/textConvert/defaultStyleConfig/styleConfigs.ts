@@ -63,9 +63,9 @@ format:
 ---`
 };
 
-// VuePress 样式配置
-const vuepressStyleConfig: StyleConfig = {
-  format: "vuepress", 
+// HMD 样式配置
+const HMDStyleConfig: StyleConfig = {
+  format: "HMD", 
   description: "VuePress 文档的默认配置模板",
   yaml: `---
 title: {{noteName}}
@@ -75,7 +75,6 @@ categories:
   - your category
 tags:
   - your tag
-sidebar: auto
 ---`
 };
 
@@ -83,7 +82,7 @@ sidebar: auto
 export const styleConfigs = {
   typst: typstStyleConfig,
   quarto: quartoStyleConfig,
-  vuepress: vuepressStyleConfig
+  HMD: HMDStyleConfig
 };
 
 /**

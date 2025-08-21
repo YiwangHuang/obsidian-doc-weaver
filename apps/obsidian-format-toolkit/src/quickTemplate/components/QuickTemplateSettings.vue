@@ -108,10 +108,8 @@
           class="mb-3"
         />
 
-        <!-- 模板编辑器组件 -->
-        <TemplateEditor
-          :placeholders="templatePlaceholders"
-        >
+        <!-- 模板内容编辑 -->
+        <InputWithPlaceholders :placeholders="templatePlaceholders">
           <v-textarea
             v-model="editingTemplate.template"
             :label="getLocalizedText({ en: 'Template Content', zh: '模板内容' })"
@@ -123,7 +121,7 @@
             rows="6"
             density="compact"
           />
-        </TemplateEditor>
+        </InputWithPlaceholders>
       </div>
     </ObsidianVueModal>
 
@@ -161,7 +159,7 @@ import { quickTemplateInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
 import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
-import TemplateEditor from '../../vue/components/TemplateEditor.vue';
+import InputWithPlaceholders from '../../vue/components/InputWithPlaceholders.vue';
 
 interface QuickTemplateSettingsProps {
   plugin: MyPlugin;
@@ -181,7 +179,7 @@ const deleteTemplateIndex = ref<number | null>(null);
 // 模板占位符配置
 const templatePlaceholders = [
   { value: '{{selectedText}}', description: getLocalizedText({en:'Selected text content', zh:'选中文本'}) },
-  { value: '{{date: YYYY-MM-DD}}', description: getLocalizedText({en:'Current time with format YYYY-MM-DD', zh:'当前时间，可编辑格式'}) },
+  { value: '{{date: YYYY-MM-DD}}', description: getLocalizedText({en:'Current time with format YYYY-MM-DD', zh:'当前时间，支持自定义'}) },
 ];
 
 // 获取模板预览文本（简化显示） - 用于模板列表预览

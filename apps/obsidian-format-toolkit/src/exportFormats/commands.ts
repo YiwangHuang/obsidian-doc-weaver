@@ -9,6 +9,7 @@ import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter
 import { getNoteInfo } from '../lib/noteResloveUtils';
 import { DEBUG } from '../lib/debugUtils';
 import { normalizeCrossPlatformPath, copyFilesRecursively } from '../lib/pathUtils';
+import { getLocalizedText } from '../lib/textUtils';
 
 //TODO: 新增功能：直接通过typst的WebAssembly版本导出为pdf
 
@@ -100,7 +101,7 @@ function deepPaste(plugin: MyPlugin, editor: Editor): void {//TODO: 为深度拷
 export function addExportFormatsCommands(plugin: MyPlugin): void {
     plugin.addCommand({
         id: 'export-formats',
-        name: 'Export Formats',
+        name: getLocalizedText({en: 'Export all enabled formats', zh: '导出所有激活的格式'}),
         callback: async () => await exportToFormats(plugin, plugin.app.workspace.getActiveFile() as TFile)
     });
 

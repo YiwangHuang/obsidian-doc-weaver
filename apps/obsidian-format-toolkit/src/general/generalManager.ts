@@ -94,7 +94,7 @@ export class GeneralManager {
             name: '标签包装器',
             icon: 'code-xml',
             enabled: true,
-            unfolded: true,
+            unfolded: false,
             children: [...tagWrapperItems.tags]  // 创建副本追踪数组变化
         });
         
@@ -104,7 +104,7 @@ export class GeneralManager {
             name: '快捷模板',
             icon: 'puzzle',
             enabled: true,
-            unfolded: true,
+            unfolded: false,
             children: merged  // 合并后的数组本身就是新创建的
         });
         

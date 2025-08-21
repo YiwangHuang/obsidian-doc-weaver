@@ -152,10 +152,10 @@
           class="mb-3"
         />
 
-        <!-- 输出目录和文件名 -->
-        <TemplateEditor :placeholders="pathPlaceholders">
-          <v-row class="mb-3">
-            <v-col cols="6" class="pb-0">
+        <!-- 输出目录 -->
+        <v-row class="mb-3">
+          <v-col cols="6" class="pb-0">
+            <InputWithPlaceholders :placeholders="pathPlaceholders">
               <v-text-field
                 v-model="editingConfig.output_dir"
                 :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
@@ -163,8 +163,10 @@
                 variant="outlined"
                 density="compact"
               />
-            </v-col>
-            <v-col cols="6" class="pb-0">
+            </InputWithPlaceholders>
+          </v-col>
+          <v-col cols="6" class="pb-0">
+            <InputWithPlaceholders :placeholders="pathPlaceholders">
               <v-text-field
                 v-model="editingConfig.output_base_name"
                 :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
@@ -172,16 +174,18 @@
                 variant="outlined"
                 density="compact"
               />
-            </v-col>
-          </v-row>
+            </InputWithPlaceholders>
+          </v-col>
+        </v-row>
 
-          <!-- 路径预览 -->
-          <PreviewPanel
-            :title="getLocalizedText({ en: 'Preview', zh: '预览' })"
-            :content="getPreviewPath(editingConfig)"
-          />
-          
-          <!-- 模板配置 -->
+        <!-- 路径预览 -->
+        <PreviewPanel
+          :title="getLocalizedText({ en: 'Preview', zh: '预览' })"
+          :content="getPreviewPath(editingConfig)"
+        />
+        
+        <!-- 模板配置 -->
+        <InputWithPlaceholders :placeholders="templatePlaceholders">
           <v-textarea
             v-model="editingConfig.template"
             :label="getLocalizedText({ en: 'Template Configuration', zh: '模板配置' })"
@@ -191,7 +195,7 @@
             density="compact"
             class="mb-3"
           />
-        </TemplateEditor>
+        </InputWithPlaceholders>
 
         <!-- Excalidraw设置 -->
         <v-row class="my-3">
@@ -277,7 +281,7 @@ import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 // 路径预览功能
 import { TextConverter } from '../textConvert';
-import TemplateEditor from '../../vue/components/TemplateEditor.vue';
+import InputWithPlaceholders from '../../vue/components/InputWithPlaceholders.vue';
 import { OBSIDIAN_PRIMARY_COLOR } from '../../vue/plugins/vuetify';
 
 // 定义Props
@@ -440,12 +444,21 @@ const onModalVisibilityChange = (visible: boolean) => {
   }
 };
 
-// 在script部分添加占位符配置
+// 占位符配置
 // 路径相关的占位符
 const pathPlaceholders = [
   { value: '{{vaultDir}}', description: getLocalizedText({ en: 'Vault directory', zh: '库目录' }) },
-  { value: '{{noteName}}', description: getLocalizedText({ en: 'Current note name', zh: '当前笔记名称' }) },
+  { value: '{{noteName}}', description: getLocalizedText({ en: 'Note name', zh: '笔记名称' }) },
   { value: '{{date:YYYY-MM-DD}}', description: getLocalizedText({ en: 'Current date', zh: '当前日期' }) },
+];
+
+// 模板相关的占位符
+const templatePlaceholders = [
+  { value: '{{noteName}}', description: getLocalizedText({ en: 'Note name', zh: '笔记名称' }) },
+  { value: '{{content}}', description: getLocalizedText({ en: 'Note content', zh: '笔记内容' }) },
+  // { value: '{{title}}', description: getLocalizedText({ en: 'Note title', zh: '笔记标题' }) },
+  { value: '{{date:YYYY-MM-DD}}', description: getLocalizedText({ en: 'Current date', zh: '当前日期，支持自定义' }) },
+  // { value: '{{date:HH:mm}}', description: getLocalizedText({ en: 'Current time', zh: '当前时间' }) },
 ];
 
 </script>

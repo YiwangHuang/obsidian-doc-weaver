@@ -3,6 +3,14 @@ import type { ToolbarItem } from "../general/types";
  * Toggle Tag Wrapper模块的类型定义
  */
 
+export interface HtmlProcessorOptions {
+    // onlyInline?: boolean;
+    tagType: 'span' | 'font' | 'u' | 'i' | 's';
+    tagClass: string;
+    typstPrefix: string; // 标签开始时对应的typst语法，不包含"["
+}
+
+
 /**
  * 单个标签配置接口
  */

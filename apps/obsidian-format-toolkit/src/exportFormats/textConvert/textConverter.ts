@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import { TFile } from 'obsidian';
 import type  MyPlugin  from '../../main';
-import * as url from 'url';
+// import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import { exportToPng, exportToSvg } from '../../lib/excalidrawUtils';
@@ -34,10 +34,20 @@ export interface ConverterProcessor {
 
 export class BaseConverter {
     
+    // 静态处理器，用于全局注册
     private static Processors: ConverterProcessor[] = [];
+    
+    // 实例级别的处理器，用于实例特定的注册
+    private instanceProcessors: ConverterProcessor[] = [];
 
+    // 静态处理器注册方法
     public static registerProcessor(processor: ConverterProcessor) {
         this.Processors.push(processor);
+    }
+
+    // 实例级别的处理器注册方法
+    public registerProcessor(processor: ConverterProcessor) {
+        this.instanceProcessors.push(processor);
     }
 
     public md: MarkdownIt;
@@ -53,7 +63,12 @@ export class BaseConverter {
         this.attachmentDir = attachmentDir;
         this.setFormat('typst');// 默认使用typst格式
     }
-
+    
+    /**
+     * 根据格式推送处理器到当前实例
+     * @param processors 要处理的处理器数组
+     * @param format 输出格式
+     */
     public pushProcessorsByFormat(processors: ConverterProcessor[],format: OutputFormat) {
         this.format = format;
         processors.forEach(p => {
@@ -67,12 +82,20 @@ export class BaseConverter {
             }
         });
     }
+    /**
+     * 设置输出格式并重新加载所有处理器
+     * @param format 输出格式
+     */
     public setFormat(format: OutputFormat) {
         this.format = format;
         this.preProcessors = [];
         this.md = new MarkdownIt();
         this.postProcessors = [];
+        
+        // 先加载静态处理器
         this.pushProcessorsByFormat(BaseConverter.Processors, format);
+        // 再加载实例级别的处理器
+        this.pushProcessorsByFormat(this.instanceProcessors, format);
     }
     // 独立出来方便在linkProcessor.ts中对嵌入笔记的文本进行前处理
     public preProcess(text: string): string{
@@ -188,17 +211,20 @@ export class AdvancedConverter extends BaseConverter{
     }
 }
 
+
+
+
 // 用tsx模块测试，这段代码只会在直接运行该文件时执行
-if (import.meta.url === url.pathToFileURL(process.argv[1]).href){
-    const md = new MarkdownIt();
-    const text = `
-# 标题
-## 子标题
-- **列表项1**
-- *列表项2*
-`;
-    console.log(new BaseConverter().convert(text));
-    console.log(md.core.ruler.getRules(''));  // 核心规则
-    console.log(md.block.ruler.getRules('')); // 块级规则
-    console.log(md.inline.ruler.getRules('')); // 内联规则
-}
+// if (import.meta.url === url.pathToFileURL(process.argv[1]).href){
+//     const md = new MarkdownIt();
+//     const text = `
+// # 标题
+// ## 子标题
+// - **列表项1**
+// - *列表项2*
+// `;
+//     console.log(new BaseConverter().convert(text));
+//     console.log(md.core.ruler.getRules(''));  // 核心规则
+//     console.log(md.block.ruler.getRules('')); // 块级规则
+//     console.log(md.inline.ruler.getRules('')); // 内联规则
+// }

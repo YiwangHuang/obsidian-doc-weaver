@@ -8,6 +8,9 @@ import { exportToPng, exportToSvg } from '../../lib/excalidrawUtils';
 import { ExportConfig } from '../types';
 import * as placeholders from '../../lib/constant';
 import { LinkParser } from './linkParser';
+import { tagWrapperInfo, TagConfig } from '../../toggleTagWrapper';
+import { debugLog } from '../../lib/debugUtils';
+import { parse } from 'html-parse-string';
 
 // 支持的输出格式类型
 export type OutputFormat = 'quarto' | 'HMD' | 'typst' | 'plain'; //HMD: Hybrid/HTML Markdown
@@ -139,10 +142,19 @@ export class AdvancedConverter extends BaseConverter{
         this.plugin = plugin;
         this.entryNote = file;
         this.linkParser = new LinkParser(this);
+        this.addActiveHtmlProcessor();
     }
 
     public resetLinkParser(){
         this.linkParser = new LinkParser(this);
+    }
+
+    // 获取当前激活的html处理器
+    public addActiveHtmlProcessor(){
+        const tagConfigs = this.plugin.settingList[tagWrapperInfo.name]?.tags as TagConfig[];
+
+        const activeTagConfigs = tagConfigs.filter(tag => tag.enabled);
+        this.registerHtmlProcessor(this, activeTagConfigs);
     }
 
     /**
@@ -208,6 +220,122 @@ export class AdvancedConverter extends BaseConverter{
                 console.error(`Error copying file: ${error}`);
             }
         }
+    }
+
+    // TODO: 增强该功能，期望能识别标签匹配关系
+    /**
+     * 注册HTML处理器到转换器实例
+     * @param converter 文本转换器实例
+     * @param configs 标签配置数组，包含标签类型、类名和Typst前缀等信息
+     */
+    registerHtmlProcessor(converter: BaseConverter, configs: TagConfig[]) {
+        // 输出调试信息，显示注册的配置数量
+        debugLog('注册自定义HTML处理器，配置数量:', configs.length);
+        
+        // 向转换器实例注册自定义处理器
+        converter.registerProcessor({
+            name: 'customHtmlProcessor', // 处理器名称，避免与静态处理器冲突
+            formats: ['typst'], // 支持的输出格式
+            description: '处理HTML格式', // 处理器描述
+            mditRuleSetup: (converter: BaseConverter) => {
+                // 在markdown-it的inline阶段之后添加自定义规则
+                // 此时所有HTML标签已被识别为html_inline类型的token
+                converter.md.core.ruler.after('inline', 'custom_html_processor', (state) => {
+                    // 输出调试信息，显示待处理的token总数
+                    console.log('自定义HTML处理器被调用，tokens数量:', state.tokens.length);
+                    
+                    // 遍历解析状态中的所有token
+                    for (let i = 0; i < state.tokens.length; i++) {
+                        const token = state.tokens[i];
+                        
+                        // 只处理inline类型的token且包含子元素
+                        if (token.type === 'inline' && token.children) {
+                            // 遍历inline token内的所有子token
+                            for (let j = 0; j < token.children.length; j++) {
+                                const childToken = token.children[j];
+                                
+                                // 只处理html_inline类型的token
+                                if (childToken.type === 'html_inline') {
+                                    // 先判断是否为结束标签（以</>开头）
+                                    const isClosingTag = childToken.content.startsWith('</');
+                                    
+                                    // 准备用于解析的HTML内容
+                                    let contentToParse = childToken.content;
+                                    
+                                    // 如果是结束标签，去掉斜杠以便正确解析标签名
+                                    if (isClosingTag) {
+                                        // 将 "</tagname>" 转换为 "<tagname>" 以便解析器识别标签名
+                                        contentToParse = childToken.content.replace('</', '<');
+                                    }
+                                    
+                                    // 尝试解析HTML内容
+                                    try {
+                                        const parsedHtml = parse(contentToParse);
+                                        
+                                        // 检查解析结果是否有效
+                                        if (parsedHtml && parsedHtml.length > 0) {
+                                            const htmlNode = parsedHtml[0];
+                                            
+                                            // 对配置进行排序：确保精确匹配（带class）优先于通用匹配（不带class）
+                                            // 这样可以避免通用规则覆盖特定规则的情况
+                                            // 例如：<u class="special"> 应该匹配带class的规则，而不是通用的<u>规则
+                                            const sortedConfigs = [...configs].sort((a, b) => {
+                                                const aHasClass = a.tagClass.trim() !== '';
+                                                const bHasClass = b.tagClass.trim() !== '';
+                                                
+                                                // 精确匹配（带class）排在前面，通用匹配（不带class）排在后面
+                                                if (aHasClass && !bHasClass) return -1;  // a优先
+                                                if (!aHasClass && bHasClass) return 1;   // b优先
+                                                return 0; // 保持原顺序
+                                            });
+                                            
+                                            // 遍历排序后的配置，查找匹配的标签
+                                            for (const config of sortedConfigs) {
+                                                // 检查标签名是否匹配配置中的标签类型
+                                                if (htmlNode.name === config.tagType) {
+                                                    
+                                                    if (isClosingTag) {
+                                                        // 结束标签处理：只需检查标签名匹配，无需检查class
+                                                        debugLog('htmlProcessor found end tag:', childToken.content);
+                                                        // 将结束标签替换为Typst的右括号
+                                                        childToken.content = "]";
+                                                        break; // 找到匹配后跳出配置循环
+                                                    } else {
+                                                        // 开始标签处理：需要检查class属性是否匹配
+                                                        const classAttr = htmlNode.attrs.find(attr => attr.name === 'class');
+                                                        
+                                                        // 检查class属性值是否与配置匹配
+                                                        let classMatches = false;
+                                                        
+                                                        if (config.tagClass.trim() === '') {
+                                                            // 配置中class为空，只需匹配标签类型
+                                                            classMatches = true;
+                                                        } else {
+                                                            // 配置中class不为空，需要class属性值完全匹配
+                                                            classMatches = !!(classAttr && classAttr.value === config.tagClass);
+                                                        }
+                                                        
+                                                        if (classMatches) {
+                                                            debugLog('htmlProcessor found start tag:', childToken.content);
+                                                            // 将开始标签替换为Typst格式的前缀和左括号
+                                                            childToken.content = config.typstPrefix + "[";
+                                                            break; // 找到匹配后跳出配置循环
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } catch (error) {
+                                        // HTML解析失败时保持原内容不变，避免破坏文档
+                                        console.warn('HTML解析失败:', error);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
     }
 }
 

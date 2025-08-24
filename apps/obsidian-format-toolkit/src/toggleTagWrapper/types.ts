@@ -3,26 +3,44 @@ import type { ToolbarItem } from "../general/types";
  * Toggle Tag Wrapper模块的类型定义
  */
 
-export interface HtmlProcessorOptions {
-    // onlyInline?: boolean;
-    tagType: 'span' | 'font' | 'u' | 'i' | 's';
-    tagClass: string;
-    typstPrefix: string; // 标签开始时对应的typst语法，不包含"["
-}
-
-
 /**
- * 单个标签配置接口
+ * 标签配置接口 - 基于HTML标签类型和类名的配置
  */
 export interface TagConfig extends ToolbarItem {
     id: string;
     commandId: string;
-    /** 开始标签（前缀） */
-    prefix: string;
-    /** 结束标签（后缀） */
-    suffix: string;
+    /** HTML标签类型 */
+    tagType: 'span' | 'font' | 'u' | 'i' | 's';
+    /** HTML标签的class属性值，空字符串表示只匹配标签类型 */
+    tagClass: string;
+    /** Typst格式的前缀，不包含"[" */
+    typstPrefix: string;
     /** CSS 片段，会根据启用状态热插拔到 Obsidian */
     cssSnippet: string;
+}
+
+/**
+ * 基于TagConfig生成HTML开始标签
+ * @param config 标签配置对象
+ * @returns HTML开始标签字符串
+ */
+export function generateStartTagFromConfig(config: TagConfig): string {
+    if (config.tagClass.trim() === '') {
+        // 无class属性的标签
+        return `<${config.tagType}>`;
+    } else {
+        // 有class属性的标签
+        return `<${config.tagType} class="${config.tagClass}">`;
+    }
+}
+
+/**
+ * 基于TagConfig生成HTML结束标签
+ * @param config 标签配置对象
+ * @returns HTML结束标签字符串
+ */
+export function generateEndTagFromConfig(config: TagConfig): string {
+    return `</${config.tagType}>`;
 }
 
 /**
@@ -42,10 +60,15 @@ export function isTagConfig(obj: unknown): obj is TagConfig {
     if (!obj || typeof obj !== 'object') return false;
     
     const config = obj as Record<string, unknown>;
+    const validTagTypes = ['span', 'font', 'u', 'i', 's'];
+    
     return typeof config.id === 'string' &&
+           typeof config.commandId === 'string' &&
            typeof config.name === 'string' &&
-           typeof config.prefix === 'string' &&
-           typeof config.suffix === 'string' &&
+           typeof config.tagType === 'string' &&
+           validTagTypes.includes(config.tagType as string) &&
+           typeof config.tagClass === 'string' &&
+           typeof config.typstPrefix === 'string' &&
            typeof config.enabled === 'boolean' &&
            typeof config.cssSnippet === 'string' &&
            typeof config.icon === 'string';
@@ -74,8 +97,9 @@ export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
             id: 'toggle-underline',
             commandId: 'doc-weaver:toggle-underline',
             name: 'Underline',
-            prefix: '<u>',
-            suffix: '</u>',
+            tagType: 'u',
+            tagClass: '',
+            typstPrefix: '#underline',
             enabled: true,
             cssSnippet: `u {
 color: blue; /* 下划线颜色 */

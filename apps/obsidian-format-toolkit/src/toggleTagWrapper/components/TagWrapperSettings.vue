@@ -41,9 +41,9 @@
               <!-- 预览 -->
               <v-col cols="4.5">
                 <div class="text-caption text-medium-emphasis d-flex align-center">
-                  <span style="color: var(--text-accent);">{{ tag.prefix }}</span>
+                  <span style="color: var(--text-accent);">{{ generateStartTagFromConfig(tag) }}</span>
                   <span>{{ getLocalizedText({ en: "Text", zh: "文本" }) }}</span>
-                  <span style="color: var(--text-accent);">{{ tag.suffix }}</span>
+                  <span style="color: var(--text-accent);">{{ generateEndTagFromConfig(tag) }}</span>
                 </div>
               </v-col>
               
@@ -110,25 +110,39 @@
           class="mb-3"
         />
 
-        <!-- 开始和结束标签 -->
+        <!-- 标签类型和类名 -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-          <v-text-field
-            v-model="editingTag.prefix"
-            :label="getLocalizedText({ en: 'Start Tag', zh: '开始标签' })"
-            placeholder="e.g. <div>, **, <!--"
+          <v-select
+            v-model="editingTag.tagType"
+            :label="getLocalizedText({ en: 'Tag Type', zh: '标签类型' })"
+            :items="tagTypeOptions"
             variant="outlined"
             density="compact"
             class="mb-3"
           />
           <v-text-field
-            v-model="editingTag.suffix"
-            :label="getLocalizedText({ en: 'End Tag', zh: '结束标签' })"
-            placeholder="e.g. </div>, **, -->"
+            v-model="editingTag.tagClass"
+            :label="getLocalizedText({ en: 'CSS Class', zh: 'CSS类名' })"
+            placeholder="e.g. highlight, underline"
+            :hint="getLocalizedText({ en: 'Leave empty to match tag type only', zh: '留空则只匹配标签类型' })"
             variant="outlined"
             density="compact"
             class="mb-3"
+            persistent-hint
           />
         </div>
+        
+        <!-- Typst前缀 -->
+        <v-text-field
+          v-model="editingTag.typstPrefix"
+          :label="getLocalizedText({ en: 'Typst Prefix', zh: 'Typst前缀' })"
+          placeholder="e.g. #underline, #highlight"
+          :hint="getLocalizedText({ en: 'Typst function name without brackets', zh: 'Typst函数名，不包含括号' })"
+          variant="outlined"
+          density="compact"
+          class="mb-3"
+          persistent-hint
+        />
         
         <!-- CSS片段 -->
         <v-textarea
@@ -183,6 +197,7 @@ import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
 import type { TagConfig, TagWrapperSettings } from '../types';
+import { generateStartTagFromConfig, generateEndTagFromConfig } from '../types';
 import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { tagWrapperInfo } from '../index';
@@ -206,6 +221,15 @@ const editingTag = ref<TagConfig | null>(null);
 const deleteConfirmVisible = ref(false);
 const deleteTagIndex = ref<number | null>(null);
 
+// 标签类型选项
+const tagTypeOptions = [
+  { title: 'span', value: 'span' },
+  { title: 'font', value: 'font' },
+  { title: 'u (underline)', value: 'u' },
+  { title: 'i (italic)', value: 'i' },
+  { title: 's (strikethrough)', value: 's' }
+];
+
 // 固定的示例文本
 const sampleText = getLocalizedText({ en: "Sample text", zh: "示例文本" });
 
@@ -213,8 +237,10 @@ const sampleText = getLocalizedText({ en: "Sample text", zh: "示例文本" });
 const styledPreviewHtml = computed(() => {
   if (!editingTag.value) return '';
   
-  // 生成包装后的HTML
-  const wrappedHtml = `${editingTag.value.prefix}${sampleText}${editingTag.value.suffix}`;
+  // 根据tagType和tagClass生成HTML标签
+  const startTag = generateStartTagFromConfig(editingTag.value);
+  const endTag = generateEndTagFromConfig(editingTag.value);
+  const wrappedHtml = `${startTag}${sampleText}${endTag}`;
   
   // 如果有CSS片段，将其作为内联样式应用
   if (editingTag.value.cssSnippet) {

@@ -82,8 +82,8 @@ export default class MyPlugin extends Plugin {
 
         // 初始化管理器（每个管理器会在构造函数中自动注册自己的设置）
         this.exportFormatsManager = new ExportFormatsManager(this);
-        this.quickTemplateManager = new QuickTemplateManager(this);
         this.tagWrapperManager = new TagWrapperManager(this);
+        this.quickTemplateManager = new QuickTemplateManager(this);
         this.generalManager = new GeneralManager(this);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存

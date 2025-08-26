@@ -1,21 +1,18 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <div>
-      <h3 class="my-2">{{ getLocalizedText({ en: "General Settings", zh: "通用设置" }) }}</h3>
-      <p class="text-medium-emphasis my-2">
-        {{ getLocalizedText({ en: "Configure general functionality", zh: "配置通用功能" }) }}
-      </p>
-    </div>
-    
+    <h3 class="my-2">{{ getLocalizedText({ en: "Toolbar Settings", zh: "工具栏设置" }) }}</h3>
+
+    <v-divider class="border-opacity-100 my-3"/>
+
     <!-- SpeedDial 显示控制 -->
-    <div class="setting-item d-flex align-center mt-4">
+    <div class="d-flex align-center mt-4">
       <div class="flex-grow-1">
         <div class="text-subtitle-2 font-weight-medium">
-          {{ getLocalizedText({ en: "Show SpeedDial Button", zh: "显示悬浮按钮" }) }}
+          {{ getLocalizedText({ en: "Show Toolbar", zh: "显示悬浮工具栏" }) }}
         </div>
         <div class="text-caption text-medium-emphasis">
-          {{ getLocalizedText({ en: "Display a floating action button in the editor", zh: "在编辑器中显示一个悬浮的快捷操作按钮" }) }}
+          {{ getLocalizedText({ en: "Display a floating toolbar in the editor", zh: "在编辑器中显示一个悬浮的快捷操作工具栏" }) }}
         </div>
       </div>
       <v-switch
@@ -26,7 +23,7 @@
     </div>
 
     <!-- 分割线 -->
-    <v-divider class="my-6" />
+    <v-divider class="border-opacity-100 my-3" />
 
     <!-- 额外命令管理 -->
     <ExtraCommandSettings

@@ -33,6 +33,13 @@
               <!-- 标签名称和图标 -->
               <v-col cols="3.5">
                 <div class="d-flex align-center">
+                  <v-chip class="me-2"
+                    :color="tag.enabled ? OBSIDIAN_PRIMARY_COLOR : 'grey'" 
+                    size="small" 
+                    label
+                  >
+                    {{ tag.tagType }}
+                  </v-chip>
                   <IconSelectButton :app="props.plugin.app" :command="tag" />
                   <div class="text-subtitle-2 font-weight-medium">{{ tag.name }}</div>
                 </div>
@@ -90,7 +97,15 @@
         {{ getLocalizedText({ en: "Add Tag Configuration", zh: "添加标签配置" }) }}
       </v-btn>
     </div>
-
+    <!-- 分割线 -->
+    <v-divider class="border-opacity-100 my-3" />    
+    <!-- 导出提示信息 -->
+    <p class="text-medium-emphasis">
+      {{ getLocalizedText({
+        en: "Note: For successful Typst export, ensure all HTML tags in your notes are properly paired (opening and closing tags) and either configured here or are iframe elements.",
+        zh: "注意：为确保导出有效的Typst文件，请确保笔记中的HTML标签都成对出现（有开始和结束标签），且已在此处配置过或是iframe标签。"
+      }) }}
+    </p>
     <!-- 标签编辑对话框 -->
     <ObsidianVueModal
       v-model:visible="modalVisible"
@@ -119,16 +134,15 @@
             variant="outlined"
             density="compact"
             class="mb-3"
+            hide-details
           />
           <v-text-field
             v-model="editingTag.tagClass"
             :label="getLocalizedText({ en: 'CSS Class', zh: 'CSS类名' })"
-            placeholder="e.g. highlight, underline"
-            :hint="getLocalizedText({ en: 'Leave empty to match tag type only', zh: '留空则只匹配标签类型' })"
+            placeholder="e.g. highlight, underline. Leave empty to match tag type only."
             variant="outlined"
             density="compact"
             class="mb-3"
-            persistent-hint
           />
         </div>
         
@@ -205,6 +219,7 @@ import Icon from '../../vue/components/Icon.vue';
 import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
+import { OBSIDIAN_PRIMARY_COLOR } from '../../vue/plugins/vuetify';
 
 interface TagWrapperSettingsProps {
   plugin: MyPlugin;
@@ -298,5 +313,17 @@ const cancelDelete = () => {
 
 .v-card--chosen {
   cursor: grabbing !important;
+}
+
+/* 标签类型芯片样式 - 规定尺寸和外观，与导出格式设置保持一致 */
+.v-chip {
+  width: 39px !important;
+  height: 25px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500;
+  border-radius: 9px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 </style> 

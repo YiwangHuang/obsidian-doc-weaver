@@ -4,16 +4,15 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <div>
-      <h3 class="my-2">{{ getLocalizedText({ en: "Extra Command Settings", zh: "额外命令设置" }) }}</h3>
-      <p class="text-medium-emphasis my-2">
+    <div class="flex-grow-1 mb-3">
+      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Extra Command Settings", zh: "额外命令设置" }) }}</div>
+      <div class="text-caption text-medium-emphasis">
         {{ getLocalizedText({
           en: "Configure extra command shortcuts for quick access in the toolbar",
           zh: "配置额外的命令快捷方式，便于在工具栏中快速访问"
         }) }}
-      </p>
+      </div>
     </div>
-
     <!-- 可拖拽的命令配置列表 -->
     <draggable
       v-model="configs.extraCommands"

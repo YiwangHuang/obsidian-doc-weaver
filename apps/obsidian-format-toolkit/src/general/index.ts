@@ -43,7 +43,7 @@ export const DEFAULT_GENERAL_SETTINGS: GeneralSettings = {
 // General settings registry
 export const generalInfo: ModuleInfoRegistry<GeneralSettings> = {
     name: 'general',
-    settingTabName: getLocalizedText({ en: "General", zh: "通用设置" }),
+    settingTabName: getLocalizedText({ en: "Toolbar", zh: "工具栏" }),
     description: 'Settings for general functionality',
     defaultConfigs: DEFAULT_GENERAL_SETTINGS,
     component: GeneralSettingsComponent

@@ -113,10 +113,10 @@
       <div class="d-flex align-center justify-center ga-3">
         <v-select
           v-model="selectedFormat"
+          :label="getLocalizedText({ en: 'Export Format', zh: '导出格式' })"
           :items="formatOptions"
           item-title="label"
           item-value="value"
-          :placeholder="getLocalizedText({ en: 'Select export format...', zh: '选择导出格式...' })"
           variant="outlined"
           density="compact"
           style="max-width: 200px;"
@@ -500,8 +500,8 @@ code {
 
 /* 格式标签芯片样式 - 规定尺寸和外观 */
 .v-chip {
-  width: 60px !important;
-  height: 24px !important;
+  width: 52px !important;
+  height: 25px !important;
   font-size: 0.75rem !important;
   font-weight: 500;
   border-radius: 9px;

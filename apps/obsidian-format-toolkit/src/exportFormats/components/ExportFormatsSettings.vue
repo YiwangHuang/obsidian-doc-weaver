@@ -229,6 +229,32 @@
             </div>
           </v-col>
         </v-row>
+
+        <!-- 媒体附件处理设置 TODO: 优化样式 -->
+        <v-row class="my-3">
+          <v-col cols="12">
+            <div class="d-flex align-center">
+              <v-switch
+                :model-value="!!editingConfig.process_media_attachments"
+                @update:model-value="editingConfig.process_media_attachments = $event || undefined"
+                density="compact"
+                hide-details
+                class="me-3"
+              />
+              <div>
+                <div class="text-subtitle-2">
+                  {{ getLocalizedText({ en: 'Process Media Attachments', zh: '处理音视频附件' }) }}
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ getLocalizedText({ 
+                    en: 'Enable processing of audio and video attachments during export', 
+                    zh: '导出时启用音视频附件的处理功能' 
+                  }) }}
+                </div>
+              </div>
+            </div>
+          </v-col>
+        </v-row>
       </div>
     </ObsidianVueModal>
 

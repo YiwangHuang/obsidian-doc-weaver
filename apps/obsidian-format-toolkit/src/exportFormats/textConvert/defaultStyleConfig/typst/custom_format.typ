@@ -57,13 +57,13 @@
   offset: 2pt,
   evade: false, // 是否避开文字
   show_content: true,    // 是否显示正文内容
-  fill_line: false,      // 新增：为 true 时创建多行填空效果
+  line_break: false,      // 新增：为 true 时创建多行填空效果
 ) = {
   let content_to_show = if show_content { body } else { text(fill: rgb(0, 0, 0, 0))[#body] }
   
   // 使用内置 underline 以保留自动换行
   // fill_line=true 时，自动计算行数并创建多行填空效果
-  if fill_line and not show_content {
+  if line_break and not show_content {
     context {
       // 准备要显示的内容
       let content_to_show = if show_content { body } else { text(fill: rgb(0, 0, 0, 0))[#body] }
@@ -97,7 +97,7 @@
         )
       })
     }
-  } else if fill_line {
+  } else if line_break {
     // set par(justify: true)
     linebreak()
     underline__builtin(stroke: stroke, offset: offset, evade: evade)[#content_to_show]

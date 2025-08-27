@@ -74,13 +74,16 @@
 This is an example of #underline[basic underline] and #underline(show_content: false)[basic underline] blank fill effect.
 #linebreak()#linebreak()#linebreak()#linebreak()
 // 自动计算行数的填空效果：根据内容长度自动确定行数
-#underline(fill_line: true)[请在此填写内容]
+#underline(line_break: true)[请在此填写内容]
 
 // 长内容自动多行：系统会根据文本长度自动计算需要的行数
-#underline(fill_line: true)[这是一段较长的文本内容，系统会自动检测文本在当前容器宽度下需要的行数，然后为每一行都添加占满宽度的下划线，实现完美的表单填空效果]
+#underline(line_break: true)[这是一段较长的文本内容，系统会自动检测文本在当前容器宽度下需要的行数，然后为每一行都添加占满宽度的下划线，实现完美的表单填空效果]
+
+
+#text(fill: rgb("#27ad27"))[颜色]
 
 // 隐藏内容的填空表单：仅显示对应行数的下划线
-#underline(fill_line: true, show_content: false)[隐藏的内容模板，会根据这段文字的长度自动计算行数隐藏的内容模板，会根据这段文字的长度自动计算行数隐藏的内容模板，会]
+#underline(line_break: true, show_content: false)[隐藏的内容模板，会根据这段文字的长度自动计算行数隐藏的内容模板，会根据这段文字的长度自动计算行数隐藏的内容模板，会]
 
 
 == 配置文件控制 / Configuration File Control

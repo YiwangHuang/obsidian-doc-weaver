@@ -449,6 +449,8 @@ LinkParser.registerRule({
                     return;
                 }
                 let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
+                // 将文件名中的空格替换为下划线，避免路径问题
+                exportName = exportName.replace(/\s/g, '_');
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
@@ -472,7 +474,7 @@ LinkParser.registerRule({
     processors: [
         {
             description: "定义解析媒体链接的处理器，适用所有输出格式",
-            formats: ['HMD', 'quarto','plain'],
+            formats: ['plain'],
             processor: (linkPart, parser, mdState, linkToken) => {
                 const attachmentPath = parser.findLinkPath(linkPart);
                 if(attachmentPath === null){
@@ -480,6 +482,8 @@ LinkParser.registerRule({
                     return;
                 }
                 let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
+                // 将文件名中的空格替换为下划线，避免路径问题
+                exportName = exportName.replace(/\s/g, '_');
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
@@ -491,11 +495,29 @@ LinkParser.registerRule({
         },
         {
             description: "定义解析媒体链接的处理器，专用于typst格式，输出原文",
-            formats: ['typst'], // 专门处理typst格式
+            formats: ['HMD', 'quarto','typst'], // 专门处理typst格式
             processor: (linkPart, parser, mdState, linkToken) => {
-                linkToken.content = linkPart;
-                linkToken.hidden = true; // typst格式不支持多媒体，不渲染链接
-                linkToken.markup = '![[]]';
+                if(parser.exportConfig?.process_media_attachments){
+                    const attachmentPath = parser.findLinkPath(linkPart);
+                    if(attachmentPath === null){
+                        new Notice(`未找到媒体链接: ${linkPart}`);
+                        return;
+                    }
+                    let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
+                    // 将文件名中的空格替换为下划线，避免路径问题
+                    exportName = exportName.replace(/\s/g, '_');
+                    if(parser.isRenewExportName){
+                        exportName = parser.addHexId(exportName);
+                    }
+                    parser.addLink({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
+                    linkToken.hidden = false;
+                    linkToken.content = exportName;
+                    linkToken.markup = '![[]]';
+                } else {
+                    linkToken.content = linkPart;
+                    linkToken.hidden = true; // typst格式不支持多媒体，不渲染链接
+                    linkToken.markup = '![[]]';
+                }
             }
         },
     ]
@@ -526,6 +548,8 @@ LinkParser.registerRule({
 
                 if(parser.isExcalidrawNote(embedNoteFile)){
                     let exportName = path.basename(embedNoteFile.path);// 获取附件名(带扩展名)
+                    // 将文件名中的空格替换为下划线，避免路径问题
+                    exportName = exportName.replace(/\s/g, '_');
                     if(parser.isRenewExportName){
                         exportName = parser.addHexId(exportName);
                     }

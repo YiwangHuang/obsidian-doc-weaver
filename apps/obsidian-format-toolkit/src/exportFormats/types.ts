@@ -31,6 +31,8 @@ export interface ExportConfig extends ToolbarItem {
     excalidraw_export_type: 'png' | 'svg';
     /** PNG导出时的缩放比例 */
     excalidraw_png_scale: number;
+    /** 是否处理音视频附件，默认为false */
+    process_media_attachments?: boolean;
     /** 导出格式图标，用于在UI中显示 */
 }
 
@@ -62,7 +64,9 @@ export function isExportConfig(obj: unknown): obj is ExportConfig {
            typeof config.output_base_name === 'string' &&
            (config.excalidraw_export_type === 'png' || config.excalidraw_export_type === 'svg') &&
            typeof config.excalidraw_png_scale === 'number' &&
-           typeof config.icon === 'string';
+           typeof config.icon === 'string' &&
+           // process_media_attachments 是可选的，所以需要检查是否存在且为布尔类型
+           (config.process_media_attachments === undefined || typeof config.process_media_attachments === 'boolean');
 }
 
 /**

@@ -102,7 +102,24 @@
     linebreak()
     underline__builtin(stroke: stroke, offset: offset, evade: evade)[#content_to_show]
   } else {
-    underline__builtin(stroke: stroke, offset: offset, evade: evade)[#content_to_show]
+    // underline__builtin(stroke: stroke, offset: offset, evade: evade)[#content_to_show]
+      context {
+        let thickness = 0.6pt
+        let stroke = black
+    let size = measure(content_to_show)
+    box(
+      baseline: offset, // 设置box的基线位置与文字对齐
+      stack(
+        dir: ttb,
+        spacing: offset,
+        content_to_show,
+        line(
+          length: size.width,
+          stroke: (thickness + stroke)
+        )
+      )
+    )
+  }
   }
 }
 

@@ -199,7 +199,7 @@
 
         <!-- Excalidraw设置 -->
         <v-row class="my-3">
-          <v-col cols="6">
+          <v-col cols="5">
             <v-select
               v-model="editingConfig.excalidraw_export_type"
               :items="excalidrawExportOptions"
@@ -211,9 +211,12 @@
               @update:model-value="handleExcalidrawTypeChange"
             />
           </v-col>
-          <v-col cols="6" v-if="editingConfig.excalidraw_export_type === 'png'">
+          <v-col cols="2">
+
+          </v-col>
+          <v-col cols="5" v-if="editingConfig.excalidraw_export_type === 'png'">
             <div>
-              <label class="text-caption text-medium-emphasis mb-2 d-block">
+              <label class="text-caption text-medium-emphasis d-block">
                 {{ getLocalizedText({ en: "PNG Scale", zh: "PNG缩放比例" }) }}: {{ editingConfig.excalidraw_png_scale }}
               </label>
               <v-slider
@@ -234,13 +237,21 @@
         <v-row class="my-3">
           <v-col cols="12">
             <div class="d-flex align-center">
-              <v-switch
-                :model-value="!!editingConfig.process_media_attachments"
-                @update:model-value="editingConfig.process_media_attachments = $event || undefined"
-                density="compact"
-                hide-details
-                class="me-3"
-              />
+              <v-tooltip :text="getLocalizedText({ 
+                en: 'Please ensure your publishing platform supports audio and video files before enabling this feature', 
+                zh: '启用前请确保您的发布平台支持音视频文件' 
+              })" location="top" :open-delay="200">
+                <template #activator="{ props }"> 
+                  <v-switch
+                    v-bind="props"
+                    :model-value="!!editingConfig.process_media_attachments"
+                    @update:model-value="editingConfig.process_media_attachments = $event || undefined"
+                    density="compact"
+                    hide-details
+                    class="me-3"
+                  />
+                </template>
+              </v-tooltip>
               <div>
                 <div class="text-subtitle-2">
                   {{ getLocalizedText({ en: 'Process Media Attachments', zh: '处理音视频附件' }) }}

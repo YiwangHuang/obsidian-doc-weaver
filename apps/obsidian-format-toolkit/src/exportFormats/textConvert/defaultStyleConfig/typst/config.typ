@@ -44,6 +44,9 @@
   // 在这里添加所有的 show 规则
   // 
   
+  // 设置图片默认居中显示
+  show image: it => align(center, it)
+  
   // 设置重点强调文本的样式
   show strong: it => text(
     weight: "bold",

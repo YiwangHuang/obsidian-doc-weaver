@@ -65,11 +65,234 @@
 
 == 双栏布局演示 / Double Column Layout Demo
 
+#underline[#mi[`v`]dffdf]。
+
+== 方案一测试：基于 place + line 的精确定位方案
+
+// 测试基础的 place + line 实现
+这是普通文本，#context {
+  let body = [下划线文本]
+  let stroke = 0.5pt + black
+  let offset = -5pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 15pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}，后面继续文本。
+
+// 测试不同偏移量
+测试不同偏移量：#context {
+  let body = [offset=1pt]
+  let stroke = 0.6pt + black
+  let offset = 1pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}，#context {
+  let body = [offset=3pt]
+  let stroke = 0.6pt + black
+  let offset = 3pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}，#context {
+  let body = [offset=5pt]
+  let stroke = 0.6pt + black
+  let offset = 5pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}
+
+// 测试不同线条样式
+测试不同线条样式：#context {
+  let body = [细线0.3pt]
+  let stroke = 0.3pt + black
+  let offset = 2pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}，#context {
+  let body = [粗线1.5pt]
+  let stroke = 1.5pt + black
+  let offset = 2pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}，#context {
+  let body = [红色线条]
+  let stroke = 0.6pt + red
+  let offset = 2pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}
+
+// 测试虚线效果
+测试虚线效果：#context {
+  let body = [虚线下划线]
+  let stroke = (paint: black, thickness: 0.6pt, dash: "dashed")
+  let offset = 2pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}
+
+// 测试隐藏内容但保留下划线（模拟挖空效果）
+测试挖空效果：#context {
+  let body = [隐藏的内容]
+  let content_to_show = text(fill: rgb(0, 0, 0, 0))[#body]  // 透明文字
+  let stroke = 0.6pt + black
+  let offset = 2pt
+  let measured = measure(body)  // 仍然测量原始内容的宽度
+  [#content_to_show]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}，这里应该显示下划线但看不到文字。
+
+// 测试多行文本的效果
+测试长文本：#context {
+  let body = [这是一段比较长的文本，可能会换行，我们来看看place+line方案在处理这种情况时的表现如何]
+  let stroke = 0.6pt + blue
+  let offset = 2pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt, 
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}
+
+// 对比原生underline的效果
+对比原生效果：#underline[原生underline效果]
+
+== 方案二测试：基于 stack + line 的垂直堆叠方案
+
+// 测试基础的 stack + line 实现
+普通文本：#stack(
+  dir: ttb,
+  spacing: 3pt,
+  [下划线文本],
+  line(length: 100%, stroke: 0.6pt + black)
+)
+
+// 测试数学公式
+数学公式：#stack(
+  dir: ttb, 
+  spacing: -2pt,
+  [#mi[`v = sqrt(2gh)`]],
+  line(length: 100%, stroke: 0.6pt + black)
+)
+
+== 方案三测试：基于 box + 边框的容器方案
+
+// 测试基础的 box 边框实现
+普通文本：#box(
+  stroke: (bottom: 0.6pt + black),
+  inset: (bottom: 2pt)
+)[下划线文本]
+
+// 测试数学公式
+数学公式：#box(
+  stroke: (bottom: 0.6pt + black), 
+  inset: (bottom: 2pt)
+)[#mi[`E = mc^2`]]
+
+== 方案四测试：混合方案（根据需求选择最佳策略）
+
+// 普通文本使用 box 方案
+普通文本（box方案）：#box(
+  stroke: (bottom: 0.6pt + black),
+  inset: (bottom: 2pt)
+)[简单下划线]
+
+// 需要精确控制时使用 place 方案  
+精确控制（place方案）：#context {
+  let body = [精确定位]
+  let stroke = 0.6pt + red
+  let offset = 2pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt,
+    dy: offset, 
+    line(length: measured.width, stroke: stroke)
+  )
+}
+
+// 数学公式使用最适合的方案
+数学公式（box方案）：#box(
+  stroke: (bottom: 0.6pt + blue),
+  inset: (bottom: 2pt)
+)[#mi[`int_0^infty e^(-x^2) dx = sqrt(pi)/2`]]
+
+数学公式（place方案）：#context {
+  let body = [#mi[`sum_(n=1)^infty 1/n^2 = pi^2/6`]]
+  let stroke = 0.6pt + green
+  let offset = 2pt
+  let measured = measure(body)
+  [#body]
+  place(
+    dx: 0pt,
+    dy: offset,
+    line(length: measured.width, stroke: stroke)
+  )
+}
+
+== 各方案对比总结
+
+#callout(
+  type: "info",
+  title: [方案对比 / Comparison],
+  [
+    - *方案一 (place+line)*: 精确控制，支持 evade 参数，适合复杂需求
+    - *方案二 (stack)*: 结构简单，适合多行文本，但可能影响行间距
+    - *方案三 (box边框)*: 最简洁，自动适应宽度，最接近原生效果
+    - *方案四 (混合)*: 根据场景选择最优方案，兼顾性能和效果
+  ]
+)
 
 
 == Underline 语法演示 / Underline Syntax Demo
 
 这是#underline[基础下划线]和#underline(show_content: false)[基础下划线]挖空效果的例子。
+
+挖空公式：#underline__builtin(stroke: 5pt + black)[#mi[`v`]dffdf]。
 
 This is an example of #underline[basic underline] and #underline(show_content: false)[basic underline] blank fill effect.
 #linebreak()#linebreak()#linebreak()#linebreak()

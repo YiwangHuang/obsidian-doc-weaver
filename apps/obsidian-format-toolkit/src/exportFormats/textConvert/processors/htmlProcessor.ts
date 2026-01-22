@@ -1,6 +1,4 @@
 import { BaseConverter } from '../textConverter';
-import { parse } from 'html-parse-string';
-import { TagConfig } from '../../../toggleTagWrapper/types';
 import { debugLog } from '../../../lib/debugUtils';
 
 BaseConverter.registerProcessor({
@@ -43,5 +41,35 @@ BaseConverter.registerProcessor({
         converter.md.renderer.rules.link_close = () => "]";
     }
 });
+
+
+// 在HMD的block类型的html后增加额外的换行符，确保Markdown区块能被正确解析
+BaseConverter.registerProcessor({
+    name: 'htmlProcessor_HMD',
+    formats: ['HMD'],
+    description: '处理HTML格式',
+    mditRuleSetup: (converter: BaseConverter) => {
+        converter.md.renderer.rules.html_block = (tokens, idx, options, env, self) => {
+            return tokens[idx].content + '\n\n';
+        };
+    }
+});
+
+
+// BaseConverter.registerProcessor({
+//     name: 'htmlProcessor_HMD',
+//     formats: ['HMD'],
+//     description: '处理HTML格式',
+//     mditRuleSetup: (converter: BaseConverter) => {
+//         converter.md.renderer.rules.html_inline = (tokens, idx, options, env, self) => {
+//             const token = tokens[idx];
+//             if (token.content.trim().startsWith('</iframe')) {
+//                 debugLog('htmlProcessor_HMD: html_inline: iframe close');
+//                 return self.renderToken(tokens, idx, options) + '\n\n';
+//             }
+//             return self.renderToken(tokens, idx, options);
+//         };
+//     }
+// });
 
 // 动态注册html处理器已经移动到textConverter.ts中

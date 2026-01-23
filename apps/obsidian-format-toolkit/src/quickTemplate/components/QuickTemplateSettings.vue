@@ -4,9 +4,9 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <div>
-      <h3 class="my-2">{{ getLocalizedText({ en: "Quick Template Settings", zh: "快捷模板设置" }) }}</h3>
-      <p class="text-medium-emphasis my-2">
+    <div class="my-2">
+      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Quick Template Settings", zh: "快捷模板设置" }) }}</div>
+      <p class="text-caption text-medium-emphasis">
         {{ getLocalizedText({
           en: "Configure quick template commands, insert templates with placeholders for selected text",
           zh: "配置快捷模板命令，为选中文本插入带占位符的模板"

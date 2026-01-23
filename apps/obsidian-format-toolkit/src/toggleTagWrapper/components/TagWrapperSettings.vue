@@ -4,12 +4,20 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <div>
-      <h3 class="my-2">{{ getLocalizedText({ en: "Tag Wrapper Settings", zh: "标签包装器设置" }) }}</h3>
-      <p class="text-medium-emphasis my-2">
+    <div class="my-2">
+      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Tag Wrapper Settings", zh: "标签包装器设置" }) }}</div>
+      <p class="text-caption text-medium-emphasis">
         {{ getLocalizedText({
-          en: "Configure tag wrapper commands, wrap selected text with custom tags",
-          zh: "配置标签包装器命令，将选中文本包装在自定义标签中"
+          en: "Extend Markdown with custom HTML tags mapped to corresponding Typst syntax; iframe tags are supported by default and will be converted into hyperlinks. Shortcut commands are also provided to wrap selected text in custom HTML tags.",
+          zh: "通过自定义HTML标签扩展Markdown，并将其映射到对应的Typst语法；iframe标签已内置映射，将自动转换为超链接。支持使用快捷命令将选中文本包装进自定义HTML标签。"
+          }) 
+        }}
+      </p>
+      <!-- <v-divider class="border-opacity-100 my-2" />     -->
+      <p class="text-caption text-medium-emphasis" style="color: var(--text-accent) !important;">
+        {{ getLocalizedText({
+          en: "Note: To ensure a valid Typst export, all HTML tags must be properly paired and configured here.",
+          zh: "注意：为确保能够正确导出为Typst，请保证所有HTML标签成对出现，且相关标签已在此处完成配置。"
         }) }}
       </p>
     </div>
@@ -97,15 +105,7 @@
         {{ getLocalizedText({ en: "Add Tag Configuration", zh: "添加标签配置" }) }}
       </v-btn>
     </div>
-    <!-- 分割线 -->
-    <v-divider class="border-opacity-100 my-3" />    
-    <!-- 导出提示信息 -->
-    <p class="text-medium-emphasis">
-      {{ getLocalizedText({
-        en: "Note: For successful Typst export, ensure all HTML tags in your notes are properly paired (opening and closing tags) and either configured here or are iframe elements.",
-        zh: "注意：为确保导出有效的Typst文件，请确保笔记中的HTML标签都成对出现（有开始和结束标签），且已在此处配置过或是iframe标签。"
-      }) }}
-    </p>
+
     <!-- 标签编辑对话框 -->
     <ObsidianVueModal
       v-model:visible="modalVisible"

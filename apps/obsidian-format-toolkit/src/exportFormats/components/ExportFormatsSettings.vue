@@ -20,9 +20,9 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <div>
-      <h3 class="my-2">{{ getLocalizedText({ en: "Export Formats Settings", zh: "导出格式设置" }) }}</h3>
-      <p class="text-medium-emphasis my-2">
+    <div class="my-2">
+      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Export Formats Settings", zh: "导出格式设置" }) }}</div>
+      <p class="text-caption text-medium-emphasis">
         {{ getLocalizedText({
           en: "Configure export format commands, support various output formats",
           zh: "配置导出格式命令，支持多种输出格式"

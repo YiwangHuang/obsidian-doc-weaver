@@ -100,10 +100,6 @@ function obsidianLinkPlugin(converter: BaseConverter){
 
         if (silent) return true;
 
-        
-        const linkText = linkMatch[1].split('|'); // 链接文本
-        const linkName = linkText[0];
-
         if(converter instanceof AdvancedConverter ){
 
             const linkToken = state.push(OBSIDIAN_LINK, 'a', 0);
@@ -115,7 +111,7 @@ function obsidianLinkPlugin(converter: BaseConverter){
             token.map = [startLine, startLine + 1];
             // 创建链接token
             const linkToken = state.push(OBSIDIAN_LINK, 'a', 0);
-            linkToken.content = linkName;
+            linkToken.content = linkMatch[1].split('|')[0]; // 链接的文件名(不包含装饰器)
             state.push('paragraph_close', 'p', -1);
         }
 

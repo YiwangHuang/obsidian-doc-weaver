@@ -30,12 +30,12 @@
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
               <!-- 命令名称和图标 -->
-               <v-col cols="7">
-                 <div class="d-flex align-center">
-                   <IconSelectButton :app="props.plugin.app" :command="command" />
-                   <div class="text-subtitle-2 font-weight-medium">{{ command.name }}</div>
-                 </div>
-               </v-col>
+              <v-col cols="7">
+                <div class="d-flex align-center">
+                  <IconSelectButton :app="props.plugin.app" :command="command" />
+                  <div class="text-subtitle-2 font-weight-medium">{{ command.name }}</div>
+                </div>
+              </v-col>
               
               <!-- 操作按钮 -->
               <v-col cols="5">

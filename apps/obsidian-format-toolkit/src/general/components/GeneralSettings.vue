@@ -1,12 +1,12 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
-    <h3 class="my-2">{{ getLocalizedText({ en: "Toolbar Settings", zh: "工具栏设置" }) }}</h3>
+    <!-- <div class="text-subtitle-1 font-weight-medium">{{ getLocalizedText({ en: "Toolbar Settings", zh: "工具栏设置" }) }}</div>
 
-    <v-divider class="border-opacity-100 my-3"/>
+    <v-divider class="border-opacity-100 my-3"/> -->
 
     <!-- SpeedDial 显示控制 -->
-    <div class="d-flex align-center mt-4">
+    <div class="d-flex align-center my-2">
       <div class="flex-grow-1">
         <div class="text-subtitle-2 font-weight-medium">
           {{ getLocalizedText({ en: "Show Toolbar", zh: "显示悬浮工具栏" }) }}
@@ -23,10 +23,10 @@
     </div>
 
     <!-- 分割线 -->
-    <v-divider class="border-opacity-100 my-3" />
+    <v-divider class="border-opacity-100 my-0" />
 
     <!-- 额外命令管理 -->
-    <ExtraCommandSettings
+    <ExtraCommandSettings class="my-2"
       :plugin="props.plugin"
     />
   </v-container>

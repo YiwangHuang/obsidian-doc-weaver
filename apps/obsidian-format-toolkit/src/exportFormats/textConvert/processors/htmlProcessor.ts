@@ -1,5 +1,5 @@
 import { BaseConverter } from '../textConverter';
-import { debugLog } from '../../../lib/debugUtils';
+// import { debugLog } from '../../../lib/debugUtils';
 
 BaseConverter.registerProcessor({
     name: 'htmlProcessor',

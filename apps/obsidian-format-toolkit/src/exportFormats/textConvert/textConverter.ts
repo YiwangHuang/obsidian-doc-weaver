@@ -296,7 +296,7 @@ export class AdvancedConverter extends BaseConverter{
                                                     
                                                     if (isClosingTag) {
                                                         // 结束标签处理：只需检查标签名匹配，无需检查class
-                                                        debugLog('htmlProcessor found end tag:', childToken.content);
+                                                        // debugLog('htmlProcessor found end tag:', childToken.content);
                                                         // 将结束标签替换为Typst的右括号
                                                         childToken.content = "]";
                                                         break; // 找到匹配后跳出配置循环
@@ -316,7 +316,7 @@ export class AdvancedConverter extends BaseConverter{
                                                         }
                                                         
                                                         if (classMatches) {
-                                                            debugLog('htmlProcessor found start tag:', childToken.content);
+                                                            // debugLog('htmlProcessor found start tag:', childToken.content);
                                                             // 将开始标签替换为Typst格式的前缀和左括号
                                                             childToken.content = config.typstPrefix + "[";
                                                             break; // 找到匹配后跳出配置循环

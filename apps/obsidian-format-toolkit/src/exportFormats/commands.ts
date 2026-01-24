@@ -1,13 +1,13 @@
-import { Notice, TFile, Editor } from 'obsidian';
+import { Notice, TFile, TAbstractFile, TFolder, Editor, Menu } from 'obsidian';
 import * as fs from 'fs';
 import * as path from 'path';
 import MyPlugin from '../main';
 import { exportFormatsInfo } from './index';
-import type { ExportManagerSettings } from './types';
+import type { ExportManagerSettings, ExportConfig } from './types';
 import { TextConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
 import { getNoteInfo } from '../lib/noteResloveUtils';
-import { DEBUG } from '../lib/debugUtils';
+import { DEBUG, debugLog } from '../lib/debugUtils';
 import { normalizeCrossPlatformPath, copyFilesRecursively } from '../lib/pathUtils';
 import { getLocalizedText } from '../lib/textUtils';
 
@@ -98,6 +98,179 @@ function deepPaste(plugin: MyPlugin, editor: Editor): void {//TODO: 为深度拷
     }
 }
 
+/**
+ * 导出单个文件到指定格式
+ * @param plugin - 插件实例
+ * @param sourceFile - 源文件
+ * @param config - 导出配置
+ */
+async function exportToSingleFormat(plugin: MyPlugin, sourceFile: TFile, config: ExportConfig): Promise<void> {
+    if (sourceFile.extension !== 'md' || sourceFile.path.endsWith('.excalidraw.md')) {
+        new Notice(`${sourceFile.basename} is not a markdown note, only markdown notes can be parsed to export.`);
+        return;
+    }
+    
+    try {
+        const sourceContent = (await getNoteInfo(plugin, sourceFile)).mainContent;
+        const converter = new TextConverter(plugin, sourceFile);
+        converter.exportConfig = config;
+        
+        const styleDirAbs = path.posix.join(plugin.PLUGIN_ABS_PATH, config.style_dir);
+        const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(config.output_dir));
+        const outputFullName = `${converter.replacePlaceholders(config.output_base_name)}.${extensionNameOfFormat[config.format]}`;
+
+        // 创建目标目录
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
+        
+        // 拷贝样式文件，过滤掉demo.typ文件
+        if (fs.existsSync(styleDirAbs)) {
+            copyFilesRecursively(styleDirAbs, outputDir, (fileName) => fileName !== 'demo.typ');
+        }
+        
+        converter.resetLinkParser();
+
+        // 处理主要内容
+        const exportContent = await converter.convert(sourceContent, config.format);
+        const finalContent = converter.replacePlaceholders(config.template, exportContent);
+        
+        fs.writeFileSync(path.posix.join(outputDir, outputFullName), finalContent);
+        
+        // 拷贝附件
+        converter.copyAttachment(outputDir);
+
+        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 2000);
+        
+        converter.exportConfig = null;
+    } catch (error) {
+        console.error(`Error exporting ${sourceFile.basename} to ${config.format}:`, error);
+        new Notice(`Failed to export ${sourceFile.basename} to ${config.format}`);
+    }
+}
+
+/**
+ * 递归收集所有TFile类型的文件
+ * @param abstractFiles - 抽象文件或文件夹数组
+ * @returns 所有TFile类型的文件列表
+ */
+function collectAllFiles(abstractFiles: TAbstractFile[]): TFile[] {
+    const fileList: TFile[] = [];
+    
+    // 递归遍历处理单个抽象文件
+    function processFile(file: TAbstractFile): void {
+        if (file instanceof TFile) {
+            // 如果是TFile，直接添加到列表
+            file.extension==='md'&&!file.path.endsWith('.excalidraw.md')&&fileList.push(file);
+        } else if (file instanceof TFolder) {
+            // 如果是TFolder，递归遍历其children属性
+            file.children.forEach(child => processFile(child));
+        }
+    }
+    
+    // 遍历所有传入的抽象文件
+    abstractFiles.forEach(file => processFile(file));
+    
+    return fileList;
+}
+
+/**
+ * 注册文件右键菜单
+ * 每次打开菜单时基于 plugin.settingList 中的配置动态生成子菜单项
+ * @param menu - 菜单对象
+ * @param files - 抽象文件数组（可包含文件和文件夹）
+ * @param plugin - 插件实例
+ */
+function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: MyPlugin): void {
+    // 获取导出格式配置（实时从 settingList 中读取）
+    const settings = plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;
+    const enabledConfigs = settings.exportConfigs.filter(item => item.enabled);
+
+    // 如果没有启用的导出格式，不显示菜单（条件过滤）
+    if (enabledConfigs.length === 0) {
+        return;
+    }
+
+    // 建立待导出文件列表：递归处理文件和文件夹，收集所有TFile
+    const filesToExport = collectAllFiles(files);
+    
+    debugLog('filesToExport', filesToExport);
+
+    // 如果没有可导出的文件，不显示菜单
+    if (filesToExport.length === 0) {
+        return;
+    }
+
+    // 创建主菜单项 "Export Formats"
+    menu.addItem((item) => {
+        item.setTitle(getLocalizedText({en: 'Doc Weaver Export', zh: 'Doc Weaver 导出'}))
+            .setIcon("download");
+        
+        // 创建子菜单
+        (item as any).setSubmenu();
+        const submenu = (item as any).submenu;
+        
+        if (!submenu) return;
+
+        // 添加"导出所有格式"选项
+        submenu.addItem((subItem: any) => {
+            subItem
+                .setTitle(getLocalizedText({en: 'Export All Formats', zh: '导出所有格式'}))
+                .setIcon("layers")
+                .onClick(() => {
+                    // 如果要导出的文件数量大于1，弹出确认窗口
+                    if (filesToExport.length > 1) {
+                        const confirmMessage = getLocalizedText({
+                            en: `Export ${filesToExport.length} files to all enabled formats?`,
+                            zh: `是否将 ${filesToExport.length} 个文件导出到所有启用的格式？`
+                        });
+                        
+                        if (!confirm(confirmMessage)) {
+                            return;
+                        }
+                    }
+                    
+                    // 使用收集到的待导出文件列表
+                    filesToExport.forEach(file => {
+                        exportToFormats(plugin, file);
+                    });
+                });
+        });
+
+        // 添加分隔符
+        submenu.addSeparator();
+
+        // 为每个启用的格式动态添加子菜单项
+        enabledConfigs.forEach((config: ExportConfig) => {
+            submenu.addItem((subItem: any) => {
+                subItem
+                    // 使用自定义名称或默认格式名称
+                    .setTitle(config.name || config.format)
+                    .setIcon(config.icon || "file-text")
+                    .onClick(async () => {
+                        // 如果要导出的文件数量大于1，弹出确认窗口
+                        if (filesToExport.length > 1) {
+                            const formatName = config.name || config.format;
+                            const confirmMessage = getLocalizedText({
+                                en: `Export ${filesToExport.length} files to ${formatName}?`,
+                                zh: `是否将 ${filesToExport.length} 个文件导出为 ${formatName}？`
+                            });
+                            
+                            if (!confirm(confirmMessage)) {
+                                return;
+                            }
+                        }
+                        
+                        // 批量导出收集到的文件到指定格式
+                        for (const file of filesToExport) {
+                            await exportToSingleFormat(plugin, file, config);
+                        }
+                    });
+            });
+        });
+    });
+}
+
 export function addExportFormatsCommands(plugin: MyPlugin): void {
     plugin.addCommand({
         id: 'export-formats',
@@ -105,23 +278,17 @@ export function addExportFormatsCommands(plugin: MyPlugin): void {
         callback: async () => await exportToFormats(plugin, plugin.app.workspace.getActiveFile() as TFile)
     });
 
+    // 注册文件右键菜单 - 动态生成导出格式子菜单
+    // TODO: 需要将files参数类型冲突，根据文件和目录分别处理，弹出提醒框，确认后再进行批量导出操作
     plugin.registerEvent(
         plugin.app.workspace.on("files-menu", (menu, files) => {
-            // 确保文件对象存在，且是普通文件（不是文件夹）
-            menu.addItem((item) =>
-                item
-                    .setTitle("批量导出文件")
-                    .setIcon("document")
-                    .onClick(() => {
-                        for (const file of files) {
-                            if (file instanceof TFile) {
-                                // console.log("选中的文件:", file.path, "\n",file.extension);
-                                // new Notice(`文件路径: ${file.path}`);
-                                exportToFormats(plugin, file);
-                            }
-                        }
-                    })
-            );
+            registerFileContextMenu(menu, files, plugin);
+        })
+    );
+
+    plugin.registerEvent(
+        plugin.app.workspace.on("file-menu", (menu, file) => {
+            registerFileContextMenu(menu, [file], plugin);
         })
     );
 

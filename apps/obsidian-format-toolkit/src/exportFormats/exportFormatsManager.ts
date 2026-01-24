@@ -13,7 +13,7 @@ import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
 import { normalizeCrossPlatformPath, copyFilesRecursively } from "../lib/pathUtils";
 import { watch } from "vue";
-import { registerHtmlProcessor } from "./textConvert/processors/htmlProcessor";
+// import { registerHtmlProcessor } from "./textConvert/processors/htmlProcessor";
 
 export class ExportFormatsManager {
     private plugin: MyPlugin;

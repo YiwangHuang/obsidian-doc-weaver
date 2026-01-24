@@ -42,9 +42,9 @@ export async function exportToPng(
         fs.writeFileSync(targetPathAbs, Buffer.from(arrayBuffer));
         // 使用vault adapter保存到vault内
         // await plugin.app.vault.adapter.writeBinary(targetPathAbs, arrayBuffer);
-        new Notice('导出PNG成功');
+        // new Notice('导出PNG成功');
     } catch (error) {
-        new Notice(`导出失败: ${error.message}`);
+        new Notice(`export to PNG failed: ${error.message}`);
         throw error;
     }
 }

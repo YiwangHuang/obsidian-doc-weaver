@@ -5,7 +5,7 @@
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
     <div class="my-2">
-      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Tag Wrapper Settings", zh: "标签包装器设置" }) }}</div>
+      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Configure HTML Tags", zh: "配置HTML标签" }) }}</div>
       <p class="text-caption text-medium-emphasis">
         {{ getLocalizedText({
           en: "Extend Markdown with custom HTML tags mapped to corresponding Typst syntax; iframe tags are supported by default and will be converted into hyperlinks. Shortcut commands are also provided to wrap selected text in custom HTML tags.",
@@ -184,7 +184,7 @@
     </ObsidianVueModal>
 
     <!-- 删除确认对话框 -->
-    <v-dialog v-model="deleteConfirmVisible" max-width="400">
+    <!-- <v-dialog v-model="deleteConfirmVisible" max-width="400">
       <v-card>
         <v-card-title>
           {{ getLocalizedText({ en: "Confirm Delete", zh: "确认删除" }) }}
@@ -202,7 +202,7 @@
           </v-btn>
         </v-card-actions>
       </v-card>
-    </v-dialog>
+    </v-dialog> -->
   </v-container>
 </template>
 
@@ -220,6 +220,7 @@ import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
 import { OBSIDIAN_PRIMARY_COLOR } from '../../vue/plugins/vuetify';
+import { ConfirmModal } from '../../lib/modalUtils';
 
 interface TagWrapperSettingsProps {
   plugin: MyPlugin;
@@ -233,7 +234,6 @@ const configs = props.plugin.settingList[tagWrapperInfo.name] as TagWrapperSetti
 // 弹窗状态
 const modalVisible = ref(false);
 const editingTag = ref<TagConfig | null>(null);
-const deleteConfirmVisible = ref(false);
 const deleteTagIndex = ref<number | null>(null);
 
 // 标签类型选项
@@ -286,19 +286,23 @@ const openTagModal = (index: number) => {
 
 const showDeleteConfirm = (index: number) => {
   deleteTagIndex.value = index;
-  deleteConfirmVisible.value = true;
+  const confirmMessage = getLocalizedText({ en: "Confirm Delete Tag Configuration: ", zh: "确认删除标签配置: " }) + configs.tags[index].name;
+  new ConfirmModal(
+                    props.plugin.app,
+                    confirmMessage,
+                    async () => await confirmDelete()
+                    , () => cancelDelete()
+                    ).open();
 };
 
 const confirmDelete = () => {
   if (deleteTagIndex.value === null) return;
   props.plugin.tagWrapperManager.deleteTagItem(deleteTagIndex.value);
   deleteTagIndex.value = null;
-  deleteConfirmVisible.value = false;
 };
 
 const cancelDelete = () => {
   deleteTagIndex.value = null;
-  deleteConfirmVisible.value = false;
 };
 
 </script>

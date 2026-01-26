@@ -1,73 +1,14 @@
 import { Notice, TFile, TAbstractFile, TFolder, Editor, Menu } from 'obsidian';
-import * as fs from 'fs';
-import * as path from 'path';
 import MyPlugin from '../main';
 import { exportFormatsInfo } from './index';
 import type { ExportManagerSettings, ExportConfig } from './types';
 import { TextConverter } from './textConvert/index';
 import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
-import { getNoteInfo } from '../lib/noteResloveUtils';
 import { DEBUG, debugLog } from '../lib/debugUtils';
-import { normalizeCrossPlatformPath, copyFilesRecursively } from '../lib/pathUtils';
 import { getLocalizedText } from '../lib/textUtils';
+import { ConfirmModal } from '../lib/modalUtils';
 
 //TODO: 新增功能：直接通过typst的WebAssembly版本导出为pdf
-
-
-async function exportToFormats(plugin: MyPlugin, sourceFile: TFile): Promise<void> {
-    if (sourceFile.extension !== 'md' || sourceFile.path.endsWith('.excalidraw.md')) {
-        new Notice(`${sourceFile.basename} is not markdown files, only markdown files can be parsed to export.`);
-        return;
-    }
-    const sourceContent = (await getNoteInfo(plugin, sourceFile)).mainContent// 只获取笔记主要内容，暂时用不到笔记属性
-    const settings = plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;// 获取设置
-    const converter = new TextConverter(plugin, sourceFile);
-    
-    const enabledConfigs = settings.exportConfigs.filter(item => item.enabled);
-    if (enabledConfigs.length === 0) {
-        new Notice("No enabled export formats found. Please enable at least one format in settings.");
-        return;
-    }
-
-    for (const item of enabledConfigs) {
-        converter.exportConfig = item;
-        const styleDirAbs = path.posix.join(plugin.PLUGIN_ABS_PATH, item.style_dir);
-        const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir)); // 跨平台路径处理
-        const outputFullName = `${converter.replacePlaceholders(item.output_base_name)}.${extensionNameOfFormat[item.format]}`;
-
-        // 创建目标目录
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
-        }
-        
-        // 拷贝样式文件，过滤掉demo.typ文件
-        if (fs.existsSync(styleDirAbs)) {
-            copyFilesRecursively(styleDirAbs, outputDir, (fileName) => fileName !== 'demo.typ');
-        }
-        
-        converter.resetLinkParser(); // 每次导出前重置linkParser，避免重复写入链接信息
-
-        // 处理主要内容
-        const exportContent = await converter.convert(sourceContent, item.format);
-        
-        // 使用重构后的replacePlaceholders方法，直接处理模板和内容的整合
-        const finalContent = converter.replacePlaceholders(item.template, exportContent);
-        
-        fs.writeFileSync(path.posix.join(outputDir, outputFullName), finalContent);
-        
-        // 拷贝附件
-        converter.copyAttachment(outputDir);
-
-        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 2000); // 打印导出信息
-
-        converter.exportConfig = null;
-
-        console.log('打印附件信息')//
-        for (const link of converter.linkParser.linkList) {
-            console.log(`Path: ${link.source_path}, Type: ${link.type}`);
-        }
-    }
-}
 
 type DeepMoveCache = {
     text: string;
@@ -95,57 +36,6 @@ function deepPaste(plugin: MyPlugin, editor: Editor): void {//TODO: 为深度拷
     editor.replaceRange(text, editor.getCursor());
     if(currentFile.parent){
         converter.copyAttachment(plugin.getPathAbs(currentFile.parent.path));
-    }
-}
-
-/**
- * 导出单个文件到指定格式
- * @param plugin - 插件实例
- * @param sourceFile - 源文件
- * @param config - 导出配置
- */
-async function exportToSingleFormat(plugin: MyPlugin, sourceFile: TFile, config: ExportConfig): Promise<void> {
-    if (sourceFile.extension !== 'md' || sourceFile.path.endsWith('.excalidraw.md')) {
-        new Notice(`${sourceFile.basename} is not a markdown note, only markdown notes can be parsed to export.`);
-        return;
-    }
-    
-    try {
-        const sourceContent = (await getNoteInfo(plugin, sourceFile)).mainContent;
-        const converter = new TextConverter(plugin, sourceFile);
-        converter.exportConfig = config;
-        
-        const styleDirAbs = path.posix.join(plugin.PLUGIN_ABS_PATH, config.style_dir);
-        const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(config.output_dir));
-        const outputFullName = `${converter.replacePlaceholders(config.output_base_name)}.${extensionNameOfFormat[config.format]}`;
-
-        // 创建目标目录
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
-        }
-        
-        // 拷贝样式文件，过滤掉demo.typ文件
-        if (fs.existsSync(styleDirAbs)) {
-            copyFilesRecursively(styleDirAbs, outputDir, (fileName) => fileName !== 'demo.typ');
-        }
-        
-        converter.resetLinkParser();
-
-        // 处理主要内容
-        const exportContent = await converter.convert(sourceContent, config.format);
-        const finalContent = converter.replacePlaceholders(config.template, exportContent);
-        
-        fs.writeFileSync(path.posix.join(outputDir, outputFullName), finalContent);
-        
-        // 拷贝附件
-        converter.copyAttachment(outputDir);
-
-        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 2000);
-        
-        converter.exportConfig = null;
-    } catch (error) {
-        console.error(`Error exporting ${sourceFile.basename} to ${config.format}:`, error);
-        new Notice(`Failed to export ${sourceFile.basename} to ${config.format}`);
     }
 }
 
@@ -218,6 +108,12 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: MyP
                 .setTitle(getLocalizedText({en: 'Export All Formats', zh: '导出所有格式'}))
                 .setIcon("layers")
                 .onClick(() => {
+                    const settings = plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;// 获取设置
+                    const enabledConfigs = settings.exportConfigs.filter(item => item.enabled);
+                    if (enabledConfigs.length === 0) {
+                        new Notice("No enabled export formats found. Please enable at least one format in settings.");
+                        return;
+                    }
                     // 如果要导出的文件数量大于1，弹出确认窗口
                     if (filesToExport.length > 1) {
                         const confirmMessage = getLocalizedText({
@@ -225,15 +121,29 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: MyP
                             zh: `是否将 ${filesToExport.length} 个文件导出到所有启用的格式？`
                         });
                         
-                        if (!confirm(confirmMessage)) {
-                            return;
-                        }
+                        // 使用 Obsidian Modal 替代原生 confirm
+                        new ConfirmModal(
+                            plugin.app,
+                            confirmMessage,
+                            () => {
+                                // 确认后执行导出
+                                filesToExport.forEach(file => {
+                                    // exportToFormats(plugin, file);
+                                    for (const config of enabledConfigs) {
+                                        plugin.exportFormatsManager.executeExport(config, file);
+                                    }
+                                });
+                            }
+                        ).open();
+                    } else {
+                        // 只有一个文件时直接导出，无需确认
+                        filesToExport.forEach(file => {
+                            // exportToFormats(plugin, file);
+                            for (const config of enabledConfigs) {
+                                plugin.exportFormatsManager.executeExport(config, file);
+                            }
+                        });
                     }
-                    
-                    // 使用收集到的待导出文件列表
-                    filesToExport.forEach(file => {
-                        exportToFormats(plugin, file);
-                    });
                 });
         });
 
@@ -256,14 +166,24 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: MyP
                                 zh: `是否将 ${filesToExport.length} 个文件导出为 ${formatName}？`
                             });
                             
-                            if (!confirm(confirmMessage)) {
-                                return;
+                            // 使用 Obsidian Modal 替代原生 confirm
+                            new ConfirmModal(
+                                plugin.app,
+                                confirmMessage,
+                                async () => {
+                                    // 确认后执行导出
+                                    for (const file of filesToExport) {
+                                        // await exportToSingleFormat(plugin, file, config);
+                                        await plugin.exportFormatsManager.executeExport(config, file);
+                                    }
+                                }
+                            ).open();
+                        } else {
+                            // 只有一个文件时直接导出，无需确认
+                            for (const file of filesToExport) {
+                                // await exportToSingleFormat(plugin, file, config);
+                                await plugin.exportFormatsManager.executeExport(config, file);
                             }
-                        }
-                        
-                        // 批量导出收集到的文件到指定格式
-                        for (const file of filesToExport) {
-                            await exportToSingleFormat(plugin, file, config);
                         }
                     });
             });
@@ -275,7 +195,17 @@ export function addExportFormatsCommands(plugin: MyPlugin): void {
     plugin.addCommand({
         id: 'export-formats',
         name: getLocalizedText({en: 'Export all enabled formats', zh: '导出所有激活的格式'}),
-        callback: async () => await exportToFormats(plugin, plugin.app.workspace.getActiveFile() as TFile)
+        callback: async () => {
+            const settings = plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;// 获取设置
+            const enabledConfigs = settings.exportConfigs.filter(item => item.enabled);
+            if (enabledConfigs.length === 0) {
+                new Notice("No enabled export formats found. Please enable at least one format in settings.");
+                return;
+            }
+            for (const config of enabledConfigs) {
+                plugin.exportFormatsManager.executeExport(config, plugin.app.workspace.getActiveFile() as TFile);
+            }
+        }
     });
 
     // 注册文件右键菜单 - 动态生成导出格式子菜单

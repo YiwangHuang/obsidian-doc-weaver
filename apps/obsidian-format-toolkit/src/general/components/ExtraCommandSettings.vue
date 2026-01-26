@@ -106,27 +106,6 @@
         </v-form>
       </div>
     </ObsidianVueModal>
-
-    <!-- 删除确认对话框 -->
-    <v-dialog v-model="deleteConfirmVisible" max-width="400">
-      <v-card>
-        <v-card-title>
-          {{ getLocalizedText({ en: "Confirm Delete", zh: "确认删除" }) }}
-        </v-card-title>
-        <v-card-text>
-          {{ getLocalizedText({ en: "Are you sure you want to delete this command configuration?", zh: "确认要删除此命令配置吗？" }) }}
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn @click="cancelDelete">
-            {{ getLocalizedText({ en: "Cancel", zh: "取消" }) }}
-          </v-btn>
-          <v-btn color="error" @click="confirmDelete">
-            {{ getLocalizedText({ en: "Delete", zh: "删除" }) }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </v-container>
 </template>
 
@@ -142,7 +121,7 @@ import Icon from '../../vue/components/Icon.vue';
 import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
-import ConfirmDialog from '../../vue/components/ConfirmDialog.vue';
+import { ConfirmModal } from '../../lib/modalUtils';
 import { openCommandSelector, findCommand } from '../../lib/commandUtils';
 
 interface ExtraCommandSettingsProps {
@@ -157,7 +136,6 @@ const configs = props.plugin.settingList[generalInfo.name] as GeneralSettings;
 // 弹窗状态
 const modalVisible = ref(false);
 const editingCommand = ref<ExtraCommandConfig | null>(null);
-const deleteConfirmVisible = ref(false);
 const deleteCommandIndex = ref<number | null>(null);
 
 
@@ -224,8 +202,13 @@ const saveCommand = () => {
  */
 const showDeleteConfirm = (index: number) => {
   deleteCommandIndex.value = index;
-  deleteConfirmVisible.value = true;
-  // TODO: 实现删除确认逻辑
+  const confirmMessage = getLocalizedText({ en: "Confirm Delete Command: ", zh: "确认删除命令: " }) + configs.extraCommands[index].name;
+  new ConfirmModal(
+                    props.plugin.app,
+                    confirmMessage,
+                    async () => await confirmDelete()
+                    , () => cancelDelete()
+                    ).open();
 };
 
 /**
@@ -237,7 +220,6 @@ const confirmDelete = () => {
   // TODO: 实现删除命令逻辑
   debugLog('Delete command confirmed for index:', deleteCommandIndex.value);
   deleteCommandIndex.value = null;
-  deleteConfirmVisible.value = false;
 };
 
 /**
@@ -245,9 +227,8 @@ const confirmDelete = () => {
  */
 const cancelDelete = () => {
   deleteCommandIndex.value = null;
-  deleteConfirmVisible.value = false;
   // TODO: 实现取消删除逻辑
-};
+};  
 
 /**
  * 处理图标变化 - 预留空实现

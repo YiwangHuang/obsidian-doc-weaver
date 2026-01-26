@@ -21,11 +21,11 @@
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
     <div class="my-2">
-      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Export Formats Settings", zh: "导出格式设置" }) }}</div>
+      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Configure Export Presets", zh: "配置导出预设" }) }}</div>
       <p class="text-caption text-medium-emphasis">
         {{ getLocalizedText({
-          en: "Configure export format commands, support various output formats",
-          zh: "配置导出格式命令，支持多种输出格式"
+          en: "Configure export presets, support various output formats",
+          zh: "配置导出预设，支持多种输出格式"
         }) }}
       </p>
     </div>
@@ -270,25 +270,27 @@
     </ObsidianVueModal>
 
     <!-- 删除确认弹窗 -->
-    <v-dialog v-model="deleteConfirmVisible" max-width="400">
-      <v-card>
-        <v-card-title>
-          {{ getLocalizedText({ en: "Confirm Delete Export Format", zh: "确认删除导出格式" }) }}
-        </v-card-title>
-        <v-card-text>
-          {{ getLocalizedText({ en: "Are you sure you want to delete this export format?", zh: "确认要删除此导出格式吗？" }) }}
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn @click="cancelDelete">
+    <!-- <ObsidianVueModal
+      v-model:visible="deleteConfirmVisible"
+      :obsidian-app="plugin.app"
+      @update:visible="onModalVisibilityChange"
+      max-width="500"
+      style="padding: 0 !important;"
+    >
+      <div>
+        <div class="text-subtitle-1 font-weight-medium">
+          {{ getLocalizedText({ en: "Confirm Delete Export Preset: ", zh: "确认删除导出预设: " }) + settings.exportConfigs[deleteConfigIndex as number].name}}
+        </div>
+        <div class="d-flex align-center justify-end">
+          <v-btn class="me-2" @click="cancelDelete">
             {{ getLocalizedText({ en: "Cancel", zh: "取消" }) }}
           </v-btn>
-          <v-btn color="error" @click="confirmDelete">
+          <v-btn color="error" class="me-0" @click="confirmDelete">
             {{ getLocalizedText({ en: "Delete", zh: "删除" }) }}
           </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+        </div>
+      </div>
+    </ObsidianVueModal> -->
   </v-container>
 </template>
 
@@ -299,6 +301,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
 import type MyPlugin from '../../main';
+import { ConfirmModal } from '../../lib/modalUtils';
 import type { 
   ExportConfig, 
   ExportManagerSettings
@@ -451,6 +454,14 @@ const openAssetsFolder = (config: ExportConfig) => {
 const showDeleteConfirm = (index: number) => {
   deleteConfigIndex.value = index;
   deleteConfirmVisible.value = true;
+  const confirmMessage = getLocalizedText({ en: "Confirm Delete Export Preset: ", zh: "确认删除导出预设: " }) + settings.exportConfigs[index].name;
+  // new ConfirmModal(props.plugin.app, getLocalizedText({ en: "Confirm Delete Export Preset: ", zh: "确认删除导出预设: " }) + settings.exportConfigs[index].name, confirmDelete, cancelDelete).open();
+  new ConfirmModal(
+                    props.plugin.app,
+                    confirmMessage,
+                    async () => await confirmDelete()
+                    , () => cancelDelete()
+                    ).open();
 };
 
 /**

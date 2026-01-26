@@ -5,7 +5,7 @@
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
     <div class="my-2">
-      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Quick Template Settings", zh: "快捷模板设置" }) }}</div>
+      <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Configure Quick Template", zh: "配置快捷模板" }) }}</div>
       <p class="text-caption text-medium-emphasis">
         {{ getLocalizedText({
           en: "Configure quick template commands, insert templates with placeholders for selected text",
@@ -124,27 +124,6 @@
         </InputWithPlaceholders>
       </div>
     </ObsidianVueModal>
-
-    <!-- 删除确认对话框 -->
-    <v-dialog v-model="deleteConfirmVisible" max-width="400">
-      <v-card>
-        <v-card-title>
-          {{ getLocalizedText({ en: "Confirm Delete", zh: "确认删除" }) }}
-        </v-card-title>
-        <v-card-text>
-          {{ getLocalizedText({ en: "Are you sure you want to delete this template configuration?", zh: "确认要删除此模板配置吗？" }) }}
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn @click="cancelDelete">
-            {{ getLocalizedText({ en: "Cancel", zh: "取消" }) }}
-          </v-btn>
-          <v-btn color="error" @click="confirmDelete">
-            {{ getLocalizedText({ en: "Delete", zh: "删除" }) }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </v-container>
 </template>
 
@@ -160,6 +139,7 @@ import Icon from '../../vue/components/Icon.vue';
 import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import InputWithPlaceholders from '../../vue/components/InputWithPlaceholders.vue';
+import { ConfirmModal } from '../../lib/modalUtils';
 
 interface QuickTemplateSettingsProps {
   plugin: MyPlugin;
@@ -173,7 +153,6 @@ const configs = props.plugin.settingList[quickTemplateInfo.name] as QuickTemplat
 // 弹窗状态
 const modalVisible = ref(false);
 const editingTemplate = ref<TemplateConfig | null>(null);
-const deleteConfirmVisible = ref(false);
 const deleteTemplateIndex = ref<number | null>(null);
 
 // 模板占位符配置
@@ -210,19 +189,23 @@ const addNewTemplate = () => {
 
 const showDeleteConfirm = (index: number) => {
   deleteTemplateIndex.value = index;
-  deleteConfirmVisible.value = true;
+  const confirmMessage = getLocalizedText({ en: "Confirm Delete Template: ", zh: "确认删除模板: " }) + configs.templates[index].name;
+  new ConfirmModal(
+                    props.plugin.app,
+                    confirmMessage,
+                    async () => await confirmDelete()
+                    , () => cancelDelete()
+                    ).open();
 };
 
 const confirmDelete = () => {
   if (deleteTemplateIndex.value === null) return;
   props.plugin.quickTemplateManager.deleteTemplateItem(deleteTemplateIndex.value);
   deleteTemplateIndex.value = null;
-  deleteConfirmVisible.value = false;
 };
 
 const cancelDelete = () => {
   deleteTemplateIndex.value = null;
-  deleteConfirmVisible.value = false;
 };
 
 /**

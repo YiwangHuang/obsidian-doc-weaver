@@ -205,7 +205,7 @@ export class ExportFormatsManager {
         // 拷贝附件
         converter.copyAttachment(outputDir);
 
-        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 2000); // 打印导出信息
+        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 3000); // 打印导出信息
 
         console.log('打印附件信息')//
         for (const link of converter.linkParser.linkList) {

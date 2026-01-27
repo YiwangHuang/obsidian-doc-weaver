@@ -20,6 +20,30 @@
 <template>
   <v-container fluid class="pa-0">
     <!-- 模块头部 -->
+    <!-- 批量导出设置 -->
+    <div class="d-flex align-center my-2">
+      <div class="flex-grow-1">
+        <div class="text-subtitle-2 font-weight-medium">
+          {{ getLocalizedText({ en: 'Enable Batch Export Confirmation', zh: '启用批量导出' }) }}
+        </div>
+        <div class="text-caption text-medium-emphasis">
+          {{ getLocalizedText({ 
+            en: 'Enable Doc Weaver export option in the right-click menu of the file list', 
+            zh: '在文件列表的右键菜单中启用 Doc Weaver 导出选项' 
+          }) }}
+        </div>
+      </div>
+      <v-switch
+        v-model="settings.batchExportEnabled"
+        @update:model-value="handleBatchExportEnabledChange"
+        hide-details
+        density="compact"
+      />
+    </div>
+
+    <!-- 分割线 -->
+    <v-divider class="border-opacity-100 my-2" />
+  
     <div class="my-2">
       <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Configure Export Presets", zh: "配置导出预设" }) }}</div>
       <p class="text-caption text-medium-emphasis">
@@ -159,7 +183,7 @@
               <v-text-field
                 v-model="editingConfig.output_dir"
                 :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
-                :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR"
+                :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR"
                 variant="outlined"
                 density="compact"
               />
@@ -170,7 +194,7 @@
               <v-text-field
                 v-model="editingConfig.output_base_name"
                 :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
-                :placeholder="EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
+                :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
                 variant="outlined"
                 density="compact"
               />
@@ -307,7 +331,7 @@ import type {
   ExportManagerSettings
 } from '../types';
 import { 
-  EXPORT_FORMATS_CONSTANTS,
+  EXPORT_CONFIGS_CONSTANTS,
   FORMAT_OPTIONS,
   EXCALIDRAW_EXPORT_OPTIONS,
   EXTENSION_MAP
@@ -355,8 +379,8 @@ const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
  * 获取预览路径（支持占位符替换）
  */
 const getPreviewPath = (config: ExportConfig): string => {
-  const outputDir = config.output_dir || EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR;
-  const outputName = config.output_base_name || EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME;
+  const outputDir = config.output_dir || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR;
+  const outputName = config.output_base_name || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME;
   const pathTemplate = `${outputDir}/${outputName}.${getExtensionByFormat(config.format)}`;
   
   // 获取当前活动文件
@@ -393,6 +417,14 @@ const handleDragEnd = () => {
 };
 
 /**
+ * 处理批量导出确认功能启用状态变更
+ */
+const handleBatchExportEnabledChange = (enabled: boolean) => {
+  debugLog(`Batch export confirmation enabled:`, enabled);
+  settings.batchExportEnabled = enabled;
+};
+
+/**
  * 处理导出格式启用状态变更
  */
 const handleExportEnabledChange = (index: number, enabled: boolean) => {
@@ -414,7 +446,7 @@ const openExportModal = (index: number) => {
 const handleExcalidrawTypeChange = () => {
   // 当切换到PNG时，确保有默认的缩放值
   if (editingConfig.value?.excalidraw_export_type === 'png' && !editingConfig.value.excalidraw_png_scale) {
-    editingConfig.value.excalidraw_png_scale = EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE;
+    editingConfig.value.excalidraw_png_scale = EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE;
   }
 };
 

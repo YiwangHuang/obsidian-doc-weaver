@@ -8,7 +8,7 @@ import { generateTimestamp } from "../lib/idGenerator";
 import { OutputFormat, extensionNameOfFormat } from "./textConvert/textConverter";
 import { getDefaultYAML, createFormatAssetStructure } from './textConvert/defaultStyleConfig/styleConfigs';
 import { debugLog } from "../lib/debugUtils";
-import { EXPORT_FORMATS_CONSTANTS } from "./types";
+import { EXPORT_CONFIGS_CONSTANTS } from "./types";
 import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
 import { normalizeCrossPlatformPath, copyFilesRecursively } from "../lib/pathUtils";
@@ -81,13 +81,13 @@ export class ExportFormatsManager {
         commandId: `doc-weaver:export-${hexId}`,
         style_dir: path.posix.join('styles', hexId),
         name: `export-${hexId}`,
-        output_dir: path.posix.join(EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
-        output_base_name: EXPORT_FORMATS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
+        output_dir: path.posix.join(EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
+        output_base_name: EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
         template: getDefaultYAML(format) || '',
         enabled: true,
         format: format,
-        excalidraw_export_type: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
-        excalidraw_png_scale: EXPORT_FORMATS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE,
+        excalidraw_export_type: EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
+        excalidraw_png_scale: EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE,
         icon: getDefaultIcon(format) // 必须提供图标，根据格式设置默认图标
         };
     

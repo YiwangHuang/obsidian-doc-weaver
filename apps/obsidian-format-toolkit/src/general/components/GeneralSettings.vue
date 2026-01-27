@@ -23,7 +23,7 @@
     </div>
 
     <!-- 分割线 -->
-    <v-divider class="border-opacity-100 my-0" />
+    <v-divider class="border-opacity-100 my-2" />
 
     <!-- 额外命令管理 -->
     <ExtraCommandSettings class="my-2"

@@ -87,13 +87,16 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: MyP
     debugLog('filesToExport', filesToExport);
 
     // 如果没有可导出的文件，不显示菜单
-    if (filesToExport.length === 0) {
+    if (filesToExport.length === 0 || !settings.batchExportEnabled) {
         return;
     }
 
     // 创建主菜单项 "Export Formats"
     menu.addItem((item) => {
-        item.setTitle(getLocalizedText({en: 'Doc Weaver Export', zh: 'Doc Weaver 导出'}))
+        item.setTitle(
+            filesToExport.length > 1 ? 
+            getLocalizedText({en: 'Doc Weaver Batch Export', zh: 'Doc Weaver 批量导出'}) : getLocalizedText({en: 'Doc Weaver Export', zh: 'Doc Weaver 导出'})
+        )
             .setIcon("download");
         
         // 创建子菜单
@@ -105,7 +108,7 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: MyP
         // 添加"导出所有格式"选项
         submenu.addItem((subItem: any) => {
             subItem
-                .setTitle(getLocalizedText({en: 'Export All Formats', zh: '导出所有格式'}))
+                .setTitle(getLocalizedText({en: 'Export All Presets', zh: '导出所有预设'}))
                 .setIcon("layers")
                 .onClick(() => {
                     const settings = plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;// 获取设置

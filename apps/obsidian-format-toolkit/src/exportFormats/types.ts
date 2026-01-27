@@ -43,6 +43,7 @@ export interface ExportConfig extends ToolbarItem {
 export interface ExportManagerSettings {
     /** 导出格式配置数组 */
     exportConfigs: ExportConfig[];
+    batchExportEnabled?: boolean;
 }
 
 /**
@@ -80,20 +81,26 @@ export function isExportManagerSettings(obj: unknown): obj is ExportManagerSetti
     const settings = obj as Record<string, unknown>;
     if (!Array.isArray(settings.exportConfigs)) return false;
     
-    return settings.exportConfigs.every((format: unknown) => isExportConfig(format));
+    // batchExportEnabled 是可选的，所以需要检查是否存在且为布尔类型
+    const batchExportEnabledValid = settings.batchExportEnabled === undefined || 
+                                     typeof settings.batchExportEnabled === 'boolean';
+    
+    return batchExportEnabledValid && 
+           settings.exportConfigs.every((format: unknown) => isExportConfig(format));
 }
 
 /**
- * 导出格式的默认设置
+ * 导出模块的默认设置
  */
 export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSettings = {
-    exportConfigs: []
+    exportConfigs: [],        
+    batchExportEnabled: false,
 };
 
 /**
- * 导出格式相关的常量定义
+ * 导出预设相关的常量定义
  */
-export const EXPORT_FORMATS_CONSTANTS = {
+export const EXPORT_CONFIGS_CONSTANTS = {
     /** 默认输出目录 */
     DEFAULT_OUTPUT_DIR: path.join(placeholders.VAR_VAULT_DIR, 'output'),
     /** 默认输出文件名 */

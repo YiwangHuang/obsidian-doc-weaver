@@ -79,10 +79,10 @@ export class ExportFormatsManager {
         const newConfig: ExportConfig = {
         id: `export-${hexId}`,
         commandId: `doc-weaver:export-${hexId}`,
-        style_dir: path.posix.join('styles', hexId),
+        style_dir_rel: path.posix.join('styles', hexId),
         name: `export-${hexId}`,
-        output_dir: path.posix.join(EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
-        output_base_name: EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
+        output_dir_template: path.posix.join(EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
+        output_basename_template: EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
         template: getDefaultYAML(format) || '',
         enabled: true,
         format: format,
@@ -94,7 +94,7 @@ export class ExportFormatsManager {
         // 创建对应的资源文件夹
         const styleDirAbs = path.posix.join(
         this.plugin.PLUGIN_ABS_PATH,
-        newConfig.style_dir
+        newConfig.style_dir_rel
         );
         if (!fs.existsSync(styleDirAbs)) {
         fs.mkdirSync(styleDirAbs, { recursive: true });
@@ -112,7 +112,7 @@ export class ExportFormatsManager {
         const item = this.config.exportConfigs[exportFormatIndex];
         const styleDirAbs = path.posix.join(
             this.plugin.PLUGIN_ABS_PATH,
-            item.style_dir
+            item.style_dir_rel
         );
         if (fs.existsSync(styleDirAbs)) {
             fs.rmSync(styleDirAbs, { recursive: true, force: true });
@@ -136,18 +136,18 @@ export class ExportFormatsManager {
             id: `export-${hexId}`,
             commandId: `doc-weaver:export-${hexId}`,
             name: `${originalConfig.name} - Copy`,
-            style_dir: path.posix.join('styles', hexId),
-            output_dir: path.posix.join(originalConfig.output_dir, hexId),
+            style_dir_rel: path.posix.join('styles', hexId),
+            output_dir_template: path.posix.join(originalConfig.output_dir_template, hexId),
         };
 
         // 创建新的样式文件夹并复制原有样式文件
         const originalStylePath = path.posix.join(
             this.plugin.PLUGIN_ABS_PATH,
-            originalConfig.style_dir
+            originalConfig.style_dir_rel
         );
         const newStylePath = path.posix.join(
             this.plugin.PLUGIN_ABS_PATH,
-            newConfig.style_dir
+            newConfig.style_dir_rel
         );
 
         // 创建新文件夹
@@ -216,9 +216,9 @@ export class ExportFormatsManager {
 
         // 设置导出配置
         converter.exportConfig = item;
-        const styleDirAbs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.style_dir);
-        const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir)); // 跨平台路径处理
-        const outputFullName = `${converter.replacePlaceholders(item.output_base_name)}.${extensionNameOfFormat[item.format]}`;
+        const styleDirAbs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.style_dir_rel);
+        const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir_template)); // 跨平台路径处理
+        const outputFullName = `${converter.replacePlaceholders(item.output_basename_template)}.${extensionNameOfFormat[item.format]}`;
 
         // 创建目标目录
         if (!fs.existsSync(outputDir)) {

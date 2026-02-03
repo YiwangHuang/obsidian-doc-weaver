@@ -17,16 +17,16 @@ export interface ExportConfig extends ToolbarItem {
     /** 格式ID，唯一标识符 */
     id: string;
     commandId: string;
-    /** 样式文件夹路径 */
-    style_dir: string;
+    /** 样式文件夹路径，相对于插件目录 */
+    style_dir_rel: string;
     /** 导出格式类型 */
     format: OutputFormat;
     /** 模板内容 */
     template: string;
-    /** 输出目录路径 */
-    output_dir: string;
-    /** 输出文件基础名称 */
-    output_base_name: string;
+    /** 输出目录路径模板 */
+    output_dir_template: string;
+    /** 输出文件基础名称模板 */
+    output_basename_template: string;
     /** Excalidraw导出类型 */
     excalidraw_export_type: 'png' | 'svg';
     /** PNG导出时的缩放比例 */

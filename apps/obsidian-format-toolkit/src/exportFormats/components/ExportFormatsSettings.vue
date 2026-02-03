@@ -193,7 +193,7 @@
           <v-col cols="6" class="pb-0">
             <InputWithPlaceholders :placeholders="pathPlaceholders">
               <v-text-field
-                v-model="editingConfig.output_dir"
+                v-model="editingConfig.output_dir_template"
                 :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
                 :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR"
                 variant="outlined"
@@ -204,7 +204,7 @@
           <v-col cols="6" class="pb-0">
             <InputWithPlaceholders :placeholders="pathPlaceholders">
               <v-text-field
-                v-model="editingConfig.output_base_name"
+                v-model="editingConfig.output_basename_template"
                 :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
                 :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
                 variant="outlined"
@@ -391,8 +391,8 @@ const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
  * 获取预览路径（支持占位符替换）
  */
 const getPreviewPath = (config: ExportConfig): string => {
-  const outputDir = config.output_dir || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR;
-  const outputName = config.output_base_name || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME;
+  const outputDir = config.output_dir_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR;
+  const outputName = config.output_basename_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME;
   const pathTemplate = `${outputDir}/${outputName}.${getExtensionByFormat(config.format)}`;
   
   // 获取当前活动文件
@@ -468,7 +468,7 @@ const handleExcalidrawTypeChange = () => {
 const openAssetsFolder = (config: ExportConfig) => {
   const formatStylesPath = path.posix.join(
     props.plugin.PLUGIN_ABS_PATH,
-    config.style_dir
+    config.style_dir_rel
   );
 
   // 如果文件夹不存在，先创建它

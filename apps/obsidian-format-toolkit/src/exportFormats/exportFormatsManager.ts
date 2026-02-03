@@ -232,19 +232,6 @@ export class ExportFormatsManager {
         
         // converter.resetLinkParser(); // 每次导出前重置linkParser，避免重复写入链接信息
 
-        // 注册HTML处理器（必须在convert之前调用）
-        // registerHtmlProcessor(converter, [{
-        //     id: 'test-underline',
-        //     commandId: 'test-underline',
-        //     name: 'Test Underline',
-        //     tagType: 'u',
-        //     tagClass: 'test',
-        //     typstPrefix: '#underline',
-        //     enabled: true,
-        //     cssSnippet: '',
-        //     icon: 'underline'
-        // }]);
-        // 处理主要内容
         const exportContent = await converter.convert(sourceContent, item.format);
         
         // 使用重构后的replacePlaceholders方法，直接处理模板和内容的整合

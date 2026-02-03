@@ -19,8 +19,8 @@ export const mediaExtensions = ['mp4','mp3','m4a',]
 export const imageExtensions = ['png','jpg','jpeg','gif','svg','webp']
 
 export type LinkConfig = {
-    source_path: string; // 源文件路径，相对于vault根目录
-    export_name: string; // 导出文件名，包含扩展名      
+    source_path_rel_vault: string; // 源文件路径，相对于vault根目录
+    output_filename: string; // 导出文件名，包含扩展名      
     type?: 'media' | 'image' | 'markdown' | 'excalidraw';
 }
 
@@ -361,7 +361,7 @@ export class LinkParser {
      * @returns 如果成功添加返回true，如果已存在则返回false
      */
     public addLink(linkConfig: LinkConfig): void {
-        this.linkMap.set(linkConfig.source_path, linkConfig);
+        this.linkMap.set(linkConfig.source_path_rel_vault, linkConfig);
     }
 
     /**
@@ -398,7 +398,7 @@ export class LinkParser {
                     category = issvg ? 'Excalidraw->SVG' : 'Excalidraw->PNG';
                 } else {
                     // 对于其他类型，直接使用导出文件名的扩展名（去掉点号）
-                    const extension = path.extname(link.export_name).toLowerCase();
+                    const extension = path.extname(link.output_filename).toLowerCase();
                     category = extension ? extension.substring(1).toUpperCase() : 'no-extension';
                 }
                 
@@ -454,7 +454,7 @@ LinkParser.registerRule({
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
-                parser.addLink({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
+                parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path});// 添加到链接列表中
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
@@ -487,7 +487,7 @@ LinkParser.registerRule({
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
-                parser.addLink({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
+                parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path});// 添加到链接列表中
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
@@ -509,7 +509,7 @@ LinkParser.registerRule({
                     if(parser.isRenewExportName){
                         exportName = parser.addHexId(exportName);
                     }
-                    parser.addLink({export_name: exportName, source_path: attachmentPath.path});// 添加到链接列表中
+                    parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path});// 添加到链接列表中
                     linkToken.hidden = false;
                     linkToken.content = exportName;
                     linkToken.markup = '![[]]';
@@ -558,7 +558,7 @@ LinkParser.registerRule({
                     exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png'); 
                     
 
-                    parser.addLink({export_name: exportName, source_path: embedNoteFile.path, type: 'excalidraw'});// 添加到链接列表中
+                    parser.addLink({output_filename: exportName, source_path_rel_vault: embedNoteFile.path, type: 'excalidraw'});// 添加到链接列表中
                     linkToken.hidden = false;
                     linkToken.content = exportName;
                     linkToken.markup = '![[]]';

@@ -194,28 +194,29 @@ export class AdvancedConverter extends BaseConverter{
 
     /**
      * 拷贝附件到目标目录
-     * @param exportTargetDirAbs 导出目标目录的绝对路径
+     * @param output_dir_abs 导出目标目录的绝对路径
+     * TODO: 改为直接接受attachment_dir_abs
      */
-    public copyAttachment(exportTargetDirAbs: string): void{
+    public copyAttachment(output_dir_abs: string): void{
         const links = this.linkParser.linkList;
-        const attachmentDirAbs = path.posix.join(exportTargetDirAbs,this.attachmentDir);
-        if(!fs.existsSync(attachmentDirAbs)){
-            fs.mkdirSync(attachmentDirAbs, { recursive: true });
+        const attachment_dir_abs = path.posix.join(output_dir_abs,this.attachmentDir);
+        if(!fs.existsSync(attachment_dir_abs)){
+            fs.mkdirSync(attachment_dir_abs, { recursive: true });
         }
         for (const link of links) {
             if(link.type === 'excalidraw' && this.exportConfig !== null){
                 if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
                     if(this.exportConfig.excalidraw_export_type === 'svg'){
-                        exportToSvg(this.plugin, link.source_path, path.posix.join(attachmentDirAbs, link.export_name));
+                        exportToSvg(this.plugin, link.source_path_rel_vault, path.posix.join(attachment_dir_abs, link.output_filename));
                     }
                     else{
-                        exportToPng(this.plugin, link.source_path, path.posix.join(attachmentDirAbs, link.export_name), this.exportConfig.excalidraw_png_scale);
+                        exportToPng(this.plugin, link.source_path_rel_vault, path.posix.join(attachment_dir_abs, link.output_filename), this.exportConfig.excalidraw_png_scale);
                     }
                 }
                 continue;
             }
             try{
-                fs.copyFileSync(this.plugin.getPathAbs(link.source_path), path.posix.join(attachmentDirAbs, link.export_name));
+                fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(attachment_dir_abs, link.output_filename));
             }catch(error){
                 console.error(`Error copying file: ${error}`);
             }

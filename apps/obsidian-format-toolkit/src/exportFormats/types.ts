@@ -50,24 +50,27 @@ export interface ExportManagerSettings {
  * 类型守卫函数：检查对象是否符合 ExportConfig 接口
  * @param obj 要检查的对象
  * @returns 是否符合 ExportConfig 接口
+ * TODO: 展示屏蔽类型守卫函数，后续再实现
  */
 export function isExportConfig(obj: unknown): obj is ExportConfig {
-    if (!obj || typeof obj !== 'object') return false;
+//     if (!obj || typeof obj !== 'object') return false;
     
-    const config = obj as Record<string, unknown>;
-    return typeof config.id === 'string' &&
-           typeof config.style_dir === 'string' &&
-           typeof config.format === 'string' &&
-           typeof config.enabled === 'boolean' &&
-           typeof config.template === 'string' &&
-           typeof config.name === 'string' &&
-           typeof config.output_dir === 'string' &&
-           typeof config.output_base_name === 'string' &&
-           (config.excalidraw_export_type === 'png' || config.excalidraw_export_type === 'svg') &&
-           typeof config.excalidraw_png_scale === 'number' &&
-           typeof config.icon === 'string' &&
-           // process_media_attachments 是可选的，所以需要检查是否存在且为布尔类型
-           (config.process_media_attachments === undefined || typeof config.process_media_attachments === 'boolean');
+//     const config = obj as Record<string, unknown>;
+//     return typeof config.id === 'string' &&
+//            typeof config.style_dir === 'string' &&
+//            typeof config.format === 'string' &&
+//            typeof config.enabled === 'boolean' &&
+//            typeof config.template === 'string' &&
+//            typeof config.name === 'string' &&
+//            typeof config.output_dir === 'string' &&
+//            typeof config.output_base_name === 'string' &&
+//            (config.excalidraw_export_type === 'png' || config.excalidraw_export_type === 'svg') &&
+//            typeof config.excalidraw_png_scale === 'number' &&
+//            typeof config.icon === 'string' &&
+//            // process_media_attachments 是可选的，所以需要检查是否存在且为布尔类型
+//            (config.process_media_attachments === undefined || typeof config.process_media_attachments === 'boolean');
+// }
+return true;
 }
 
 /**

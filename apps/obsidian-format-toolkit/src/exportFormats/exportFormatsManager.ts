@@ -216,18 +216,21 @@ export class ExportFormatsManager {
 
         // 设置导出配置
         converter.exportConfig = item;
-        const styleDirAbs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.style_dir_rel);
-        const outputDir = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir_template)); // 跨平台路径处理
-        const outputFullName = `${converter.replacePlaceholders(item.output_basename_template)}.${extensionNameOfFormat[item.format]}`;
+        const style_dir_abs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.style_dir_rel);
+        const output_dir_abs = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir_template)); // 跨平台路径处理
+        const output_filename = `${converter.replacePlaceholders(item.output_basename_template)}.${extensionNameOfFormat[item.format]}`;
+        const output_file_path = path.posix.join(output_dir_abs, output_filename);
 
+
+        
         // 创建目标目录
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
+        if (!fs.existsSync(output_dir_abs)) {
+            fs.mkdirSync(output_dir_abs, { recursive: true });
         }
         
         // 拷贝样式文件，过滤掉demo.typ文件
-        if (fs.existsSync(styleDirAbs)) {
-            copyFilesRecursively(styleDirAbs, outputDir, (fileName) => fileName !== 'demo.typ');
+        if (fs.existsSync(style_dir_abs)) {
+            copyFilesRecursively(style_dir_abs, output_dir_abs, (fileName) => fileName !== 'demo.typ');
         }
         
         // converter.resetLinkParser(); // 每次导出前重置linkParser，避免重复写入链接信息
@@ -237,16 +240,16 @@ export class ExportFormatsManager {
         // 使用重构后的replacePlaceholders方法，直接处理模板和内容的整合
         const finalContent = converter.replacePlaceholders(item.template, exportContent);
         
-        fs.writeFileSync(path.posix.join(outputDir, outputFullName), finalContent);
+        fs.writeFileSync(output_file_path, finalContent);
         
         // 拷贝附件
-        converter.copyAttachment(outputDir);
+        converter.copyAttachment(output_dir_abs);
 
-        new Notice(converter.linkParser.formatExportSummary(path.posix.join(outputDir, outputFullName)), 3000); // 打印导出信息
+        new Notice(converter.linkParser.formatExportSummary(output_file_path), 5000); // 打印导出信息
 
         console.log('打印附件信息')//
         for (const link of converter.linkParser.linkList) {
-            console.log(`Path: ${link.source_path}, Type: ${link.type}`);
+            console.log(`Path: ${link.source_path_rel_vault}, Type: ${link.type}`);
         }
     }
     

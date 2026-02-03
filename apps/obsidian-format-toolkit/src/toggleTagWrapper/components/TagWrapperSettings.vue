@@ -79,6 +79,18 @@
                   >
                     <Icon name="gear" />
                   </v-btn>
+                  <v-tooltip :text="getLocalizedText({ en: 'Duplicate tag', zh: '复制标签' })" location="top" :open-delay="200">
+                    <template #activator="{ props: tooltipProps }"> 
+                      <v-btn
+                        v-bind="tooltipProps"
+                        size="small"
+                        @click="props.plugin.tagWrapperManager.duplicateTagItem(index)"
+                        class="me-1 icon-btn-square"
+                      >
+                        <Icon name="copy" />
+                      </v-btn>
+                    </template>
+                  </v-tooltip>
                   <v-btn
                     size="small"
                     @click="showDeleteConfirm(index)"

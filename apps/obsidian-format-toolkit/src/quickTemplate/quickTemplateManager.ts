@@ -206,6 +206,36 @@ export class QuickTemplateManager {
     }
 
     /**
+     * 复制模板项
+     * 创建指定模板的副本
+     * @param templateIndex 要复制的模板索引
+     */
+    duplicateTemplateItem(templateIndex: number): void {
+        const originalTemplate = this.config.templates[templateIndex];
+        const timestamp = generateTimestamp();
+        
+        // 创建模板的深拷贝并生成新的ID
+        const newTemplate: TemplateConfig = {
+            ...originalTemplate,
+            id: `template-${timestamp}`,
+            commandId: `doc-weaver:template-${timestamp}`,
+            name: `${originalTemplate.name} - Copy`,
+        };
+
+        // 将新模板插入到原模板后面
+        const templates = this.config.templates;
+        templates.splice(templateIndex + 1, 0, newTemplate);
+        
+        // 为新模板添加命令和监听
+        if (newTemplate.enabled) {
+            this.addTemplateCommand(newTemplate);
+        }
+        this.watchConfig(newTemplate);
+        
+        debugLog('Template duplicated:', newTemplate.name);
+    }
+
+    /**
      * 生成新的模板项
      * @param name 模板名称
      * @param template 模板内容

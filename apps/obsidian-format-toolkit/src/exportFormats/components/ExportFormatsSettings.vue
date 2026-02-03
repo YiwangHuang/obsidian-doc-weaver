@@ -105,6 +105,18 @@
                   >
                     <Icon name="gear" />
                   </v-btn>
+                  <v-tooltip :text="getLocalizedText({ en: 'Duplicate preset', zh: '复制预设' })" location="top" :open-delay="200">
+                    <template #activator="{ props: tooltipProps }"> 
+                      <v-btn
+                        v-bind="tooltipProps"
+                        size="small"
+                        @click="props.plugin.exportFormatsManager.duplicateExportFormatItem(index)"
+                        class="me-1 icon-btn-square"
+                      >
+                        <Icon name="copy" />
+                      </v-btn>
+                    </template>
+                  </v-tooltip>
                   <v-btn
                     size="small"
                     @click="showDeleteConfirm(index)"

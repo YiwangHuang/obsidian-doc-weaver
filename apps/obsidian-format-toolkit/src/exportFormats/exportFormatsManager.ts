@@ -121,6 +121,56 @@ export class ExportFormatsManager {
         this.removeExportCommand(item);
     }
 
+    /**
+     * 复制导出格式配置
+     * 创建指定配置的副本，包括样式文件夹
+     * @param exportFormatIndex 要复制的配置索引
+     */
+    duplicateExportFormatItem(exportFormatIndex: number): void {
+        const originalConfig = this.config.exportConfigs[exportFormatIndex];
+        const hexId = generateTimestamp("hex");
+        
+        // 创建配置的深拷贝并生成新的ID
+        const newConfig: ExportConfig = {
+            ...originalConfig,
+            id: `export-${hexId}`,
+            commandId: `doc-weaver:export-${hexId}`,
+            name: `${originalConfig.name} - Copy`,
+            style_dir: path.posix.join('styles', hexId),
+            output_dir: path.posix.join(originalConfig.output_dir, hexId),
+        };
+
+        // 创建新的样式文件夹并复制原有样式文件
+        const originalStylePath = path.posix.join(
+            this.plugin.PLUGIN_ABS_PATH,
+            originalConfig.style_dir
+        );
+        const newStylePath = path.posix.join(
+            this.plugin.PLUGIN_ABS_PATH,
+            newConfig.style_dir
+        );
+
+        // 创建新文件夹
+        if (!fs.existsSync(newStylePath)) {
+            fs.mkdirSync(newStylePath, { recursive: true });
+        }
+
+        // 复制样式文件
+        if (fs.existsSync(originalStylePath)) {
+            copyFilesRecursively(originalStylePath, newStylePath);
+        }
+
+        // 将新配置插入到原配置后面
+        const configs = this.config.exportConfigs;
+        configs.splice(exportFormatIndex + 1, 0, newConfig);
+        
+        // 为新配置添加命令和监听
+        this.addExportCommand(newConfig);
+        this.watchConfig(newConfig);
+        
+        debugLog('Export config duplicated:', newConfig.name);
+    }
+
     addExportCommand(item: ExportConfig): void {
         const command: Command = {
             id: item.id, //此id非彼id，在plugin外调用命令所需的commandId需要再前面添加'doc-weaver:'

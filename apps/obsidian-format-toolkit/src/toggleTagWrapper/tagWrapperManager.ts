@@ -409,6 +409,37 @@ export class TagWrapperManager {
         this.config.tags.splice(tagIndex, 1);
     }
 
+    /**
+     * 复制标签配置
+     * 创建指定标签配置的副本，包括CSS片段
+     * @param tagIndex 要复制的标签配置索引
+     */
+    duplicateTagItem(tagIndex: number): void {
+        const originalTag = this.config.tags[tagIndex];
+        const hexId = generateTimestamp();
+        
+        // 创建标签配置的深拷贝并生成新的ID
+        const newTag: TagConfig = {
+            ...originalTag,
+            id: `tag-${hexId}`,
+            commandId: `doc-weaver:tag-${hexId}`,
+            name: `${originalTag.name} - Copy`,
+        };
+
+        // 将新配置插入到原配置后面
+        const tags = this.config.tags;
+        tags.splice(tagIndex + 1, 0, newTag);
+        
+        // 为新配置添加命令、注入CSS和监听
+        if (newTag.enabled) {
+            this.addTagCommand(newTag);
+            this.injectCSS(newTag);
+        }
+        this.watchConfig(newTag);
+        
+        debugLog('Tag duplicated:', newTag.name);
+    }
+
     cleanup(): void {
         this.config.tags.forEach(tag => {
             this.removeTagCommand(tag);

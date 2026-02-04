@@ -56,14 +56,14 @@ export class BaseConverter {
     public md: MarkdownIt;
     private preProcessors: StringProcessor[];
     private postProcessors: StringProcessor[];
-    public attachmentDir: string;
+    public attachment_ref_template: string;
 
     public format: OutputFormat;
-    constructor(attachmentDir = 'assets') {
+    constructor(attachmentRefTemplate = '![[{{attachmentFileName}}]]') {
         this.md = new MarkdownIt();
         this.preProcessors = [];
         this.postProcessors = [];
-        this.attachmentDir = attachmentDir;
+        this.attachment_ref_template = attachmentRefTemplate;
         this.setFormat('typst');// 默认使用typst格式
     }
     
@@ -137,8 +137,8 @@ export class AdvancedConverter extends BaseConverter{
     public exportConfig: ExportConfig|null = null; 
     public linkParser: LinkParser; // 链接解析器
     
-    constructor(plugin: MyPlugin, file: TFile, attachmentDir = 'assets') {
-        super(attachmentDir);
+    constructor(plugin: MyPlugin, file: TFile, attachmentRefTemplate = '![[{{attachmentFileName}}]]') {
+        super(attachmentRefTemplate);
         this.plugin = plugin;
         this.entryNote = file;
         this.linkParser = new LinkParser(this);
@@ -197,9 +197,9 @@ export class AdvancedConverter extends BaseConverter{
      * @param output_dir_abs 导出目标目录的绝对路径
      * TODO: 改为直接接受attachment_dir_abs
      */
-    public copyAttachment(output_dir_abs: string): void{
+    public copyAttachment(attachment_dir_abs: string): void{
         const links = this.linkParser.linkList;
-        const attachment_dir_abs = path.posix.join(output_dir_abs,this.attachmentDir);
+        // const attachment_dir_abs = path.posix.join(output_dir_abs,this.attachment_ref_template);
         if(!fs.existsSync(attachment_dir_abs)){
             fs.mkdirSync(attachment_dir_abs, { recursive: true });
         }

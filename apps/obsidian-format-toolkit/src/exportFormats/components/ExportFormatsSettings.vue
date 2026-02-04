@@ -193,7 +193,7 @@
           <v-col cols="6" class="pb-0">
             <InputWithPlaceholders :placeholders="pathPlaceholders">
               <v-text-field
-                v-model="editingConfig.output_dir_template"
+                v-model="editingConfig.output_dir_abs_template"
                 :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
                 :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR"
                 variant="outlined"
@@ -223,7 +223,7 @@
         <!-- 模板配置 -->
         <InputWithPlaceholders :placeholders="templatePlaceholders">
           <v-textarea
-            v-model="editingConfig.template"
+            v-model="editingConfig.content_template"
             :label="getLocalizedText({ en: 'Template Configuration', zh: '模板配置' })"
             placeholder="Enter export format template..."
             variant="outlined"
@@ -391,7 +391,7 @@ const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
  * 获取预览路径（支持占位符替换）
  */
 const getPreviewPath = (config: ExportConfig): string => {
-  const outputDir = config.output_dir_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR;
+  const outputDir = config.output_dir_abs_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR;
   const outputName = config.output_basename_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME;
   const pathTemplate = `${outputDir}/${outputName}.${getExtensionByFormat(config.format)}`;
   

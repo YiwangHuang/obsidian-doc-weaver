@@ -22,18 +22,21 @@ export interface ExportConfig extends ToolbarItem {
     /** 导出格式类型 */
     format: OutputFormat;
     /** 模板内容 */
-    template: string;
-    /** 输出目录路径模板 */
-    output_dir_template: string;
-    /** 输出文件基础名称模板 */
+    content_template: string;
+    /** 输出目录绝对路径模板 */
+    output_dir_abs_template: string;
+    /** 输出文件基名模板(不含扩展名) */
     output_basename_template: string;
+    /** 附件目录绝对路径模板，可以用占位符+相对路径生成 */
+    attachment_dir_abs_template: string;
+    /** 附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
+    attachment_ref_template: string;
+    /** 是否处理音视频附件，默认为false */
+    process_media_attachments?: boolean;
     /** Excalidraw导出类型 */
     excalidraw_export_type: 'png' | 'svg';
     /** PNG导出时的缩放比例 */
     excalidraw_png_scale: number;
-    /** 是否处理音视频附件，默认为false */
-    process_media_attachments?: boolean;
-    /** 导出格式图标，用于在UI中显示 */
 }
 
 /**
@@ -108,6 +111,12 @@ export const EXPORT_CONFIGS_CONSTANTS = {
     DEFAULT_OUTPUT_DIR: path.join(placeholders.VAR_VAULT_DIR, 'output'),
     /** 默认输出文件名 */
     DEFAULT_OUTPUT_BASE_NAME: placeholders.VAR_NOTE_NAME,
+    /** 默认附件目录 */
+    DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE: path.join(placeholders.VAR_OUTPUT_DIR, 'assets'),
+    /** 默认附件引用模板 */
+    DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST: `#image("assets/${placeholders.VAR_ATTACHMENT_FILE_NAME}", width: 100%)`,
+    /** 默认附件引用模板 */
+    DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD: `![[assets/${placeholders.VAR_ATTACHMENT_FILE_NAME}]]`,
     /** 默认Excalidraw导出类型 */
     DEFAULT_EXCALIDRAW_EXPORT_TYPE: 'png' as const,
     /** 默认PNG缩放比例 */

@@ -1,7 +1,8 @@
 import { BaseConverter, AdvancedConverter } from '../textConverter';
+import { VAR_ATTACHMENT_FILE_NAME } from '../../../lib/constant';
 // import { getHeadingText } from '../../../lib/noteResloveUtils';
-import { ensureRelativePath } from '../../../lib/pathUtils';
-import * as path from 'path';
+// import { ensureRelativePath } from '../../../lib/pathUtils';
+// import * as path from 'path';
 import url from 'url';
 import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 
@@ -36,48 +37,32 @@ BaseConverter.registerProcessor({
 });
 
 BaseConverter.registerProcessor({
-    name: 'obsidianLinkRendererRule_typst',
-    formats: ['typst'],
-    description: '自定义双链接渲染规则',
+    name: 'obsidianLinkRendererRule',
+    formats: ['typst','HMD','quarto','plain'],
+    description: '自定义双链接渲染规则,支持所有格式。直接在预设模板中替换{{attachmentFileName}}占位符为附件文件名',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
             const linkToken = tokens[idx];
             if(linkToken.hidden){
                 return '';
             }
-            const export_name = linkToken.content;
-            return `\n#image("${path.posix.join(converter.attachmentDir, export_name)}", width: 100%)\n\n`;
+            const attachment_file_name = linkToken.content;
+            return '\n'+converter.attachment_ref_template.replace(VAR_ATTACHMENT_FILE_NAME, attachment_file_name)+'\n\n';
         };
     }
 });
 
-BaseConverter.registerProcessor({
-    name: 'obsidianLinkRendererRule_HMD',
-    formats: ['HMD','quarto'],
-    description: '自定义双链接渲染规则',
-    mditRuleSetup: (converter: BaseConverter) => {
-        converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
-            const linkToken = tokens[idx];
-            if(linkToken.hidden){
-                return '';
-            }
-            const export_name = linkToken.content;
-            return `\n![](${ensureRelativePath(path.posix.join(converter.attachmentDir, export_name))})\n\n`;
-        };
-    }
-});
-
-BaseConverter.registerProcessor({
-    name: 'obsidianLinkRendererRule_plain',
-    formats: ['plain'],
-    description: '自定义双链接渲染规则',
-    mditRuleSetup: (converter: BaseConverter) => {
-        // 在plain类型中不进行hidden属性判断，全部渲染
-        converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
-            return `![[${tokens[idx].content}]]`;
-        };
-    }
-});
+// BaseConverter.registerProcessor({
+//     name: 'obsidianLinkRendererRule_plain',
+//     formats: ['plain'],
+//     description: '自定义双链接渲染规则',
+//     mditRuleSetup: (converter: BaseConverter) => {
+//         // 在plain类型中不进行hidden属性判断，全部渲染
+//         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
+//             return `![[${tokens[idx].content}]]`;
+//         };
+//     }
+// });
 
 
 // 识别引用类型，对.md进行特殊处理；对于其他文件类型，查找路径并推入数组

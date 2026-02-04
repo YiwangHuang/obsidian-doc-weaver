@@ -113,7 +113,7 @@ export class LinkParser {
      * @returns 附件目录，相对于导出目录
      */
     get attachmentDir(): string {
-        return this.converter.attachmentDir;
+        return this.converter.attachment_ref_template;
     }
 
     /**

@@ -214,11 +214,53 @@
           </v-col>
         </v-row>
 
-        <!-- 路径预览 -->
+        <!-- 输出路径预览 -->
         <PreviewPanel
-          :title="getLocalizedText({ en: 'Preview', zh: '预览' })"
+          :title="getLocalizedText({ en: 'Output Path Preview', zh: '输出路径预览' })"
           :content="getPreviewPath(editingConfig)"
         />
+
+        <!-- 附件设置分隔线 -->
+        <v-divider class="border-opacity-100 my-2" />
+        <!-- <div class="text-subtitle-2 font-weight-medium mb-3">
+          {{ getLocalizedText({ en: 'Attachment Settings', zh: '附件设置' }) }}
+        </div> -->
+
+        <!-- 附件目录模板 -->
+        <InputWithPlaceholders :placeholders="attachmentDirPlaceholders">
+          <v-text-field
+            v-model="editingConfig.attachment_dir_abs_template"
+            :label="getLocalizedText({ en: 'Attachment Directory Template', zh: '附件目录模板' })"
+            :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+          />
+        </InputWithPlaceholders>
+        
+        <!-- 附件目录预览面板 -->
+        <PreviewPanel
+          :title="getLocalizedText({ en: 'Attachment Directory Preview', zh: '附件目录预览' })"
+          :content="getAttachmentDirPreview(editingConfig)"
+        />
+
+        <!-- 附件引用模板 -->
+        <InputWithPlaceholders :placeholders="attachmentRefPlaceholders">
+          <v-text-field
+            v-model="editingConfig.attachment_ref_template"
+            :label="getLocalizedText({ en: 'Attachment Reference Template', zh: '附件引用模板' })"
+            :placeholder="editingConfig.format === 'typst' ? EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST : EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+          />
+        </InputWithPlaceholders>
+
+        <!-- 分隔线 -->
+        <v-divider class="border-opacity-100 my-2" />
+        <!-- <div class="text-subtitle-2 font-weight-medium mb-3">
+          {{ getLocalizedText({ en: 'Content Template', zh: '内容模板' }) }}
+        </div> -->
         
         <!-- 模板配置 -->
         <InputWithPlaceholders :placeholders="templatePlaceholders">
@@ -359,6 +401,8 @@ import { getLocalizedText } from '../../lib/textUtils';
 import { TextConverter } from '../textConvert';
 import InputWithPlaceholders from '../../vue/components/InputWithPlaceholders.vue';
 import { OBSIDIAN_PRIMARY_COLOR } from '../../vue/plugins/vuetify';
+// 导入占位符常量
+import * as placeholders from '../../lib/constant';
 
 // 定义Props
 interface ExportFormatsSettingsProps {
@@ -388,37 +432,26 @@ const formatOptions = FORMAT_OPTIONS;
 const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
 
 /**
- * 获取预览路径（支持占位符替换）
+ * 获取输出路径预览（支持占位符替换）
+ * @param config 当前编辑的导出配置
+ * @returns 输出路径预览字符串
  */
 const getPreviewPath = (config: ExportConfig): string => {
-  const outputDir = config.output_dir_abs_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR;
-  const outputName = config.output_basename_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME;
-  const pathTemplate = `${outputDir}/${outputName}.${getExtensionByFormat(config.format)}`;
+  const pathTemplate = `${config.output_dir_abs_template}/${config.output_basename_template}.${EXTENSION_MAP[config.format] || 'txt'}`;
   
   // 获取当前活动文件
   const activeFile = props.plugin.app.workspace.getActiveFile();
-  
-  // 如果没有活动文件，返回原始模板（显示占位符）
   if (!activeFile) {
     return pathTemplate;
   }
   
   try {
-    // 创建TextConverter实例并使用replacePlaceholders方法
-    const converter = new TextConverter(props.plugin, activeFile); //考虑在打开弹窗时创建实例，提升性能
+    const converter = new TextConverter(props.plugin, activeFile);
     return converter.replacePlaceholders(pathTemplate);
   } catch (error) {
     debugLog('Error replacing placeholders in preview path:', error);
-    // 如果出现错误，返回原始模板
     return pathTemplate;
   }
-};
-
-/**
- * 根据格式获取文件扩展名
- */
-const getExtensionByFormat = (format: OutputFormat): string => {
-  return EXTENSION_MAP[format] || 'txt';
 };
 
 /**
@@ -539,19 +572,66 @@ const onModalVisibilityChange = (visible: boolean) => {
 // 占位符配置
 // 路径相关的占位符
 const pathPlaceholders = [
-  { value: '{{vaultDir}}', description: getLocalizedText({ en: 'Vault directory', zh: '库目录' }) },
-  { value: '{{noteName}}', description: getLocalizedText({ en: 'Note name', zh: '笔记名称' }) },
-  { value: '{{date:YYYY-MM-DD}}', description: getLocalizedText({ en: 'Current date', zh: '当前日期' }) },
+  { value: placeholders.VAR_VAULT_DIR, description: getLocalizedText({ en: 'Vault directory', zh: '库目录' }) },
+  { value: placeholders.VAR_NOTE_NAME, description: getLocalizedText({ en: 'Note name', zh: '笔记名称' }) },
+  { value: placeholders.VAR_DATE, description: getLocalizedText({ en: 'Current date', zh: '当前日期' }) },
+];
+
+// 附件目录模板占位符
+const attachmentDirPlaceholders = [
+  { value: placeholders.VAR_OUTPUT_DIR, description: getLocalizedText({ en: 'Output directory', zh: '输出目录' }) },
+  { value: placeholders.VAR_VAULT_DIR, description: getLocalizedText({ en: 'Vault directory', zh: '库目录' }) },
+  { value: placeholders.VAR_NOTE_DIR, description: getLocalizedText({ en: 'Note directory', zh: '笔记所在目录' }) },
+  { value: placeholders.VAR_NOTE_NAME, description: getLocalizedText({ en: 'Note name', zh: '笔记名称' }) },
+  { value: placeholders.VAR_DATE, description: getLocalizedText({ en: 'Current date', zh: '当前日期' }) },
+];
+
+// 附件引用模板占位符
+const attachmentRefPlaceholders = [
+  { value: placeholders.VAR_ATTACHMENT_FILE_NAME, description: getLocalizedText({ en: 'Attachment filename (required)', zh: '附件文件名（必需）' }) },
 ];
 
 // 模板相关的占位符
 const templatePlaceholders = [
-  { value: '{{noteName}}', description: getLocalizedText({ en: 'Note name', zh: '笔记名称' }) },
-  { value: '{{content}}', description: getLocalizedText({ en: 'Note content', zh: '笔记内容' }) },
+  { value: placeholders.VAR_NOTE_NAME, description: getLocalizedText({ en: 'Note name', zh: '笔记名称' }) },
+  { value: placeholders.VAR_CONTENT, description: getLocalizedText({ en: 'Note content', zh: '笔记内容' }) },
   // { value: '{{title}}', description: getLocalizedText({ en: 'Note title', zh: '笔记标题' }) },
-  { value: '{{date:YYYY-MM-DD}}', description: getLocalizedText({ en: 'Current date', zh: '当前日期，支持自定义' }) },
+  { value: placeholders.VAR_DATE, description: getLocalizedText({ en: 'Current date', zh: '当前日期，支持自定义' }) },
   // { value: '{{date:HH:mm}}', description: getLocalizedText({ en: 'Current time', zh: '当前时间' }) },
 ];
+
+/**
+ * 获取附件目录预览（支持占位符替换，包括 {{outputDir}}）
+ * @param config 当前编辑的导出配置
+ * @returns 附件目录预览字符串
+ */
+const getAttachmentDirPreview = (config: ExportConfig): string => {
+  const attachmentDirTemplate = config.attachment_dir_abs_template;
+  
+  // 获取当前活动文件
+  const activeFile = props.plugin.app.workspace.getActiveFile();
+  if (!activeFile) {
+    return attachmentDirTemplate;
+  }
+  
+  try {
+    const converter = new TextConverter(props.plugin, activeFile);
+    
+    // 先获取并替换输出目录路径（用于替换 {{outputDir}}）
+    const outputDirResolved = converter.replacePlaceholders(config.output_dir_abs_template);
+    
+    // 替换附件目录模板中的 {{outputDir}} 占位符
+    // let dirPreview = attachmentDirTemplate.replace(placeholders.VAR_OUTPUT_DIR, outputDirResolved);
+    
+    // 替换其他占位符
+    const attachmentDirPreview = converter.replacePlaceholders(attachmentDirTemplate).replace(placeholders.VAR_OUTPUT_DIR, outputDirResolved);
+    
+    return path.posix.resolve(attachmentDirPreview);
+  } catch (error) {
+    debugLog('Error replacing placeholders in attachment directory preview:', error);
+    return attachmentDirTemplate;
+  }
+};
 
 </script>
 

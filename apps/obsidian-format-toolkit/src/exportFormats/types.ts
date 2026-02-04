@@ -116,7 +116,7 @@ export const EXPORT_CONFIGS_CONSTANTS = {
     /** 默认附件引用模板 */
     DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST: `#image("assets/${placeholders.VAR_ATTACHMENT_FILE_NAME}", width: 100%)`,
     /** 默认附件引用模板 */
-    DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD: `![[assets/${placeholders.VAR_ATTACHMENT_FILE_NAME}]]`,
+    DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD: `![](assets/${placeholders.VAR_ATTACHMENT_FILE_NAME})`,
     /** 默认Excalidraw导出类型 */
     DEFAULT_EXCALIDRAW_EXPORT_TYPE: 'png' as const,
     /** 默认PNG缩放比例 */

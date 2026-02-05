@@ -65,6 +65,11 @@ class SimpleVueModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     
+    // 不设置 contentEl 的宽度，让子元素的固定宽度生效
+    // 移除任何可能影响宽度的样式
+    contentEl.style.width = '';
+    contentEl.style.maxWidth = '';
+    
     // 直接将Vue容器移入Modal
     if (this.vueContainer) {
       // 显示Vue容器并移入Modal

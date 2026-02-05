@@ -174,7 +174,8 @@
       :obsidian-app="plugin.app"
       @update:visible="onModalVisibilityChange"
     >
-      <div v-if="editingConfig" class="export-modal-form">
+      <div class="export-modal-wrapper">
+        <div v-if="editingConfig" class="export-modal-form">
         <h3 class="mt-0 pt-0">
           {{ getLocalizedText({ en: "Edit Export Format", zh: "编辑导出格式" }) }}
         </h3>
@@ -188,187 +189,202 @@
           class="mb-3"
         />
 
-        <!-- 输出目录 -->
-        <v-row class="mb-3">
-          <v-col cols="6" class="pb-0">
-            <InputWithPlaceholders :placeholders="pathPlaceholders">
-              <v-text-field
-                v-model="editingConfig.output_dir_abs_template"
-                :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
-                :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR"
-                variant="outlined"
-                density="compact"
+        <!-- 使用 v-expansion-panels 组织不同类型的设置 -->
+        <v-expansion-panels variant="accordion" class="mb-3">
+          <!-- 输出路径设置面板 -->
+          <v-expansion-panel>
+            <v-expansion-panel-title>
+              <Icon name="folder" class="me-2" />
+              {{ getLocalizedText({ en: 'Output Path Settings', zh: '输出路径设置' }) }}
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <!-- 输出目录和文件名 -->
+              <v-row class="mb-3">
+                <v-col cols="6" class="pb-0">
+                  <InputWithPlaceholders :placeholders="pathPlaceholders">
+                    <v-text-field
+                      v-model="editingConfig.output_dir_abs_template"
+                      :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
+                      :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR"
+                      variant="outlined"
+                      density="compact"
+                    />
+                  </InputWithPlaceholders>
+                </v-col>
+                <v-col cols="6" class="pb-0">
+                  <InputWithPlaceholders :placeholders="pathPlaceholders">
+                    <v-text-field
+                      v-model="editingConfig.output_basename_template"
+                      :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
+                      :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
+                      variant="outlined"
+                      density="compact"
+                    />
+                  </InputWithPlaceholders>
+                </v-col>
+              </v-row>
+
+              <!-- 输出路径预览 -->
+              <PreviewPanel
+                :title="getLocalizedText({ en: 'Output Path Preview', zh: '输出路径预览' })"
+                :content="getPreviewPath(editingConfig)"
               />
-            </InputWithPlaceholders>
-          </v-col>
-          <v-col cols="6" class="pb-0">
-            <InputWithPlaceholders :placeholders="pathPlaceholders">
-              <v-text-field
-                v-model="editingConfig.output_basename_template"
-                :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
-                :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
-                variant="outlined"
-                density="compact"
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+
+          <!-- 附件设置面板 -->
+          <v-expansion-panel>
+            <v-expansion-panel-title>
+              <Icon name="paperclip" class="me-2" />
+              {{ getLocalizedText({ en: 'Attachment Settings', zh: '附件设置' }) }}
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <v-row class="mb-3">
+                <v-col cols="6" class="pb-0">
+                  <InputWithPlaceholders :placeholders="attachmentDirPlaceholders">
+                    <v-text-field
+                      v-model="editingConfig.attachment_dir_abs_template"
+                      :label="getLocalizedText({ en: 'Attachment Directory', zh: '附件目录' })"
+                      :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-3"
+                    />
+                  </InputWithPlaceholders>
+                </v-col>
+                <v-col cols="6" class="pb-0">
+                  <!-- 附件引用模板 -->
+                  <InputWithPlaceholders :placeholders="attachmentRefPlaceholders">
+                    <v-text-field
+                      v-model="editingConfig.attachment_ref_template"
+                      :label="getLocalizedText({ en: 'Attachment Reference Template', zh: '附件引用模板' })"
+                      :placeholder="editingConfig.format === 'typst' ? EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST : EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-3"
+                    />
+                  </InputWithPlaceholders>
+                </v-col>
+              </v-row>
+
+              <!-- 附件目录模板 -->
+              <!-- 附件目录预览面板 -->
+              <PreviewPanel
+                :title="getLocalizedText({ en: 'Attachment Directory Preview', zh: '附件目录预览' })"
+                :content="getAttachmentDirPreview(editingConfig)"
               />
-            </InputWithPlaceholders>
-          </v-col>
-        </v-row>
 
-        <!-- 输出路径预览 -->
-        <PreviewPanel
-          :title="getLocalizedText({ en: 'Output Path Preview', zh: '输出路径预览' })"
-          :content="getPreviewPath(editingConfig)"
-        />
 
-        <!-- 附件设置分隔线 -->
-        <v-divider class="border-opacity-100 my-2" />
-        <!-- <div class="text-subtitle-2 font-weight-medium mb-3">
-          {{ getLocalizedText({ en: 'Attachment Settings', zh: '附件设置' }) }}
-        </div> -->
+            </v-expansion-panel-text>
+          </v-expansion-panel>
 
-        <!-- 附件目录模板 -->
-        <InputWithPlaceholders :placeholders="attachmentDirPlaceholders">
-          <v-text-field
-            v-model="editingConfig.attachment_dir_abs_template"
-            :label="getLocalizedText({ en: 'Attachment Directory Template', zh: '附件目录模板' })"
-            :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-          />
-        </InputWithPlaceholders>
-        
-        <!-- 附件目录预览面板 -->
-        <PreviewPanel
-          :title="getLocalizedText({ en: 'Attachment Directory Preview', zh: '附件目录预览' })"
-          :content="getAttachmentDirPreview(editingConfig)"
-        />
+          <!-- 模板配置面板 -->
+          <v-expansion-panel>
+            <v-expansion-panel-title>
+              <Icon name="file-text" class="me-2" />
+              {{ getLocalizedText({ en: 'Content Template', zh: '内容模板' }) }}
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <!-- 模板配置 -->
+              <InputWithPlaceholders :placeholders="templatePlaceholders">
+                <v-textarea
+                  v-model="editingConfig.content_template"
+                  :label="getLocalizedText({ en: 'Template Configuration', zh: '模板配置' })"
+                  placeholder="Enter export format template..."
+                  variant="outlined"
+                  rows="8"
+                  density="compact"
+                  class="mb-3"
+                />
+              </InputWithPlaceholders>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
 
-        <!-- 附件引用模板 -->
-        <InputWithPlaceholders :placeholders="attachmentRefPlaceholders">
-          <v-text-field
-            v-model="editingConfig.attachment_ref_template"
-            :label="getLocalizedText({ en: 'Attachment Reference Template', zh: '附件引用模板' })"
-            :placeholder="editingConfig.format === 'typst' ? EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST : EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-          />
-        </InputWithPlaceholders>
-
-        <!-- 分隔线 -->
-        <v-divider class="border-opacity-100 my-2" />
-        <!-- <div class="text-subtitle-2 font-weight-medium mb-3">
-          {{ getLocalizedText({ en: 'Content Template', zh: '内容模板' }) }}
-        </div> -->
-        
-        <!-- 模板配置 -->
-        <InputWithPlaceholders :placeholders="templatePlaceholders">
-          <v-textarea
-            v-model="editingConfig.content_template"
-            :label="getLocalizedText({ en: 'Template Configuration', zh: '模板配置' })"
-            placeholder="Enter export format template..."
-            variant="outlined"
-            rows="8"
-            density="compact"
-            class="mb-3"
-          />
-        </InputWithPlaceholders>
-
-        <!-- Excalidraw设置 -->
-        <v-row class="my-3">
-          <v-col cols="5">
-            <v-select
-              v-model="editingConfig.excalidraw_export_type"
-              :items="excalidrawExportOptions"
-              item-title="label"
-              item-value="value"
-              :label="getLocalizedText({ en: 'Excalidraw Export Type', zh: 'Excalidraw导出类型' })"
-              variant="outlined"
-              density="compact"
-              @update:model-value="handleExcalidrawTypeChange"
-            />
-          </v-col>
-          <v-col cols="2">
-
-          </v-col>
-          <v-col cols="5" v-if="editingConfig.excalidraw_export_type === 'png'">
-            <div>
-              <label class="text-caption text-medium-emphasis d-block">
-                {{ getLocalizedText({ en: "PNG Scale", zh: "PNG缩放比例" }) }}: {{ editingConfig.excalidraw_png_scale }}
-              </label>
-              <v-slider
-                v-model="editingConfig.excalidraw_png_scale"
-                min="1"
-                max="9"
-                step="1"
-                show-ticks="always"
-                tick-size="2"
-                density="compact"
-                hide-details
-              />
-            </div>
-          </v-col>
-        </v-row>
-
-        <!-- 媒体附件处理设置 TODO: 优化样式 -->
-        <v-row class="my-3">
-          <v-col cols="12">
-            <div class="d-flex align-center">
-              <v-tooltip :text="getLocalizedText({ 
-                en: 'Please ensure your publishing platform supports audio and video files before enabling this feature', 
-                zh: '启用前请确保您的发布平台支持音视频文件' 
-              })" location="top" :open-delay="200">
-                <template #activator="{ props }"> 
-                  <v-switch
-                    v-bind="props"
-                    :model-value="!!editingConfig.process_media_attachments"
-                    @update:model-value="editingConfig.process_media_attachments = $event || undefined"
+          <!-- 高级设置面板 -->
+          <v-expansion-panel>
+            <v-expansion-panel-title>
+              <Icon name="settings" class="me-2" />
+              {{ getLocalizedText({ en: 'Advanced Settings', zh: '高级设置' }) }}
+            </v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <!-- Excalidraw设置 -->
+              <div class="text-subtitle-2 font-weight-medium mb-5">
+                {{ getLocalizedText({ en: 'Excalidraw Export Settings', zh: 'Excalidraw 导出设置' }) }}
+              </div>
+              <v-row class="mb-3">
+                <v-col cols="5">
+                  <v-select
+                    v-model="editingConfig.excalidraw_export_type"
+                    :items="excalidrawExportOptions"
+                    item-title="label"
+                    item-value="value"
+                    :label="getLocalizedText({ en: 'Export Type', zh: '导出类型' })"
+                    variant="outlined"
                     density="compact"
                     hide-details
-                    class="me-3"
+                    @update:model-value="handleExcalidrawTypeChange"
                   />
-                </template>
-              </v-tooltip>
-              <div>
-                <div class="text-subtitle-2">
-                  {{ getLocalizedText({ en: 'Process Media Attachments', zh: '处理音视频附件' }) }}
+                </v-col>
+                <v-col cols="2">
+                </v-col>
+                <v-col cols="5" v-if="editingConfig.excalidraw_export_type === 'png'">
+                  <div style="display:flex; align-items:center; gap:12px">
+                    <span>
+                      {{ getLocalizedText({ en: "PNG Scale", zh: "PNG缩放比例" }) }}
+                    </span>
+                    <v-slider
+                      v-model="editingConfig.excalidraw_png_scale"
+                      min="0.1"
+                      max="9"
+                      step="0.1"
+                      density="compact"
+                      thumb-label="always"
+                      hide-details
+                      style="transform: translateY(-3px)"
+                    />
+                  </div>
+                </v-col>
+              </v-row>
+
+              <!-- 分隔线 -->
+              <v-divider class="border-opacity-100 my-3" />
+
+
+              <div class="d-flex align-center my-2">
+                <div class="flex-grow-1">
+                  <div class="text-subtitle-2 font-weight-medium">
+                    {{ getLocalizedText({ en: 'Process Media Attachments', zh: '导出音视频附件' }) }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ getLocalizedText({ 
+                      en: 'Enable processing of audio and video attachments during export', 
+                      zh: '导出时启用音视频附件的处理功能' 
+                    }) }}
+                  </div>
                 </div>
-                <div class="text-caption text-medium-emphasis">
-                  {{ getLocalizedText({ 
-                    en: 'Enable processing of audio and video attachments during export', 
-                    zh: '导出时启用音视频附件的处理功能' 
-                  }) }}
-                </div>
-              </div>
+                <v-tooltip :text="getLocalizedText({ 
+                  en: 'Please ensure your publishing platform supports audio and video files before enabling this feature', 
+                  zh: '启用前请确保您的发布平台支持音视频文件' 
+                })" location="top" :open-delay="200">
+                  <template #activator="{ props }"> 
+                    <v-switch
+                      v-bind="props"
+                      :model-value="!!editingConfig.process_media_attachments"
+                      @update:model-value="editingConfig.process_media_attachments = $event || undefined"
+                      density="compact"
+                      hide-details
+                      class="me-3"
+                    />
+                  </template>
+                </v-tooltip>
             </div>
-          </v-col>
-        </v-row>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+        </div>
       </div>
     </ObsidianVueModal>
 
-    <!-- 删除确认弹窗 -->
-    <!-- <ObsidianVueModal
-      v-model:visible="deleteConfirmVisible"
-      :obsidian-app="plugin.app"
-      @update:visible="onModalVisibilityChange"
-      max-width="500"
-      style="padding: 0 !important;"
-    >
-      <div>
-        <div class="text-subtitle-1 font-weight-medium">
-          {{ getLocalizedText({ en: "Confirm Delete Export Preset: ", zh: "确认删除导出预设: " }) + settings.exportConfigs[deleteConfigIndex as number].name}}
-        </div>
-        <div class="d-flex align-center justify-end">
-          <v-btn class="me-2" @click="cancelDelete">
-            {{ getLocalizedText({ en: "Cancel", zh: "取消" }) }}
-          </v-btn>
-          <v-btn color="error" class="me-0" @click="confirmDelete">
-            {{ getLocalizedText({ en: "Delete", zh: "删除" }) }}
-          </v-btn>
-        </div>
-      </div>
-    </ObsidianVueModal> -->
   </v-container>
 </template>
 
@@ -647,9 +663,61 @@ const getAttachmentDirPreview = (config: ExportConfig): string => {
   cursor: grabbing !important;
 }
 
-/* 自定义样式 */
+/* Modal 外层包装器 - 强制固定宽度 */
+.export-modal-wrapper {
+  width: 900px;
+  max-width: 90vw;
+  min-width: 0; /* 允许在小屏幕上缩小 */
+  box-sizing: border-box;
+}
+
+/* 自定义样式 - 固定弹窗宽度，防止 expansion panel 展开时宽度改变 */
 .export-modal-form {
   padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* 防止内容溢出导致宽度变化 */
+}
+
+/* 确保 expansion panels 不会改变宽度 */
+.export-modal-form :deep(.v-expansion-panels) {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.export-modal-form :deep(.v-expansion-panel) {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.export-modal-form :deep(.v-expansion-panel-title) {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.export-modal-form :deep(.v-expansion-panel-text) {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 关键：防止 expansion panel text 的内部容器改变宽度 */
+.export-modal-form :deep(.v-expansion-panel-text__wrapper) {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  box-sizing: border-box;
+}
+
+/* 防止 v-row 的负 margin 导致宽度变化 */
+.export-modal-form :deep(.v-expansion-panel-text .v-row) {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+}
+
+/* 确保 v-col 不会超出容器 */
+.export-modal-form :deep(.v-expansion-panel-text .v-col) {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
 }
 
 /* 路径预览代码样式 */

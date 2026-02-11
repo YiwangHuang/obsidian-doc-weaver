@@ -274,6 +274,46 @@
                 :content="getAttachmentDirPreview(editingConfig)"
               />
 
+              <!-- 媒体附件设置区域，仅在启用音视频附件处理时显示 -->
+              <template v-if="editingConfig.process_media_attachments">
+                <v-divider class="border-opacity-100 my-3" />
+                <div class="text-subtitle-2 font-weight-medium mb-3">
+                  {{ getLocalizedText({ en: 'Media Attachment Settings', zh: '媒体附件设置' }) }}
+                </div>
+                <v-row class="mb-3">
+                  <v-col cols="6" class="pb-0">
+                    <!-- 媒体附件目录模板 -->
+                    <InputWithPlaceholders :placeholders="attachmentDirPlaceholders">
+                      <v-text-field
+                        v-model="editingConfig.media_dir_abs_template"
+                        :label="getLocalizedText({ en: 'Media Attachment Directory', zh: '媒体附件目录' })"
+                        :placeholder="editingConfig.attachment_dir_abs_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
+                        variant="outlined"
+                        density="compact"
+                        class="mb-3"
+                      />
+                    </InputWithPlaceholders>
+                  </v-col>
+                  <v-col cols="6" class="pb-0">
+                    <!-- 媒体附件引用模板 -->
+                    <InputWithPlaceholders :placeholders="attachmentRefPlaceholders">
+                      <v-text-field
+                        v-model="editingConfig.media_link_template"
+                        :label="getLocalizedText({ en: 'Media Reference Template', zh: '媒体引用模板' })"
+                        :placeholder="editingConfig.attachment_ref_template"
+                        variant="outlined"
+                        density="compact"
+                        class="mb-3"
+                      />
+                    </InputWithPlaceholders>
+                  </v-col>
+                </v-row>
+                <!-- 媒体附件目录预览面板 -->
+                <PreviewPanel
+                  :title="getLocalizedText({ en: 'Media Attachment Directory Preview', zh: '媒体附件目录预览' })"
+                  :content="getMediaDirPreview(editingConfig)"
+                />
+              </template>
 
             </v-expansion-panel-text>
           </v-expansion-panel>
@@ -462,7 +502,7 @@ const getPreviewPath = (config: ExportConfig): string => {
   }
   
   try {
-    const converter = new TextConverter(props.plugin, activeFile);
+    const converter = new TextConverter(props.plugin, activeFile, config);
     return converter.replacePlaceholders(pathTemplate);
   } catch (error) {
     debugLog('Error replacing placeholders in preview path:', error);
@@ -631,7 +671,7 @@ const getAttachmentDirPreview = (config: ExportConfig): string => {
   }
   
   try {
-    const converter = new TextConverter(props.plugin, activeFile);
+    const converter = new TextConverter(props.plugin, activeFile, config);
     
     // 先获取并替换输出目录路径（用于替换 {{outputDir}}）
     const outputDirResolved = converter.replacePlaceholders(config.output_dir_abs_template);
@@ -646,6 +686,38 @@ const getAttachmentDirPreview = (config: ExportConfig): string => {
   } catch (error) {
     debugLog('Error replacing placeholders in attachment directory preview:', error);
     return attachmentDirTemplate;
+  }
+};
+
+/**
+ * 获取媒体附件目录预览（支持占位符替换，包括 {{outputDir}}）
+ * 若未配置媒体附件目录模板，则回退到附件目录模板
+ * @param config 当前编辑的导出配置
+ * @returns 媒体附件目录预览字符串
+ */
+const getMediaDirPreview = (config: ExportConfig): string => {
+  // 若未配置媒体附件目录，回退使用附件目录模板
+  const mediaDirTemplate = config.media_dir_abs_template || config.attachment_dir_abs_template;
+  
+  // 获取当前活动文件
+  const activeFile = props.plugin.app.workspace.getActiveFile();
+  if (!activeFile) {
+    return mediaDirTemplate;
+  }
+  
+  try {
+    const converter = new TextConverter(props.plugin, activeFile, config);
+    
+    // 先获取并替换输出目录路径（用于替换 {{outputDir}}）
+    const outputDirResolved = converter.replacePlaceholders(config.output_dir_abs_template);
+    
+    // 替换媒体附件目录模板中的占位符
+    const mediaDirPreview = converter.replacePlaceholders(mediaDirTemplate).replace(placeholders.VAR_OUTPUT_DIR, outputDirResolved);
+    
+    return path.posix.resolve(mediaDirPreview);
+  } catch (error) {
+    debugLog('Error replacing placeholders in media directory preview:', error);
+    return mediaDirTemplate;
   }
 };
 

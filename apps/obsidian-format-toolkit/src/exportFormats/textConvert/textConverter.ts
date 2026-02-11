@@ -10,6 +10,7 @@ import * as placeholders from '../../lib/constant';
 import { LinkParser } from './linkParser';
 import { tagWrapperInfo, TagConfig } from '../../toggleTagWrapper';
 import { debugLog } from '../../lib/debugUtils';
+import { normalizeCrossPlatformPath } from "../../lib/pathUtils";
 import { parse } from 'html-parse-string';
 
 // 支持的输出格式类型
@@ -56,17 +57,26 @@ export class BaseConverter {
     public md: MarkdownIt;
     private preProcessors: StringProcessor[];
     private postProcessors: StringProcessor[];
-    public attachment_ref_template: string;
+    /** 导出配置对象 */
+    private exportConfig: ExportConfig;
 
     public format: OutputFormat;
-    constructor(attachmentRefTemplate = '![[{{attachmentFileName}}]]') {
+    /**
+     * 构造函数
+     * @param exportConfig 导出配置对象，可选。从中读取attachment_ref_template等配置
+     */
+    constructor(exportConfig: ExportConfig) {
         this.md = new MarkdownIt();
         this.preProcessors = [];
         this.postProcessors = [];
-        this.attachment_ref_template = attachmentRefTemplate;
-        this.setFormat('typst');// 默认使用typst格式
+        // 从ExportConfig中读取attachment_ref_template，若未提供则使用默认值
+        this.exportConfig = exportConfig;
+        this.setFormat(this.exportConfig.format);// 默认使用typst格式
     }
     
+    public get exportPreset(): ExportConfig {
+        return {...this.exportConfig};
+    }
     /**
      * 根据格式推送处理器到当前实例
      * @param processors 要处理的处理器数组
@@ -134,11 +144,16 @@ export class AdvancedConverter extends BaseConverter{
 
     public plugin: MyPlugin;
     public entryNote: TFile;
-    public exportConfig: ExportConfig|null = null; 
     public linkParser: LinkParser; // 链接解析器
     
-    constructor(plugin: MyPlugin, file: TFile, attachmentRefTemplate = '![[{{attachmentFileName}}]]') {
-        super(attachmentRefTemplate);
+    /**
+     * 构造函数
+     * @param plugin 插件实例
+     * @param file 当前处理的文件
+     * @param exportConfig 导出配置对象，可选。从中读取attachment_ref_template等配置
+     */
+    constructor(plugin: MyPlugin, file: TFile, exportConfig: ExportConfig) {
+        super(exportConfig);
         this.plugin = plugin;
         this.entryNote = file;
         this.linkParser = new LinkParser(this);
@@ -183,7 +198,6 @@ export class AdvancedConverter extends BaseConverter{
                 result = result + '\n' + content;
             }
         }
-        
         return result;
     }
 
@@ -197,29 +211,53 @@ export class AdvancedConverter extends BaseConverter{
      * @param output_dir_abs 导出目标目录的绝对路径
      * TODO: 改为直接接受attachment_dir_abs
      */
-    public copyAttachment(attachment_dir_abs: string): void{
+    public async copyAttachment(): Promise<void>{
+
+        const output_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.output_dir_abs_template)); // 跨平台路径处理
+        const image_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.attachment_dir_abs_template).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
+        const media_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.media_dir_abs_template || '{{outputDir}}/assets').replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
+
+        // function getAttachmentDirAbs(attachment_dir_abs_template: string): string{
+        //     return normalizeCrossPlatformPath(
+        //         this.replacePlaceholders(attachment_dir_abs_template)
+        //         .replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
+        //     }
+
+        function makeDirIfNotExists(dir_abs: string): void{
+            if(!fs.existsSync(dir_abs)){
+                fs.mkdirSync(dir_abs, { recursive: true });
+            }
+        }
+
+
         const links = this.linkParser.linkList;
         // const attachment_dir_abs = path.posix.join(output_dir_abs,this.attachment_ref_template);
-        if(!fs.existsSync(attachment_dir_abs)){
-            fs.mkdirSync(attachment_dir_abs, { recursive: true });
-        }
+        
         for (const link of links) {
-            if(link.type === 'excalidraw' && this.exportConfig !== null){
+            if(link.type === 'excalidraw'){
                 if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
-                    if(this.exportConfig.excalidraw_export_type === 'svg'){
-                        exportToSvg(this.plugin, link.source_path_rel_vault, path.posix.join(attachment_dir_abs, link.output_filename));
+                    if(this.exportPreset.excalidraw_export_type === 'svg'){
+                        makeDirIfNotExists(image_dir_abs);
+                        await exportToSvg(this.plugin, link.source_path_rel_vault, path.posix.join(image_dir_abs, link.output_filename));
                     }
                     else{
-                        exportToPng(this.plugin, link.source_path_rel_vault, path.posix.join(attachment_dir_abs, link.output_filename), this.exportConfig.excalidraw_png_scale);
+                        makeDirIfNotExists(image_dir_abs);
+                        await exportToPng(this.plugin, link.source_path_rel_vault, path.posix.join(image_dir_abs, link.output_filename), this.exportPreset.excalidraw_png_scale);
                     }
                 }
-                continue;
             }
-            try{
-                fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(attachment_dir_abs, link.output_filename));
-            }catch(error){
-                console.error(`Error copying file: ${error}`);
+            else if(link.type === 'image'){
+                makeDirIfNotExists(image_dir_abs);
+                fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(image_dir_abs, link.output_filename));
             }
+            else if(link.type === 'media'){
+                makeDirIfNotExists(media_dir_abs);
+                fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(media_dir_abs, link.output_filename));
+            }
+            // else{
+            //     makeDirIfNotExists(image_dir_abs);
+            //     fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(image_dir_abs, link.output_filename));
+            // }
         }
     }
 

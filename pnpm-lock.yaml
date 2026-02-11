@@ -24,6 +24,9 @@ importers:
       html-parse-string:
         specifier: ^0.0.9
         version: 0.0.9
+      is-url:
+        specifier: ^1.2.4
+        version: 1.2.4
       katex:
         specifier: ^0.16.21
         version: 0.16.22
@@ -1331,6 +1334,9 @@ packages:
   is-stream@3.0.0:
     resolution: {integrity: sha512-LnQR4bZ9IADDRSkvpqMGvt/tEJWclzklNgSw48V5EAaAeDd6qGvN8ei6k5p0tvxSR171VmGyHuTiAOfxAbr8kA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  is-url@1.2.4:
+    resolution: {integrity: sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==}
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
@@ -2982,6 +2988,8 @@ snapshots:
   is-plain-object@5.0.0: {}
 
   is-stream@3.0.0: {}
+
+  is-url@1.2.4: {}
 
   isexe@2.0.0: {}
 

@@ -226,10 +226,9 @@ export class ExportFormatsManager {
             return;
         }
         const sourceContent = (await getNoteInfo(this.plugin, sourceFile)).mainContent// 只获取笔记主要内容，暂时用不到笔记属性
-        const converter = new TextConverter(this.plugin, sourceFile, item.attachment_ref_template);
+        const converter = new TextConverter(this.plugin, sourceFile, item);
 
         // 设置导出配置
-        converter.exportConfig = item;
         const style_dir_abs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.style_dir_rel);
         const output_dir_abs = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir_abs_template)); // 跨平台路径处理
         const output_filename = `${converter.replacePlaceholders(item.output_basename_template)}.${extensionNameOfFormat[item.format]}`;
@@ -257,11 +256,11 @@ export class ExportFormatsManager {
         fs.writeFileSync(output_file_path, finalContent);
         
 
-        const attachment_dir_abs = normalizeCrossPlatformPath(
-            converter.replacePlaceholders(item.attachment_dir_abs_template)
-            .replace(VAR_OUTPUT_DIR, output_dir_abs));
+        // const attachment_dir_abs = normalizeCrossPlatformPath(
+        //     converter.replacePlaceholders(item.attachment_dir_abs_template)
+        //     .replace(VAR_OUTPUT_DIR, output_dir_abs));
         // 拷贝附件
-        converter.copyAttachment(attachment_dir_abs);
+        await converter.copyAttachment();
 
         new Notice(converter.linkParser.formatExportSummary(output_file_path), 5000); // 打印导出信息
 

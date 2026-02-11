@@ -109,19 +109,11 @@ export class LinkParser {
     }
 
     /**
-     * 获取附件目录，相对于导出目录
-     * @returns 附件目录，相对于导出目录
-     */
-    get attachmentDir(): string {
-        return this.converter.attachment_ref_template;
-    }
-
-    /**
      * 获取导出目录，相对于vault根目录
      * @returns 导出目录，相对于vault根目录
      */
     get exportConfig() {
-        return this.converter.exportConfig;
+        return this.converter.exportPreset;
     }
 
     /**
@@ -454,10 +446,11 @@ LinkParser.registerRule({
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
-                parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path});// 添加到链接列表中
+                parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path, type: 'image'});// 添加到链接列表中
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
+                linkToken.meta = {...linkToken.meta, attchmentType: 'image'};
             }
         },
     ]
@@ -487,10 +480,11 @@ LinkParser.registerRule({
                 if(parser.isRenewExportName){
                     exportName = parser.addHexId(exportName);
                 }
-                parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path});// 添加到链接列表中
+                parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path, type: 'media'});// 添加到链接列表中
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
+                linkToken.meta = {...linkToken.meta, attchmentType: 'media'};
             }
         },
         {
@@ -509,14 +503,16 @@ LinkParser.registerRule({
                     if(parser.isRenewExportName){
                         exportName = parser.addHexId(exportName);
                     }
-                    parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path});// 添加到链接列表中
-                    linkToken.hidden = false;
+                    parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path, type: 'media'});// 添加到链接列表中
+                    linkToken.hidden = false; 
                     linkToken.content = exportName;
                     linkToken.markup = '![[]]';
+                    linkToken.meta = {...linkToken.meta, attchmentType: 'media'};
                 } else {
                     linkToken.content = linkPart;
-                    linkToken.hidden = true; // typst格式不支持多媒体，不渲染链接
+                    linkToken.hidden = true;
                     linkToken.markup = '![[]]';
+                    linkToken.meta = {...linkToken.meta, attchmentType: 'media'};
                 }
             }
         },

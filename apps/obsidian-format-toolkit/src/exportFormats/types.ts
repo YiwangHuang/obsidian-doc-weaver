@@ -31,6 +31,10 @@ export interface ExportConfig extends ToolbarItem {
     attachment_dir_abs_template: string;
     /** 附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
     attachment_ref_template: string;
+    /** 媒体附件目录绝对路径模板，可以用占位符+相对路径生成 */
+    media_dir_abs_template?: string;
+    /** 媒体附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
+    media_link_template?: string;
     /** 是否处理音视频附件，默认为false */
     process_media_attachments?: boolean;
     /** Excalidraw导出类型 */

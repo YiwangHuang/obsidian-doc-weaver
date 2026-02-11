@@ -1,9 +1,10 @@
 import { BaseConverter, AdvancedConverter } from '../textConverter';
 import { VAR_ATTACHMENT_FILE_NAME } from '../../../lib/constant';
+import { Notice } from 'obsidian';
 // import { getHeadingText } from '../../../lib/noteResloveUtils';
 // import { ensureRelativePath } from '../../../lib/pathUtils';
 // import * as path from 'path';
-import url from 'url';
+// import url from 'url';
 import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 
 const OBSIDIAN_LINK = 'obsidian_link';
@@ -39,7 +40,7 @@ BaseConverter.registerProcessor({
 BaseConverter.registerProcessor({
     name: 'obsidianLinkRendererRule',
     formats: ['typst','HMD','quarto','plain'],
-    description: '自定义双链接渲染规则,支持所有格式。直接在预设模板中替换{{attachmentFileName}}占位符为附件文件名',
+    description: '自定义双链接渲染规则,支持所有格式。根据附件类型(image/media)选用不同模板替换{{attachmentFileName}}占位符',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {
             const linkToken = tokens[idx];
@@ -47,7 +48,24 @@ BaseConverter.registerProcessor({
                 return '';
             }
             const attachment_file_name = linkToken.content;
-            return '\n'+converter.attachment_ref_template.replace(VAR_ATTACHMENT_FILE_NAME, attachment_file_name)+'\n\n';
+            const attachmentType = linkToken.meta?.attchmentType as string | undefined;
+
+            // 根据attachmentType选择对应的引用模板：media类型使用media_link_template，image类型使用attachment_ref_template
+            let template: string;
+            if (attachmentType === 'media') {
+                template = converter.exportPreset.media_link_template ?? converter.exportPreset.attachment_ref_template;
+            } else {
+                // 默认使用image模板（包括attchmentType为'image'或未定义的情况）
+                template = converter.exportPreset.attachment_ref_template;
+            }
+
+            // 验证模板中是否包含附件文件名占位符，若缺失则弹出Notice提醒用户
+            if (!template.includes(VAR_ATTACHMENT_FILE_NAME)) {
+                const typeLabel = attachmentType === 'media' ? '媒体附件引用模板' : '附件引用模板';
+                new Notice(`⚠️ ${typeLabel}中缺少占位符 ${VAR_ATTACHMENT_FILE_NAME}，请检查导出配置`);
+            }
+
+            return '\n' + template.replace(VAR_ATTACHMENT_FILE_NAME, attachment_file_name) + '\n\n';
         };
     }
 });
@@ -105,23 +123,23 @@ function obsidianLinkPlugin(converter: BaseConverter){
     });
 }
 
-if (import.meta.url === url.pathToFileURL(process.argv[1]).href){
-    // 辅助函数：格式化token输出
+// if (import.meta.url === url.pathToFileURL(process.argv[1]).href){
+//     // 辅助函数：格式化token输出
 
-    const converter = new BaseConverter();
-    const text = `
-链接一![[test.png]]
-链接二![[page2.png|page2]]
-普通文本和*强调*混合\`[[page3.png]]\`
-    `;
+//     const converter = new BaseConverter();
+//     const text = `
+// 链接一![[test.png]]
+// 链接二![[page2.png|page2]]
+// 普通文本和*强调*混合\`[[page3.png]]\`
+//     `;
     
-    // const tokens = converter.md.parse(text, {});
-    // console.log('Parsed Tokens:');
-    // tokens.forEach(token => {
-    //     console.log(formatToken(token));
-    //     console.log('-------------------');
-    // });
-    console.log(converter.convert(text));
-    // console.log(converter.links);
-    // console.log(path.posix.join(__filename))
-}
+//     // const tokens = converter.md.parse(text, {});
+//     // console.log('Parsed Tokens:');
+//     // tokens.forEach(token => {
+//     //     console.log(formatToken(token));
+//     //     console.log('-------------------');
+//     // });
+//     console.log(converter.convert(text));
+//     // console.log(converter.links);
+//     // console.log(path.posix.join(__filename))
+// }

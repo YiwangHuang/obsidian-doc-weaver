@@ -36,7 +36,7 @@
 
 import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
-import type { ToolbarItem } from '../types';
+import type { ToolbarItemConfig } from '../types';
 import { MarkdownView } from 'obsidian';
 import { generalInfo, GeneralSettings } from '../index';
 import type { DocWeaverInstance } from '../../main';
@@ -46,7 +46,7 @@ import type { DocWeaverInstance } from '../../main';
 // 组件属性
 interface Props {
   /** 传入的工具栏条目列表 */
-  items: ToolbarItem[];
+  items: ToolbarItemConfig[];
 }
 
 const props = withDefaults(defineProps<Props>(), {

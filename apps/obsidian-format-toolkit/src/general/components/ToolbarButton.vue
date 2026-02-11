@@ -91,14 +91,14 @@
 import { computed, inject } from 'vue';
 import Icon from '../../vue/components/Icon.vue';
 import SubMenu from './SubMenu.vue';
-import type { ToolbarItem } from '../types';
+import type { ToolbarItemConfig } from '../types';
 import { debugLog } from '../../lib/debugUtils';
 import type { DocWeaverInstance } from '../../main';
 
 // 组件属性定义
 interface Props {
   /** 单个工具栏条目 */
-  item: ToolbarItem;
+  item: ToolbarItemConfig;
   /** 是否位于子菜单中，仅影响样式 */
   isInSubmenu?: boolean;
 }

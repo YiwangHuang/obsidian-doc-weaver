@@ -2,13 +2,13 @@
  * Toggle Tag Wrapper 模块入口
  */
 
-import { ModuleInfoRegistry } from '../main';
+import { ModuleRegistration } from '../main';
 import { DEFAULT_TAG_WRAPPER_SETTINGS, TagWrapperSettings as TagWrapperSettingsType } from './types';
 import { getLocalizedText } from '../lib/textUtils';
 import TagWrapperSettingsComponent from './components/TagWrapperSettings.vue';
 
 // Tag wrapper settings registry
-export const tagWrapperInfo: ModuleInfoRegistry<TagWrapperSettingsType> = {
+export const tagWrapperInfo: ModuleRegistration<TagWrapperSettingsType> = {
     name: 'tagWrapper',
     settingTabName: getLocalizedText({ en: "Tags Config", zh: "标签配置" }),
     description: 'Settings for tag wrapper commands',

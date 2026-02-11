@@ -32,12 +32,12 @@
  */
 
 import { ref } from 'vue';
-import type { ToolbarItem } from '../types';
+import type { ToolbarItemConfig } from '../types';
 import ToolbarButton from './ToolbarButton.vue';
 
 // 组件属性
 interface Props {
-  items: ToolbarItem[];
+  items: ToolbarItemConfig[];
 }
 
 defineProps<Props>();

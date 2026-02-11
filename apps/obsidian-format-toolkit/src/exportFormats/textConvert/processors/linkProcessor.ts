@@ -53,10 +53,10 @@ BaseConverter.registerProcessor({
             // 根据attachmentType选择对应的引用模板：media类型使用media_link_template，image类型使用attachment_ref_template
             let template: string;
             if (attachmentType === 'media') {
-                template = converter.exportPreset.media_link_template ?? converter.exportPreset.attachment_ref_template;
+                template = converter.exportPreset.videoLinkTemplate ?? converter.exportPreset.imageLinkTemplate;
             } else {
                 // 默认使用image模板（包括attchmentType为'image'或未定义的情况）
-                template = converter.exportPreset.attachment_ref_template;
+                template = converter.exportPreset.imageLinkTemplate;
             }
 
             // 验证模板中是否包含附件文件名占位符，若缺失则弹出Notice提醒用户

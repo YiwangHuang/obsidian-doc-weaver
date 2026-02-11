@@ -203,7 +203,7 @@
                 <v-col cols="6" class="pb-0">
                   <InputWithPlaceholders :placeholders="pathPlaceholders">
                     <v-text-field
-                      v-model="editingConfig.output_dir_abs_template"
+                      v-model="editingConfig.outputDirAbsTemplate"
                       :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
                       :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR"
                       variant="outlined"
@@ -214,7 +214,7 @@
                 <v-col cols="6" class="pb-0">
                   <InputWithPlaceholders :placeholders="pathPlaceholders">
                     <v-text-field
-                      v-model="editingConfig.output_basename_template"
+                      v-model="editingConfig.outputBasenameTemplate"
                       :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
                       :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
                       variant="outlined"
@@ -243,8 +243,8 @@
                 <v-col cols="6" class="pb-0">
                   <InputWithPlaceholders :placeholders="attachmentDirPlaceholders">
                     <v-text-field
-                      v-model="editingConfig.attachment_dir_abs_template"
-                      :label="getLocalizedText({ en: 'Attachment Directory', zh: '附件目录' })"
+                      v-model="editingConfig.imageDirAbsTemplate"
+                      :label="getLocalizedText({ en: 'Image Export Directory', zh: '图片导出目录' })"
                       :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
                       variant="outlined"
                       density="compact"
@@ -256,8 +256,8 @@
                   <!-- 附件引用模板 -->
                   <InputWithPlaceholders :placeholders="attachmentRefPlaceholders">
                     <v-text-field
-                      v-model="editingConfig.attachment_ref_template"
-                      :label="getLocalizedText({ en: 'Attachment Reference Template', zh: '附件引用模板' })"
+                      v-model="editingConfig.imageLinkTemplate"
+                      :label="getLocalizedText({ en: 'Image Embed Link', zh: '图片嵌入链接' })"
                       :placeholder="editingConfig.format === 'typst' ? EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST : EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD"
                       variant="outlined"
                       density="compact"
@@ -270,12 +270,42 @@
               <!-- 附件目录模板 -->
               <!-- 附件目录预览面板 -->
               <PreviewPanel
-                :title="getLocalizedText({ en: 'Attachment Directory Preview', zh: '附件目录预览' })"
+                :title="getLocalizedText({ en: 'Image Export Directory Preview', zh: '图片导出目录预览' })"
                 :content="getAttachmentDirPreview(editingConfig)"
               />
 
+
+              <div class="d-flex align-center my-2">
+                <div class="flex-grow-1">
+                  <div class="text-subtitle-2 font-weight-medium">
+                    {{ getLocalizedText({ en: 'Process Media Attachments', zh: '导出音视频附件' }) }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ getLocalizedText({ 
+                      en: 'Enable processing of audio and video attachments during export', 
+                      zh: '导出时启用音视频附件的处理功能' 
+                    }) }}
+                  </div>
+                </div>
+                <v-tooltip :text="getLocalizedText({ 
+                  en: 'Please ensure your publishing platform supports audio and video files before enabling this feature', 
+                  zh: '启用前请确保您的发布平台支持音视频文件' 
+                })" location="top" :open-delay="200">
+                  <template #activator="{ props }"> 
+                    <v-switch
+                      v-bind="props"
+                      :model-value="!!editingConfig.processVideo"
+                      @update:model-value="editingConfig.processVideo = $event || undefined"
+                      density="compact"
+                      hide-details
+                      class="me-3"
+                    />
+                  </template>
+                </v-tooltip>
+            </div>
+
               <!-- 媒体附件设置区域，仅在启用音视频附件处理时显示 -->
-              <template v-if="editingConfig.process_media_attachments">
+              <template v-if="editingConfig.processVideo">
                 <v-divider class="border-opacity-100 my-3" />
                 <div class="text-subtitle-2 font-weight-medium mb-3">
                   {{ getLocalizedText({ en: 'Media Attachment Settings', zh: '媒体附件设置' }) }}
@@ -285,9 +315,9 @@
                     <!-- 媒体附件目录模板 -->
                     <InputWithPlaceholders :placeholders="attachmentDirPlaceholders">
                       <v-text-field
-                        v-model="editingConfig.media_dir_abs_template"
+                        v-model="editingConfig.videoDirAbsTemplate"
                         :label="getLocalizedText({ en: 'Media Attachment Directory', zh: '媒体附件目录' })"
-                        :placeholder="editingConfig.attachment_dir_abs_template || EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
+                        :placeholder="editingConfig.imageDirAbsTemplate || EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
                         variant="outlined"
                         density="compact"
                         class="mb-3"
@@ -298,9 +328,9 @@
                     <!-- 媒体附件引用模板 -->
                     <InputWithPlaceholders :placeholders="attachmentRefPlaceholders">
                       <v-text-field
-                        v-model="editingConfig.media_link_template"
+                        v-model="editingConfig.videoLinkTemplate"
                         :label="getLocalizedText({ en: 'Media Reference Template', zh: '媒体引用模板' })"
-                        :placeholder="editingConfig.attachment_ref_template"
+                        :placeholder="editingConfig.imageLinkTemplate"
                         variant="outlined"
                         density="compact"
                         class="mb-3"
@@ -328,7 +358,7 @@
               <!-- 模板配置 -->
               <InputWithPlaceholders :placeholders="templatePlaceholders">
                 <v-textarea
-                  v-model="editingConfig.content_template"
+                  v-model="editingConfig.contentTemplate"
                   :label="getLocalizedText({ en: 'Template Configuration', zh: '模板配置' })"
                   placeholder="Enter export format template..."
                   variant="outlined"
@@ -354,7 +384,7 @@
               <v-row class="mb-3">
                 <v-col cols="5">
                   <v-select
-                    v-model="editingConfig.excalidraw_export_type"
+                    v-model="editingConfig.excalidrawExportType"
                     :items="excalidrawExportOptions"
                     item-title="label"
                     item-value="value"
@@ -367,13 +397,13 @@
                 </v-col>
                 <v-col cols="2">
                 </v-col>
-                <v-col cols="5" v-if="editingConfig.excalidraw_export_type === 'png'">
+                <v-col cols="5" v-if="editingConfig.excalidrawExportType === 'png'">
                   <div style="display:flex; align-items:center; gap:12px">
                     <span>
                       {{ getLocalizedText({ en: "PNG Scale", zh: "PNG缩放比例" }) }}
                     </span>
                     <v-slider
-                      v-model="editingConfig.excalidraw_png_scale"
+                      v-model="editingConfig.excalidrawPngScale"
                       min="0.1"
                       max="9"
                       step="0.1"
@@ -388,36 +418,6 @@
 
               <!-- 分隔线 -->
               <v-divider class="border-opacity-100 my-3" />
-
-
-              <div class="d-flex align-center my-2">
-                <div class="flex-grow-1">
-                  <div class="text-subtitle-2 font-weight-medium">
-                    {{ getLocalizedText({ en: 'Process Media Attachments', zh: '导出音视频附件' }) }}
-                  </div>
-                  <div class="text-caption text-medium-emphasis">
-                    {{ getLocalizedText({ 
-                      en: 'Enable processing of audio and video attachments during export', 
-                      zh: '导出时启用音视频附件的处理功能' 
-                    }) }}
-                  </div>
-                </div>
-                <v-tooltip :text="getLocalizedText({ 
-                  en: 'Please ensure your publishing platform supports audio and video files before enabling this feature', 
-                  zh: '启用前请确保您的发布平台支持音视频文件' 
-                })" location="top" :open-delay="200">
-                  <template #activator="{ props }"> 
-                    <v-switch
-                      v-bind="props"
-                      :model-value="!!editingConfig.process_media_attachments"
-                      @update:model-value="editingConfig.process_media_attachments = $event || undefined"
-                      density="compact"
-                      hide-details
-                      class="me-3"
-                    />
-                  </template>
-                </v-tooltip>
-            </div>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -493,7 +493,7 @@ const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
  * @returns 输出路径预览字符串
  */
 const getPreviewPath = (config: ExportConfig): string => {
-  const pathTemplate = `${config.output_dir_abs_template}/${config.output_basename_template}.${EXTENSION_MAP[config.format] || 'txt'}`;
+  const pathTemplate = `${config.outputDirAbsTemplate}/${config.outputBasenameTemplate}.${EXTENSION_MAP[config.format] || 'txt'}`;
   
   // 获取当前活动文件
   const activeFile = props.plugin.app.workspace.getActiveFile();
@@ -546,8 +546,8 @@ const openExportModal = (index: number) => {
  */
 const handleExcalidrawTypeChange = () => {
   // 当切换到PNG时，确保有默认的缩放值
-  if (editingConfig.value?.excalidraw_export_type === 'png' && !editingConfig.value.excalidraw_png_scale) {
-    editingConfig.value.excalidraw_png_scale = EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE;
+  if (editingConfig.value?.excalidrawExportType === 'png' && !editingConfig.value.excalidrawPngScale) {
+    editingConfig.value.excalidrawPngScale = EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE;
   }
 };
 
@@ -557,7 +557,7 @@ const handleExcalidrawTypeChange = () => {
 const openAssetsFolder = (config: ExportConfig) => {
   const formatStylesPath = path.posix.join(
     props.plugin.PLUGIN_ABS_PATH,
-    config.style_dir_rel
+    config.styleDirRel
   );
 
   // 如果文件夹不存在，先创建它
@@ -662,7 +662,7 @@ const templatePlaceholders = [
  * @returns 附件目录预览字符串
  */
 const getAttachmentDirPreview = (config: ExportConfig): string => {
-  const attachmentDirTemplate = config.attachment_dir_abs_template;
+  const attachmentDirTemplate = config.imageDirAbsTemplate;
   
   // 获取当前活动文件
   const activeFile = props.plugin.app.workspace.getActiveFile();
@@ -674,7 +674,7 @@ const getAttachmentDirPreview = (config: ExportConfig): string => {
     const converter = new TextConverter(props.plugin, activeFile, config);
     
     // 先获取并替换输出目录路径（用于替换 {{outputDir}}）
-    const outputDirResolved = converter.replacePlaceholders(config.output_dir_abs_template);
+    const outputDirResolved = converter.replacePlaceholders(config.outputDirAbsTemplate);
     
     // 替换附件目录模板中的 {{outputDir}} 占位符
     // let dirPreview = attachmentDirTemplate.replace(placeholders.VAR_OUTPUT_DIR, outputDirResolved);
@@ -697,7 +697,7 @@ const getAttachmentDirPreview = (config: ExportConfig): string => {
  */
 const getMediaDirPreview = (config: ExportConfig): string => {
   // 若未配置媒体附件目录，回退使用附件目录模板
-  const mediaDirTemplate = config.media_dir_abs_template || config.attachment_dir_abs_template;
+  const mediaDirTemplate = config.videoDirAbsTemplate || config.imageDirAbsTemplate;
   
   // 获取当前活动文件
   const activeFile = props.plugin.app.workspace.getActiveFile();
@@ -709,7 +709,7 @@ const getMediaDirPreview = (config: ExportConfig): string => {
     const converter = new TextConverter(props.plugin, activeFile, config);
     
     // 先获取并替换输出目录路径（用于替换 {{outputDir}}）
-    const outputDirResolved = converter.replacePlaceholders(config.output_dir_abs_template);
+    const outputDirResolved = converter.replacePlaceholders(config.outputDirAbsTemplate);
     
     // 替换媒体附件目录模板中的占位符
     const mediaDirPreview = converter.replacePlaceholders(mediaDirTemplate).replace(placeholders.VAR_OUTPUT_DIR, outputDirResolved);

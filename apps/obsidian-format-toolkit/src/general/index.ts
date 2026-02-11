@@ -2,7 +2,7 @@
  * General 模块入口
  */
 
-import { ModuleInfoRegistry } from '../main';
+import { ModuleRegistration } from '../main';
 import { getLocalizedText } from '../lib/textUtils';
 import GeneralSettingsComponent from './components/GeneralSettings.vue';
 import type { ExtraCommandConfig } from './types';
@@ -41,7 +41,7 @@ export const DEFAULT_GENERAL_SETTINGS: GeneralSettings = {
 };
 
 // General settings registry
-export const generalInfo: ModuleInfoRegistry<GeneralSettings> = {
+export const generalInfo: ModuleRegistration<GeneralSettings> = {
     name: 'general',
     settingTabName: getLocalizedText({ en: "Toolbar", zh: "工具栏" }),
     description: 'Settings for general functionality',

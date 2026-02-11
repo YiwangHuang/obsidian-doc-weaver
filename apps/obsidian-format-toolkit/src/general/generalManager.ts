@@ -8,7 +8,7 @@ import { debugLog } from "../lib/debugUtils";
 
 import EditingToolbar from './components/EditingToolbar.vue';
 import { vuetify } from '../vue/plugins/vuetify';
-import type { ToolbarItem, ExtraCommandConfig } from './types';
+import type { ToolbarItemConfig, ExtraCommandConfig } from './types';
 
 import { tagWrapperInfo } from '../toggleTagWrapper/index';
 import { TagWrapperSettings } from '../toggleTagWrapper/types';
@@ -73,8 +73,8 @@ export class GeneralManager {
      * 收集工具栏项目数据
      * 关键：创建新数组副本以确保数组增减操作能被响应式系统正确追踪
      */
-    private collectToolbarItems(): ToolbarItem[] {
-        const items: ToolbarItem[] = [];
+    private collectToolbarItems(): ToolbarItemConfig[] {
+        const items: ToolbarItemConfig[] = [];
         
         // 直接从响应式settingList获取数据，确保依赖收集正确
         const exportFormatsItems = this.plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;

@@ -213,9 +213,9 @@ export class AdvancedConverter extends BaseConverter{
      */
     public async copyAttachment(): Promise<void>{
 
-        const output_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.output_dir_abs_template)); // 跨平台路径处理
-        const image_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.attachment_dir_abs_template).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
-        const media_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.media_dir_abs_template || '{{outputDir}}/assets').replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
+        const output_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.outputDirAbsTemplate)); // 跨平台路径处理
+        const image_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.imageDirAbsTemplate).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
+        const media_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.videoDirAbsTemplate || '{{outputDir}}/assets').replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
 
         // function getAttachmentDirAbs(attachment_dir_abs_template: string): string{
         //     return normalizeCrossPlatformPath(
@@ -236,13 +236,13 @@ export class AdvancedConverter extends BaseConverter{
         for (const link of links) {
             if(link.type === 'excalidraw'){
                 if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
-                    if(this.exportPreset.excalidraw_export_type === 'svg'){
+                    if(this.exportPreset.excalidrawExportType === 'svg'){
                         makeDirIfNotExists(image_dir_abs);
                         await exportToSvg(this.plugin, link.source_path_rel_vault, path.posix.join(image_dir_abs, link.output_filename));
                     }
                     else{
                         makeDirIfNotExists(image_dir_abs);
-                        await exportToPng(this.plugin, link.source_path_rel_vault, path.posix.join(image_dir_abs, link.output_filename), this.exportPreset.excalidraw_png_scale);
+                        await exportToPng(this.plugin, link.source_path_rel_vault, path.posix.join(image_dir_abs, link.output_filename), this.exportPreset.excalidrawPngScale);
                     }
                 }
             }

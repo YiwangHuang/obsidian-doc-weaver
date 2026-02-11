@@ -2,11 +2,12 @@
  * 编辑工具栏相关类型定义
  */
 
+
 /**
- * 工具栏项目类型定义
+ * 基本项目类型定义
  * 支持自包含的树形结构，类似文件和文件夹结构，以适配二级菜单
  */
-export interface ToolbarItem {
+export interface BaseConfig {
   /** 项目唯一标识符（可选，用于执行命令） */
   commandId?: string;
   
@@ -16,12 +17,16 @@ export interface ToolbarItem {
   /** 图标名称（Obsidian 图标） */
   icon?: string;
 
-  /**
-   * 是否启用此项目
-   * 默认为 true
-   */
+  /** 是否启用此项目，默认为 true */
   enabled: boolean;
-  
+}
+
+
+/**
+ * 工具栏项目类型定义
+ * 支持自包含的树形结构，类似文件和文件夹结构，以适配二级菜单
+ */
+export interface ToolbarItemConfig extends BaseConfig {
   /**
    * 是否展开
    * 默认为 false
@@ -33,13 +38,13 @@ export interface ToolbarItem {
    * 当存在子项时，此项目表现为一个容器（类似文件夹）
    * 当不存在子项时，此项目表现为一个叶子节点（类似文件）
    */
-  children?: ToolbarItem[];
+  children?: ToolbarItemConfig[];
 }
 
 /**
  * 单个命令配置接口，修改需同步修改类型守卫函数isExtraCommandConfig
  */
-export interface ExtraCommandConfig extends ToolbarItem {
+export interface ExtraCommandConfig extends ToolbarItemConfig {
     /** 命令ID，用于执行Obsidian命令 */
     commandId: string;
     /** 显示名称 */

@@ -13,7 +13,6 @@ import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
 import { normalizeCrossPlatformPath, copyFilesRecursively } from "../lib/pathUtils";
 import { watch } from "vue";
-import { VAR_OUTPUT_DIR } from "../lib/constant";
 // import { registerHtmlProcessor } from "./textConvert/processors/htmlProcessor";
 
 export class ExportFormatsManager {
@@ -91,24 +90,24 @@ export class ExportFormatsManager {
         const newConfig: ExportConfig = {
         id: `export-${hexId}`,
         commandId: `doc-weaver:export-${hexId}`,
-        style_dir_rel: path.posix.join('styles', hexId),
+        styleDirRel: path.posix.join('styles', hexId),
         name: `export-${hexId}`,
-        content_template: getDefaultYAML(format) || '',
-        output_dir_abs_template: path.posix.join(EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
-        output_basename_template: EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
-        attachment_dir_abs_template: EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE,
-        attachment_ref_template: getDefaultAttachmentRefTemplate(format),
+        contentTemplate: getDefaultYAML(format) || '',
+        outputDirAbsTemplate: path.posix.join(EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
+        outputBasenameTemplate: EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
+        imageDirAbsTemplate: EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE,
+        imageLinkTemplate: getDefaultAttachmentRefTemplate(format),
         enabled: true,
         format: format,
-        excalidraw_export_type: EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
-        excalidraw_png_scale: EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE,
+        excalidrawExportType: EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
+        excalidrawPngScale: EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE,
         icon: getDefaultIcon(format) // 必须提供图标，根据格式设置默认图标
         };
     
         // 创建对应的资源文件夹
         const styleDirAbs = path.posix.join(
         this.plugin.PLUGIN_ABS_PATH,
-        newConfig.style_dir_rel
+        newConfig.styleDirRel
         );
         if (!fs.existsSync(styleDirAbs)) {
         fs.mkdirSync(styleDirAbs, { recursive: true });
@@ -126,7 +125,7 @@ export class ExportFormatsManager {
         const item = this.config.exportConfigs[exportFormatIndex];
         const styleDirAbs = path.posix.join(
             this.plugin.PLUGIN_ABS_PATH,
-            item.style_dir_rel
+            item.styleDirRel
         );
         if (fs.existsSync(styleDirAbs)) {
             fs.rmSync(styleDirAbs, { recursive: true, force: true });
@@ -150,18 +149,18 @@ export class ExportFormatsManager {
             id: `export-${hexId}`,
             commandId: `doc-weaver:export-${hexId}`,
             name: `${originalConfig.name} - Copy`,
-            style_dir_rel: path.posix.join('styles', hexId),
-            output_dir_abs_template: path.posix.join(originalConfig.output_dir_abs_template, hexId),
+            styleDirRel: path.posix.join('styles', hexId),
+            outputDirAbsTemplate: path.posix.join(originalConfig.outputDirAbsTemplate, hexId),
         };
 
         // 创建新的样式文件夹并复制原有样式文件
         const originalStylePath = path.posix.join(
             this.plugin.PLUGIN_ABS_PATH,
-            originalConfig.style_dir_rel
+            originalConfig.styleDirRel
         );
         const newStylePath = path.posix.join(
             this.plugin.PLUGIN_ABS_PATH,
-            newConfig.style_dir_rel
+            newConfig.styleDirRel
         );
 
         // 创建新文件夹
@@ -229,9 +228,9 @@ export class ExportFormatsManager {
         const converter = new TextConverter(this.plugin, sourceFile, item);
 
         // 设置导出配置
-        const style_dir_abs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.style_dir_rel);
-        const output_dir_abs = normalizeCrossPlatformPath(converter.replacePlaceholders(item.output_dir_abs_template)); // 跨平台路径处理
-        const output_filename = `${converter.replacePlaceholders(item.output_basename_template)}.${extensionNameOfFormat[item.format]}`;
+        const style_dir_abs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.styleDirRel);
+        const output_dir_abs = normalizeCrossPlatformPath(converter.replacePlaceholders(item.outputDirAbsTemplate)); // 跨平台路径处理
+        const output_filename = `${converter.replacePlaceholders(item.outputBasenameTemplate)}.${extensionNameOfFormat[item.format]}`;
         const output_file_path = path.posix.join(output_dir_abs, output_filename);
 
 
@@ -251,7 +250,7 @@ export class ExportFormatsManager {
         const exportContent = await converter.convert(sourceContent, item.format);
         
         // 使用重构后的replacePlaceholders方法，直接处理模板和内容的整合
-        const finalContent = converter.replacePlaceholders(item.content_template, exportContent);
+        const finalContent = converter.replacePlaceholders(item.contentTemplate, exportContent);
         
         fs.writeFileSync(output_file_path, finalContent);
         

@@ -5,7 +5,7 @@
  */
 
 import type { OutputFormat } from './textConvert/textConverter';
-import type { ToolbarItem } from '../general/types';
+import type { BaseConfig } from '../general/types';
 import * as placeholders from '../lib/constant';
 import * as path from 'path';
 
@@ -13,34 +13,39 @@ import * as path from 'path';
  * 单个导出格式配置接口
  * 修改需同步修改类型守卫函数isExportConfig
  */
-export interface ExportConfig extends ToolbarItem {
+export interface ExportConfig extends BaseConfig {
     /** 格式ID，唯一标识符 */
     id: string;
     commandId: string;
     /** 样式文件夹路径，相对于插件目录 */
-    style_dir_rel: string;
+    styleDirRel: string;
     /** 导出格式类型 */
     format: OutputFormat;
     /** 模板内容 */
-    content_template: string;
+    contentTemplate: string;
     /** 输出目录绝对路径模板 */
-    output_dir_abs_template: string;
+    outputDirAbsTemplate: string;
     /** 输出文件基名模板(不含扩展名) */
-    output_basename_template: string;
+    outputBasenameTemplate: string;
     /** 附件目录绝对路径模板，可以用占位符+相对路径生成 */
-    attachment_dir_abs_template: string;
+    imageDirAbsTemplate: string;
     /** 附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
-    attachment_ref_template: string;
-    /** 媒体附件目录绝对路径模板，可以用占位符+相对路径生成 */
-    media_dir_abs_template?: string;
-    /** 媒体附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
-    media_link_template?: string;
+    imageLinkTemplate: string;
     /** 是否处理音视频附件，默认为false */
-    process_media_attachments?: boolean;
+    processVideo?: boolean;
+    /** 媒体附件目录绝对路径模板，可以用占位符+相对路径生成 */
+    videoDirAbsTemplate?: string;
+    /** 媒体附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
+    videoLinkTemplate?: string;
+    processAudio?: boolean;
+    /** 音频附件目录绝对路径模板，可以用占位符+相对路径生成 */
+    audioDirAbsTemplate?: string;
+    /** 音频附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
+    audioLinkTemplate?: string;
     /** Excalidraw导出类型 */
-    excalidraw_export_type: 'png' | 'svg';
+    excalidrawExportType: 'png' | 'svg';
     /** PNG导出时的缩放比例 */
-    excalidraw_png_scale: number;
+    excalidrawPngScale: number;
 }
 
 /**

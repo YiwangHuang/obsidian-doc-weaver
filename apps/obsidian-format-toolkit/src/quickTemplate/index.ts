@@ -2,10 +2,10 @@
  * Quick Template 模块入口
  */
 
-import { ModuleInfoRegistry } from '../main';
+import { ModuleRegistration } from '../main';
 import { getLocalizedText } from '../lib/textUtils';
 import QuickTemplateSettingsComponent from './components/QuickTemplateSettings.vue';
-import type { ToolbarItem } from '../general/types';
+import type { BaseConfig } from '../general/types';
 /**
  * Quick Template 模块的类型定义
  */
@@ -13,7 +13,7 @@ import type { ToolbarItem } from '../general/types';
 /**
  * 单个模板配置接口，修改需同步修改类型守卫函数isTemplateConfig
  */
-export interface TemplateConfig extends ToolbarItem {
+export interface TemplateConfig extends BaseConfig {
     /** 模板ID，唯一标识符 */
     id: string;
     commandId: string;
@@ -85,7 +85,7 @@ export const DEFAULT_QUICK_TEMPLATE_SETTINGS: QuickTemplateSettings = {
 
 
 // Quick template settings registry
-export const quickTemplateInfo: ModuleInfoRegistry<QuickTemplateSettings> = {
+export const quickTemplateInfo: ModuleRegistration<QuickTemplateSettings> = {
     name: 'quickTemplate',
     settingTabName: getLocalizedText({ en: "Quick Template", zh: "快速模板" }),
     description: 'Settings for quick template',

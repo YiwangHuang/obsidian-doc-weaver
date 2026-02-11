@@ -386,7 +386,7 @@ export class LinkParser {
                 
                 if (link.type === 'excalidraw') {
                     // 对于excalidraw类型，根据导出格式特别分类
-                    const issvg = this.exportConfig?.excalidraw_export_type === 'svg';
+                    const issvg = this.exportConfig?.excalidrawExportType === 'svg';
                     category = issvg ? 'Excalidraw->SVG' : 'Excalidraw->PNG';
                 } else {
                     // 对于其他类型，直接使用导出文件名的扩展名（去掉点号）
@@ -491,7 +491,7 @@ LinkParser.registerRule({
             description: "定义解析媒体链接的处理器，专用于typst格式，输出原文",
             formats: ['HMD', 'quarto','typst'], // 专门处理typst格式
             processor: (linkPart, parser, mdState, linkToken) => {
-                if(parser.exportConfig?.process_media_attachments){
+                if(parser.exportConfig?.processVideo){
                     const attachmentPath = parser.findLinkPath(linkPart);
                     if(attachmentPath === null){
                         new Notice(`未找到媒体链接: ${linkPart}`);
@@ -549,7 +549,7 @@ LinkParser.registerRule({
                     if(parser.isRenewExportName){
                         exportName = parser.addHexId(exportName);
                     }
-                    parser.exportConfig?.excalidraw_export_type === 'svg'?
+                    parser.exportConfig?.excalidrawExportType === 'svg'?
                     exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg'):
                     exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png'); 
                     

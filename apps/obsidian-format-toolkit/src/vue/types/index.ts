@@ -1,12 +1,12 @@
 import type MyPlugin from '../../main';
-import type { ModuleInfoRegistry } from '../../main';
+import type { ModuleRegistration } from '../../main';
 
 /**
  * Vue组件Props类型定义
  */
 export interface SettingsAppProps {
     plugin: MyPlugin;
-    moduleSettings: ModuleInfoRegistry[];
+    moduleSettings: ModuleRegistration[];
 }
 
 /**

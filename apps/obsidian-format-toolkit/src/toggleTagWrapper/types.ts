@@ -1,4 +1,4 @@
-import type { ToolbarItem } from "../general/types";
+import type { BaseConfig } from "../general/types";
 /**
  * Toggle Tag Wrapper模块的类型定义
  */
@@ -6,7 +6,7 @@ import type { ToolbarItem } from "../general/types";
 /**
  * 标签配置接口 - 基于HTML标签类型和类名的配置
  */
-export interface TagConfig extends ToolbarItem {
+export interface TagConfig extends BaseConfig {
     id: string;
     commandId: string;
     /** HTML标签类型 */

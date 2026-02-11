@@ -1,10 +1,10 @@
-import { ModuleInfoRegistry } from '../main';
+import { ModuleRegistration } from '../main';
 import { DEFAULT_EXPORT_FORMATS_SETTINGS, ExportManagerSettings } from './types';
 import { getLocalizedText } from '../lib/textUtils';
 import ExportFormatsSettings from './components/ExportFormatsSettings.vue';
 
 // Export formats settings registry
-export const exportFormatsInfo: ModuleInfoRegistry<ExportManagerSettings> = {
+export const exportFormatsInfo: ModuleRegistration<ExportManagerSettings> = {
     name: 'exportFormats',
     settingTabName: getLocalizedText({ en: "Export Config", zh: "导出配置" }),
     description: 'Settings for export formats',

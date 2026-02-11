@@ -42,7 +42,7 @@ export interface DocWeaverInstance {
 }
 
 // 定义设置注册接口
-export interface ModuleInfoRegistry<T = any> {
+export interface ModuleRegistration<T = any> {
     name: string;
     description: string;
     defaultConfigs: T;
@@ -56,7 +56,7 @@ export default class MyPlugin extends Plugin {
 	PLUGIN_ABS_PATH: string;
     // 将settingList改成响应式对象，支持深度监听嵌套对象的变化
     settingList: { [key: string]: any } = reactive({});
-    moduleSettings: ModuleInfoRegistry[] = [];
+    moduleSettings: ModuleRegistration[] = [];
     commandCache: { [key: string]: object } = {};// 命令缓存
     tagWrapperManager: TagWrapperManager;
     exportFormatsManager: ExportFormatsManager;

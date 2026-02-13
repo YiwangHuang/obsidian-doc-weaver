@@ -1,146 +1,254 @@
 /**
- * Export Formats模块的类型定义
- * 
- * 包含导出格式配置的所有类型定义和默认设置
+ * Export Formats 模块的类型定义与校验
+ *
+ * - ConfigIO<T>：通用配置读写中间层，直接实例化并传入 fieldDefs 即可使用
+ * - exportConfigIO / exportManagerSettingsIO：两个预置实例
  */
 
 import type { OutputFormat } from './textConvert/textConverter';
 import type { BaseConfig } from '../general/types';
+import { Notice } from 'obsidian';
 import * as placeholders from '../lib/constant';
 import * as path from 'path';
 
-/**
- * 单个导出格式配置接口
- * 修改需同步修改类型守卫函数isExportConfig
- */
+// ======================== 接口定义 ========================
+
+/** 单个导出格式配置接口，新增字段需同步修改 exportConfigIO */
 export interface ExportConfig extends BaseConfig {
-    /** 格式ID，唯一标识符 */
     id: string;
     commandId: string;
-    /** 样式文件夹路径，相对于插件目录 */
     styleDirRel: string;
-    /** 导出格式类型 */
     format: OutputFormat;
-    /** 模板内容 */
     contentTemplate: string;
-    /** 输出目录绝对路径模板 */
     outputDirAbsTemplate: string;
-    /** 输出文件基名模板(不含扩展名) */
     outputBasenameTemplate: string;
-    /** 附件目录绝对路径模板，可以用占位符+相对路径生成 */
     imageDirAbsTemplate: string;
-    /** 附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
     imageLinkTemplate: string;
-    /** 是否处理音视频附件，默认为false */
     processVideo?: boolean;
-    /** 媒体附件目录绝对路径模板，可以用占位符+相对路径生成 */
     videoDirAbsTemplate?: string;
-    /** 媒体附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
     videoLinkTemplate?: string;
     processAudio?: boolean;
-    /** 音频附件目录绝对路径模板，可以用占位符+相对路径生成 */
     audioDirAbsTemplate?: string;
-    /** 音频附件引用模板，必须包含占位符{{attachmentFileName}}。推荐使用相对路径(相对于项目根目录或导出的文件) */
     audioLinkTemplate?: string;
-    /** Excalidraw导出类型 */
     excalidrawExportType: 'png' | 'svg';
-    /** PNG导出时的缩放比例 */
     excalidrawPngScale: number;
 }
 
-/**
- * 导出管理器设置接口，修改需同步修改类型守卫函数isExportManagerSettings
- * 包含所有导出格式配置的容器，便于扩展更多设置项
- */
+/** 导出管理器设置接口，新增字段需同步修改 exportManagerSettingsIO */
 export interface ExportManagerSettings {
-    /** 导出格式配置数组 */
     exportConfigs: ExportConfig[];
     batchExportEnabled?: boolean;
 }
 
+// ======================== 字段描述符 ========================
+
+/** 支持的字段类型：基础类型 + 数组（仅检查 Array.isArray） */
+export type FieldType = 'string' | 'number' | 'boolean' | 'array';
+
+/** 字段描述符：类型、是否必填、约束、默认值 */
+export interface FieldDef {
+    type: FieldType;
+    required: boolean;
+    /** 自定义校验函数，返回 true 表示合法（在基础类型检查通过后调用） */
+    validate?: (value: unknown) => boolean;
+    /** 默认值，不提供表示无默认值（如 id 需动态生成） */
+    default?: unknown;
+}
+
+// ======================== ConfigIO ========================
+
 /**
- * 类型守卫函数：检查对象是否符合 ExportConfig 接口
- * @param obj 要检查的对象
- * @returns 是否符合 ExportConfig 接口
- * TODO: 展示屏蔽类型守卫函数，后续再实现
+ * 通用配置读写中间层
+ * 直接 new ConfigIO<T>(fieldDefs) 即可，无需继承
  */
+export class ConfigIO<T extends object> {
+    protected readonly fieldDefs: Record<string, FieldDef>;
+
+    constructor(fieldDefs: Record<string, FieldDef>) {
+        this.fieldDefs = fieldDefs;
+    }
+
+    /** 纯检查：字段值是否合法 */
+    private isFieldValid(value: unknown, def: FieldDef): boolean {
+        if (value === undefined) return !def.required;
+        if (def.type === 'array') return Array.isArray(value);
+        if (typeof value !== def.type) return false;
+        if (def.validate && !def.validate(value)) return false;
+        return true;
+    }
+
+    /**
+     * 校验并修复单个字段
+     * @param silent 为 true 时静默修复（不弹 Notice），用于 sanitize 场景
+     * @returns true = 合法或已修复；false = 无法修复
+     */
+    private repairField(record: Record<string, unknown>, key: string, def: FieldDef, silent = false): boolean {
+        if (this.isFieldValid(record[key], def)) return true;
+        if (!('default' in def)) return false;
+        if (!silent) {
+            const old = record[key] === undefined ? '(缺失)' : JSON.stringify(record[key]);
+            new Notice(`配置项 "${key}" 的值 ${old} 无效，已重置为默认值: ${JSON.stringify(def.default)}`);
+        }
+        record[key] = def.default;
+        return true;
+    }
+
+    /** 类型守卫：校验并自动修复（弹 Notice） */
+    isValid(obj: unknown): obj is T {
+        if (!obj || typeof obj !== 'object') return false;
+        const record = obj as Record<string, unknown>;
+        let ok = true;
+        for (const [key, def] of Object.entries(this.fieldDefs)) {
+            if (!this.repairField(record, key, def)) ok = false;
+        }
+        return ok;
+    }
+
+    /** 安全解析：合法返回 T，否则 undefined */
+    parse(obj: unknown): T | undefined {
+        return this.isValid(obj) ? obj : undefined;
+    }
+
+    /** 静默修复所有不合法或缺失的字段（不弹 Notice） */
+    sanitize(config: T): T {
+        const record = config as Record<string, unknown>;
+        for (const [key, def] of Object.entries(this.fieldDefs)) {
+            this.repairField(record, key, def, true);
+        }
+        return config;
+    }
+
+    /** 获取指定字段的默认值 */
+    getDefault(key: string): unknown {
+        const def = this.fieldDefs[key];
+        return def && 'default' in def ? def.default : undefined;
+    }
+
+    /** 获取所有有默认值的字段 */
+    getDefaults(): Partial<T> {
+        const result: Record<string, unknown> = {};
+        for (const [key, def] of Object.entries(this.fieldDefs)) {
+            if ('default' in def) result[key] = def.default;
+        }
+        return result as Partial<T>;
+    }
+}
+
+// ======================== 实例 ========================
+
+
+const YAML_HMD: string =`---
+title: ${placeholders.VAR_NOTE_NAME}
+author: your name
+date: ${placeholders.VAR_DATE}
+categories:
+  - your category
+tags:
+  - your tag
+---
+${placeholders.VAR_CONTENT}`
+
+const YAML_TYPST: string =`---
+title: "${placeholders.VAR_NOTE_NAME}"
+author: "your name"
+date: "${placeholders.VAR_DATE}"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: true
+    theme: cosmo
+---
+${placeholders.VAR_CONTENT}`
+
+
+
+/** 常用的 validate 工具函数 */
+const oneOf = (...values: unknown[]) => (v: unknown) => values.includes(v);
+const between = (min: number, max: number) => (v: unknown) => typeof v === 'number' && v >= min && v <= max;
+
+const exportConfigBase: Record<keyof ExportConfig, FieldDef> = {
+    name:                   { type: 'string',  required: true },
+    icon:                   { type: 'string',  required: false },
+    enabled:                { type: 'boolean', required: true,  default: true },
+    id:                     { type: 'string',  required: true },
+    commandId:              { type: 'string',  required: true },
+    styleDirRel:            { type: 'string',  required: true,  default: path.join(placeholders.VAR_VAULT_DIR, 'output') },
+    format:                 { type: 'string',  required: true,  validate: oneOf('quarto', 'HMD', 'typst', 'plain') },
+    contentTemplate:        { type: 'string',  required: true,  default: '' },
+    outputDirAbsTemplate:   { type: 'string',  required: true },
+    outputBasenameTemplate: { type: 'string',  required: true,  default: placeholders.VAR_NOTE_NAME + '_' + placeholders.VAR_DATE },
+    imageDirAbsTemplate:    { type: 'string',  required: true,  default: path.join(placeholders.VAR_OUTPUT_DIR, 'assets') },
+    imageLinkTemplate:      { type: 'string',  required: true },
+    processVideo:           { type: 'boolean', required: false, default: false },
+    videoDirAbsTemplate:    { type: 'string',  required: false },
+    videoLinkTemplate:      { type: 'string',  required: false },
+    processAudio:           { type: 'boolean', required: false, default: false },
+    audioDirAbsTemplate:    { type: 'string',  required: false },
+    audioLinkTemplate:      { type: 'string',  required: false },
+    excalidrawExportType:   { type: 'string',  required: true,  validate: oneOf('png', 'svg'), default: 'png' },
+    excalidrawPngScale:     { type: 'number',  required: true,  validate: between(1, 9), default: 2 },
+} 
+
+const exportConfigTypst: Record<keyof ExportConfig, FieldDef> = {
+    ...exportConfigBase,
+    format:                 { type: 'string',  required: true,  validate: oneOf('typst'), default: 'typst' },
+    contentTemplate:        { type: 'string',  required: true,  validate: (value: string) => value.includes(placeholders.VAR_CONTENT), default: YAML_TYPST },
+    imageLinkTemplate:      { type: 'string',  required: true,  default: `#image("${path.join('assets', placeholders.VAR_ATTACHMENT_FILE_NAME)}", width: 100%)` },
+    processVideo:           { type: 'boolean', required: false, validate: oneOf(false), default: false },
+    processAudio:           { type: 'boolean', required: false, validate: oneOf(false), default: false },
+}
+
+const exportConfigHMD: Record<keyof ExportConfig, FieldDef> = {
+    ...exportConfigBase,
+    format:                 { type: 'string',  required: true,  validate: oneOf('HMD'), default: 'HMD' },
+    contentTemplate:        { type: 'string',  required: true,  validate: (value: string) => value.includes(placeholders.VAR_CONTENT), default: YAML_HMD },
+    videoDirAbsTemplate:    { type: 'string',  required: false, default: path.join(placeholders.VAR_OUTPUT_DIR, 'assets') },
+    videoLinkTemplate:      { type: 'string',  required: false, default: `![[]](${path.join('assets',placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
+    audioDirAbsTemplate:    { type: 'string',  required: false, default: path.join(placeholders.VAR_OUTPUT_DIR, 'assets') },
+    audioLinkTemplate:      { type: 'string',  required: false, default: `![[]](${path.join('assets',placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
+}
+
+
+/** ExportConfig 读写中间层 */
+export const exportConfigIO = new ConfigIO<ExportConfig>(exportConfigBase);
+
+/** ExportManagerSettings 读写中间层 */
+export const exportManagerSettingsIO = new ConfigIO<ExportManagerSettings>({
+    exportConfigs:      { type: 'array',   required: true, default: [] },
+    batchExportEnabled: { type: 'boolean', required: false, default: false },
+});
+
+// ======================== 兼容性导出 ========================
+
 export function isExportConfig(obj: unknown): obj is ExportConfig {
-//     if (!obj || typeof obj !== 'object') return false;
-    
-//     const config = obj as Record<string, unknown>;
-//     return typeof config.id === 'string' &&
-//            typeof config.style_dir === 'string' &&
-//            typeof config.format === 'string' &&
-//            typeof config.enabled === 'boolean' &&
-//            typeof config.template === 'string' &&
-//            typeof config.name === 'string' &&
-//            typeof config.output_dir === 'string' &&
-//            typeof config.output_base_name === 'string' &&
-//            (config.excalidraw_export_type === 'png' || config.excalidraw_export_type === 'svg') &&
-//            typeof config.excalidraw_png_scale === 'number' &&
-//            typeof config.icon === 'string' &&
-//            // process_media_attachments 是可选的，所以需要检查是否存在且为布尔类型
-//            (config.process_media_attachments === undefined || typeof config.process_media_attachments === 'boolean');
-// }
-return true;
+    return exportConfigIO.isValid(obj);
 }
 
-/**
- * 类型守卫函数：检查对象是否符合 ExportManagerSettings 接口
- * @param obj 要检查的对象
- * @returns 是否符合 ExportManagerSettings 接口
- */
 export function isExportManagerSettings(obj: unknown): obj is ExportManagerSettings {
-    if (!obj || typeof obj !== 'object') return false;
-    
-    const settings = obj as Record<string, unknown>;
-    if (!Array.isArray(settings.exportConfigs)) return false;
-    
-    // batchExportEnabled 是可选的，所以需要检查是否存在且为布尔类型
-    const batchExportEnabledValid = settings.batchExportEnabled === undefined || 
-                                     typeof settings.batchExportEnabled === 'boolean';
-    
-    return batchExportEnabledValid && 
-           settings.exportConfigs.every((format: unknown) => isExportConfig(format));
+    return exportManagerSettingsIO.isValid(obj);
 }
 
-/**
- * 导出模块的默认设置
- */
+// ======================== 默认值与常量 ========================
+
 export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSettings = {
-    exportConfigs: [],        
+    exportConfigs: [],
     batchExportEnabled: false,
 };
 
-/**
- * 导出预设相关的常量定义
- */
 export const EXPORT_CONFIGS_CONSTANTS = {
-    /** 默认输出目录 */
     DEFAULT_OUTPUT_DIR: path.join(placeholders.VAR_VAULT_DIR, 'output'),
-    /** 默认输出文件名 */
     DEFAULT_OUTPUT_BASE_NAME: placeholders.VAR_NOTE_NAME,
-    /** 默认附件目录 */
     DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE: path.join(placeholders.VAR_OUTPUT_DIR, 'assets'),
-    /** 默认附件引用模板 */
     DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST: `#image("assets/${placeholders.VAR_ATTACHMENT_FILE_NAME}", width: 100%)`,
-    /** 默认附件引用模板 */
     DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD: `![](assets/${placeholders.VAR_ATTACHMENT_FILE_NAME})`,
-    /** 默认Excalidraw导出类型 */
     DEFAULT_EXCALIDRAW_EXPORT_TYPE: 'png' as const,
-    /** 默认PNG缩放比例 */
     DEFAULT_EXCALIDRAW_PNG_SCALE: 2,
-    /** 最小PNG缩放比例 */
     MIN_PNG_SCALE: 1,
-    /** 最大PNG缩放比例 */
     MAX_PNG_SCALE: 9,
-    /** PNG缩放比例步长 */
-    PNG_SCALE_STEP: 1
+    PNG_SCALE_STEP: 1,
 } as const;
 
-/**
- * 导出格式类型选项
- */
 export const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
     { value: 'typst', label: 'Typst' },
     { value: 'HMD', label: 'HMD' },
@@ -150,21 +258,14 @@ export const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
 // { value: 'quarto', label: 'Quarto' },
 // { value: 'plain', label: 'Plain' }
 
-
-/**
- * Excalidraw导出类型选项
- */
 export const EXCALIDRAW_EXPORT_OPTIONS = [
     { value: 'png', label: 'PNG' },
-    { value: 'svg', label: 'SVG' }
+    { value: 'svg', label: 'SVG' },
 ] as { value: 'png' | 'svg'; label: string }[];
 
-/**
- * 根据格式获取文件扩展名的映射
- */
 export const EXTENSION_MAP: Record<OutputFormat, string> = {
     'typst': 'typ',
     'HMD': 'md',
     'quarto': 'qmd',
-    'plain': 'md'
-} as const; 
+    'plain': 'md',
+} as const;

@@ -1,14 +1,12 @@
 import type MyPlugin from "../main";
 import path from "path";
 import fs from "fs";
-import { ExportManagerSettings, ExportConfig, isExportManagerSettings } from "./types";
+import { ExportManagerSettings, ExportConfig, exportConfigTypstIO, exportConfigHMDIO, exportManagerSettingsIO } from "./types";
 import { exportFormatsInfo } from "./index";
 import { TextConverter } from './textConvert/index';
 import { generateTimestamp } from "../lib/idGenerator";
 import { OutputFormat, extensionNameOfFormat } from "./textConvert/textConverter";
-import { getDefaultYAML, createFormatAssetStructure } from './textConvert/defaultStyleConfig/styleConfigs';
 import { debugLog } from "../lib/debugUtils";
-import { EXPORT_CONFIGS_CONSTANTS } from "./types";
 import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
 import { normalizeCrossPlatformPath, copyFilesRecursively } from "../lib/pathUtils";
@@ -33,7 +31,7 @@ export class ExportFormatsManager {
         const currentSettings = this.plugin.settingList[exportFormatsInfo.name];
         
         // 使用类型守卫函数检查设置是否需要重置
-        const needsReset = !currentSettings || !isExportManagerSettings(currentSettings);
+        const needsReset = !currentSettings || !exportManagerSettingsIO.isValid(currentSettings);
         
         if (needsReset) {
             console.log(`Initializing settings for ${exportFormatsInfo.name} with type checking`);
@@ -65,56 +63,39 @@ export class ExportFormatsManager {
      */
     addExportFormatItem(format: OutputFormat): void {
         const hexId = generateTimestamp("hex");
-        // 根据格式类型设置默认图标
-        const getDefaultIcon = (format: OutputFormat): string => {
-            switch (format) {
-                case 'typst': return 'file-text';
-                case 'HMD': return 'book';
-                case 'quarto': return 'file-code';
-                case 'plain': return 'file';
-                default: return 'download';
-            }
-        };
 
+        // 根据格式类型，获取对应的 ConfigIO 实例
+        let configIO: typeof exportConfigTypstIO | typeof exportConfigHMDIO;
 
-        const getDefaultAttachmentRefTemplate = (format: OutputFormat): string => {
-            switch (format) {
-                case 'typst': return EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST;
-                case 'HMD': return EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD;
-                // case 'quarto': return EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_QUARTO;
-                // case 'plain': return EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_PLAIN;
-                default: return EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD;
-            }
-        };
+        switch (format) {
+            case 'typst':
+                configIO = exportConfigTypstIO;
+                break;
+            case 'HMD':
+                configIO = exportConfigHMDIO;
+                break;
+            default:
+                // 其他格式（quarto、plain 等）暂不支持，直接返回不做操作
+                debugLog(`Format "${format}" is not supported yet, skipping.`);
+                return;
+        }
 
-        const newConfig: ExportConfig = {
-        id: `export-${hexId}`,
-        commandId: `doc-weaver:export-${hexId}`,
-        styleDirRel: path.posix.join('styles', hexId),
-        name: `export-${hexId}`,
-        contentTemplate: getDefaultYAML(format) || '',
-        outputDirAbsTemplate: path.posix.join(EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR, hexId),
-        outputBasenameTemplate: EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME + '_' + "{{date:YYYY-MM-DD}}",
-        imageDirAbsTemplate: EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE,
-        imageLinkTemplate: getDefaultAttachmentRefTemplate(format),
-        enabled: true,
-        format: format,
-        excalidrawExportType: EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_EXPORT_TYPE,
-        excalidrawPngScale: EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE,
-        icon: getDefaultIcon(format) // 必须提供图标，根据格式设置默认图标
-        };
-    
+        // 通过 ConfigIO 创建配置（默认值 + 动态字段）
+        const newConfig = configIO.createConfig(hexId);
+
         // 创建对应的资源文件夹
         const styleDirAbs = path.posix.join(
-        this.plugin.PLUGIN_ABS_PATH,
-        newConfig.styleDirRel
+            this.plugin.PLUGIN_ABS_PATH,
+            newConfig.styleDirRel
         );
         if (!fs.existsSync(styleDirAbs)) {
-        fs.mkdirSync(styleDirAbs, { recursive: true });
+            fs.mkdirSync(styleDirAbs, { recursive: true });
         }
-        createFormatAssetStructure(styleDirAbs, format);
-        
+        // 通过 ConfigIO 写入格式特定的主题依赖文件
+        configIO.createAssetStructure(styleDirAbs);
+
         debugLog('New export config added:', newConfig.name);
+        // 添加命令和监听仍在此方法中执行
         const configs = this.config.exportConfigs;
         configs.push(newConfig);
         this.addExportCommand(configs[configs.length - 1]);
@@ -154,23 +135,23 @@ export class ExportFormatsManager {
         };
 
         // 创建新的样式文件夹并复制原有样式文件
-        const originalStylePath = path.posix.join(
+        const originalStyleDirAbs = path.posix.join(
             this.plugin.PLUGIN_ABS_PATH,
             originalConfig.styleDirRel
         );
-        const newStylePath = path.posix.join(
+        const newStyleDirAbs = path.posix.join(
             this.plugin.PLUGIN_ABS_PATH,
             newConfig.styleDirRel
         );
 
         // 创建新文件夹
-        if (!fs.existsSync(newStylePath)) {
-            fs.mkdirSync(newStylePath, { recursive: true });
+        if (!fs.existsSync(newStyleDirAbs)) {
+            fs.mkdirSync(newStyleDirAbs, { recursive: true });
         }
 
         // 复制样式文件
-        if (fs.existsSync(originalStylePath)) {
-            copyFilesRecursively(originalStylePath, newStylePath);
+        if (fs.existsSync(originalStyleDirAbs)) {
+            copyFilesRecursively(originalStyleDirAbs, newStyleDirAbs);
         }
 
         // 将新配置插入到原配置后面

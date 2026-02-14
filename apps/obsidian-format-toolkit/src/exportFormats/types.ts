@@ -2,18 +2,25 @@
  * Export Formats 模块的类型定义与校验
  *
  * - ConfigIO<T>：通用配置读写中间层，直接实例化并传入 fieldDefs 即可使用
- * - exportConfigIO / exportManagerSettingsIO：两个预置实例
+ * - exportConfigBaseIO / exportConfigTypstIO / exportConfigHMDIO / exportManagerSettingsIO：预置实例
  */
 
 import type { OutputFormat } from './textConvert/textConverter';
 import type { BaseConfig } from '../general/types';
-import { Notice } from 'obsidian';
+import type { FieldDef } from '../lib/configIOUtils';
+import { ConfigIO, oneOf, between } from '../lib/configIOUtils';
 import * as placeholders from '../lib/constant';
 import * as path from 'path';
+import * as fs from 'fs';
+
+// Typst 格式的主题依赖文件（通过 Vite ?raw 导入为字符串）
+import typstConfig from './defaultStyleConfig/typst/config.typ?raw';
+import typstCustomFormat from './defaultStyleConfig/typst/custom_format.typ?raw';
+import typstDemo from './defaultStyleConfig/typst/demo.typ?raw';
 
 // ======================== 接口定义 ========================
 
-/** 单个导出格式配置接口，新增字段需同步修改 exportConfigIO */
+/** 单个导出格式配置接口，新增字段需同步修改 exportConfigBase fieldDefs */
 export interface ExportConfig extends BaseConfig {
     id: string;
     commandId: string;
@@ -34,110 +41,23 @@ export interface ExportConfig extends BaseConfig {
     excalidrawPngScale: number;
 }
 
+/** 主题依赖文件描述符：描述一个需要写入到样式目录的文件 */
+interface ThemeDependency {
+    /** 相对于样式目录的文件路径 */
+    relative_path: string;
+    /** 文件内容 */
+    content: string;
+}
+
 /** 导出管理器设置接口，新增字段需同步修改 exportManagerSettingsIO */
 export interface ExportManagerSettings {
     exportConfigs: ExportConfig[];
     batchExportEnabled?: boolean;
 }
 
-// ======================== 字段描述符 ========================
-
-/** 支持的字段类型：基础类型 + 数组（仅检查 Array.isArray） */
-export type FieldType = 'string' | 'number' | 'boolean' | 'array';
-
-/** 字段描述符：类型、是否必填、约束、默认值 */
-export interface FieldDef {
-    type: FieldType;
-    required: boolean;
-    /** 自定义校验函数，返回 true 表示合法（在基础类型检查通过后调用） */
-    validate?: (value: unknown) => boolean;
-    /** 默认值，不提供表示无默认值（如 id 需动态生成） */
-    default?: unknown;
-}
-
-// ======================== ConfigIO ========================
-
-/**
- * 通用配置读写中间层
- * 直接 new ConfigIO<T>(fieldDefs) 即可，无需继承
- */
-export class ConfigIO<T extends object> {
-    protected readonly fieldDefs: Record<string, FieldDef>;
-
-    constructor(fieldDefs: Record<string, FieldDef>) {
-        this.fieldDefs = fieldDefs;
-    }
-
-    /** 纯检查：字段值是否合法 */
-    private isFieldValid(value: unknown, def: FieldDef): boolean {
-        if (value === undefined) return !def.required;
-        if (def.type === 'array') return Array.isArray(value);
-        if (typeof value !== def.type) return false;
-        if (def.validate && !def.validate(value)) return false;
-        return true;
-    }
-
-    /**
-     * 校验并修复单个字段
-     * @param silent 为 true 时静默修复（不弹 Notice），用于 sanitize 场景
-     * @returns true = 合法或已修复；false = 无法修复
-     */
-    private repairField(record: Record<string, unknown>, key: string, def: FieldDef, silent = false): boolean {
-        if (this.isFieldValid(record[key], def)) return true;
-        if (!('default' in def)) return false;
-        if (!silent) {
-            const old = record[key] === undefined ? '(缺失)' : JSON.stringify(record[key]);
-            new Notice(`配置项 "${key}" 的值 ${old} 无效，已重置为默认值: ${JSON.stringify(def.default)}`);
-        }
-        record[key] = def.default;
-        return true;
-    }
-
-    /** 类型守卫：校验并自动修复（弹 Notice） */
-    isValid(obj: unknown): obj is T {
-        if (!obj || typeof obj !== 'object') return false;
-        const record = obj as Record<string, unknown>;
-        let ok = true;
-        for (const [key, def] of Object.entries(this.fieldDefs)) {
-            if (!this.repairField(record, key, def)) ok = false;
-        }
-        return ok;
-    }
-
-    /** 安全解析：合法返回 T，否则 undefined */
-    parse(obj: unknown): T | undefined {
-        return this.isValid(obj) ? obj : undefined;
-    }
-
-    /** 静默修复所有不合法或缺失的字段（不弹 Notice） */
-    sanitize(config: T): T {
-        const record = config as Record<string, unknown>;
-        for (const [key, def] of Object.entries(this.fieldDefs)) {
-            this.repairField(record, key, def, true);
-        }
-        return config;
-    }
-
-    /** 获取指定字段的默认值 */
-    getDefault(key: string): unknown {
-        const def = this.fieldDefs[key];
-        return def && 'default' in def ? def.default : undefined;
-    }
-
-    /** 获取所有有默认值的字段 */
-    getDefaults(): Partial<T> {
-        const result: Record<string, unknown> = {};
-        for (const [key, def] of Object.entries(this.fieldDefs)) {
-            if ('default' in def) result[key] = def.default;
-        }
-        return result as Partial<T>;
-    }
-}
-
 // ======================== 实例 ========================
 
-
-const YAML_HMD: string =`---
+const YAML_HMD =`---
 title: ${placeholders.VAR_NOTE_NAME}
 author: your name
 date: ${placeholders.VAR_DATE}
@@ -148,7 +68,7 @@ tags:
 ---
 ${placeholders.VAR_CONTENT}`
 
-const YAML_TYPST: string =`---
+const YAML_TYPST =`---
 title: "${placeholders.VAR_NOTE_NAME}"
 author: "your name"
 date: "${placeholders.VAR_DATE}"
@@ -163,9 +83,7 @@ ${placeholders.VAR_CONTENT}`
 
 
 
-/** 常用的 validate 工具函数 */
-const oneOf = (...values: unknown[]) => (v: unknown) => values.includes(v);
-const between = (min: number, max: number) => (v: unknown) => typeof v === 'number' && v >= min && v <= max;
+
 
 const exportConfigBase: Record<keyof ExportConfig, FieldDef> = {
     name:                   { type: 'string',  required: true },
@@ -176,7 +94,7 @@ const exportConfigBase: Record<keyof ExportConfig, FieldDef> = {
     styleDirRel:            { type: 'string',  required: true,  default: path.join(placeholders.VAR_VAULT_DIR, 'output') },
     format:                 { type: 'string',  required: true,  validate: oneOf('quarto', 'HMD', 'typst', 'plain') },
     contentTemplate:        { type: 'string',  required: true,  default: '' },
-    outputDirAbsTemplate:   { type: 'string',  required: true },
+    outputDirAbsTemplate:   { type: 'string',  required: true,  default: path.join(placeholders.VAR_VAULT_DIR, 'output') }, // 默认值为 vault 根目录下的 output 目录
     outputBasenameTemplate: { type: 'string',  required: true,  default: placeholders.VAR_NOTE_NAME + '_' + placeholders.VAR_DATE },
     imageDirAbsTemplate:    { type: 'string',  required: true,  default: path.join(placeholders.VAR_OUTPUT_DIR, 'assets') },
     imageLinkTemplate:      { type: 'string',  required: true },
@@ -192,62 +110,143 @@ const exportConfigBase: Record<keyof ExportConfig, FieldDef> = {
 
 const exportConfigTypst: Record<keyof ExportConfig, FieldDef> = {
     ...exportConfigBase,
+    icon:                   { type: 'string',  required: false, default: 'file-text' },
     format:                 { type: 'string',  required: true,  validate: oneOf('typst'), default: 'typst' },
     contentTemplate:        { type: 'string',  required: true,  validate: (value: string) => value.includes(placeholders.VAR_CONTENT), default: YAML_TYPST },
-    imageLinkTemplate:      { type: 'string',  required: true,  default: `#image("${path.join('assets', placeholders.VAR_ATTACHMENT_FILE_NAME)}", width: 100%)` },
+    imageLinkTemplate:      { type: 'string',  required: true,  validate: (value: string) => value.includes(placeholders.VAR_ATTACHMENT_FILE_NAME), default: `#image("${path.join('assets', placeholders.VAR_ATTACHMENT_FILE_NAME)}", width: 100%)` },
     processVideo:           { type: 'boolean', required: false, validate: oneOf(false), default: false },
     processAudio:           { type: 'boolean', required: false, validate: oneOf(false), default: false },
 }
 
 const exportConfigHMD: Record<keyof ExportConfig, FieldDef> = {
     ...exportConfigBase,
+    icon:                   { type: 'string',  required: false, default: 'book' },
     format:                 { type: 'string',  required: true,  validate: oneOf('HMD'), default: 'HMD' },
     contentTemplate:        { type: 'string',  required: true,  validate: (value: string) => value.includes(placeholders.VAR_CONTENT), default: YAML_HMD },
+    imageLinkTemplate:      { type: 'string',  required: true,  validate: (value: string) => value.includes(placeholders.VAR_ATTACHMENT_FILE_NAME), default: `![](${path.join('assets', placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
     videoDirAbsTemplate:    { type: 'string',  required: false, default: path.join(placeholders.VAR_OUTPUT_DIR, 'assets') },
-    videoLinkTemplate:      { type: 'string',  required: false, default: `![[]](${path.join('assets',placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
+    videoLinkTemplate:      { type: 'string',  required: false, validate: (value: string) => value.includes(placeholders.VAR_ATTACHMENT_FILE_NAME), default: `![[]](${path.join('assets',placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
     audioDirAbsTemplate:    { type: 'string',  required: false, default: path.join(placeholders.VAR_OUTPUT_DIR, 'assets') },
-    audioLinkTemplate:      { type: 'string',  required: false, default: `![[]](${path.join('assets',placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
+    audioLinkTemplate:      { type: 'string',  required: false, validate: (value: string) => value.includes(placeholders.VAR_ATTACHMENT_FILE_NAME), default: `![[]](${path.join('assets',placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
 }
 
 
-/** ExportConfig 读写中间层 */
-export const exportConfigIO = new ConfigIO<ExportConfig>(exportConfigBase);
+/**
+ * ExportConfig 中间基类
+ * 提供 createConfig / createAssetStructure 等通用方法，
+ * 子类通过覆盖 getThemeDependencies() 提供格式特定配置
+ */
+class ExportConfigBaseIO extends ConfigIO<ExportConfig> {
+    constructor(fieldDefs: Record<string, FieldDef> = exportConfigBase) {
+        super(fieldDefs);
+    }
 
-/** ExportManagerSettings 读写中间层 */
-export const exportManagerSettingsIO = new ConfigIO<ExportManagerSettings>({
-    exportConfigs:      { type: 'array',   required: true, default: [] },
-    batchExportEnabled: { type: 'boolean', required: false, default: false },
-});
+    /** 主题依赖文件列表，子类覆盖以提供格式特定的资源文件 */
+    protected getThemeDependencies(): ThemeDependency[] {
+        return [];
+    }
 
-// ======================== 兼容性导出 ========================
+    /**
+     * 基于 getDefaults() 创建一个新的导出配置
+     * 动态字段（id、commandId 等）由 hexId 生成，其余使用 fieldDefs 中的默认值（含 icon）
+     * @param hexId 唯一标识符（十六进制时间戳）
+     * @returns 完整的 ExportConfig 对象
+     */
+    createConfig(hexId: string): ExportConfig {
+        const defaults = this.getDefaults();
+        return {
+            ...defaults,
+            // 以下为动态字段，需基于 hexId 生成，无法在 fieldDefs 中预设
+            id: `export-${hexId}`,
+            commandId: `doc-weaver:export-${hexId}`,
+            styleDirRel: path.posix.join('styles', hexId),
+            name: `export-${hexId}`,
+            outputDirAbsTemplate: path.posix.join(defaults.outputDirAbsTemplate as string, hexId),
+        } as ExportConfig;
+    }
 
-export function isExportConfig(obj: unknown): obj is ExportConfig {
-    return exportConfigIO.isValid(obj);
+    /**
+     * 在指定路径创建格式的默认资源文件结构
+     * 基于 getThemeDependencies() 返回的文件列表逐一写入
+     * @param basePath 样式目录的绝对路径
+     */
+    createAssetStructure(basePath: string): void {
+        const dependencies = this.getThemeDependencies();
+        if (dependencies.length === 0) return;
+
+        for (const dependency of dependencies) {
+            const fullPath = path.posix.join(basePath, dependency.relative_path);
+            const dirPath = path.dirname(fullPath);
+
+            // 确保目录存在
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath, { recursive: true });
+            }
+
+            // 写入文件内容
+            fs.writeFileSync(fullPath, dependency.content);
+        }
+    }
 }
 
-export function isExportManagerSettings(obj: unknown): obj is ExportManagerSettings {
-    return exportManagerSettingsIO.isValid(obj);
+/** ExportConfig Typst 读写中间层 */
+class ExportConfigTypstIO extends ExportConfigBaseIO {
+    constructor() {
+        super(exportConfigTypst);
+    }
+
+    /** Typst 格式的主题依赖文件（config.typ、custom_format.typ、demo.typ） */
+    protected getThemeDependencies(): ThemeDependency[] {
+        return [
+            { relative_path: 'config.typ', content: typstConfig },
+            { relative_path: 'custom_format.typ', content: typstCustomFormat },
+            { relative_path: 'demo.typ', content: typstDemo },
+        ];
+    }
 }
+
+/** ExportConfig HMD 读写中间层 */
+class ExportConfigHMDIO extends ExportConfigBaseIO {
+    constructor() {
+        super(exportConfigHMD);
+    }
+
+    // HMD 格式无主题依赖文件，使用基类默认的空数组
+}
+
+/** ExportManagerSettings 读写中间层，可在此扩展 Settings 特有的方法 */
+class ExportManagerSettingsIO extends ConfigIO<ExportManagerSettings> {
+    constructor() {
+        super({
+            exportConfigs:      { type: 'array',   required: true, default: [] },
+            batchExportEnabled: { type: 'boolean', required: false, default: false },
+        });
+    }
+
+    getDefaults(): ExportManagerSettings {
+        return super.getDefaults() as ExportManagerSettings;
+    }
+    // 在此添加 Settings 专用方法
+}
+
+/** 根据导出格式获取对应的IO实例 */
+export function getExportConfigIO(exportConfig: ExportConfig): ExportConfigTypstIO | ExportConfigHMDIO | ExportConfigBaseIO {
+    switch (exportConfig.format) {
+        case 'typst':   
+            return exportConfigTypstIO;
+        case 'HMD':
+            return exportConfigHMDIO;
+        default:
+            return new ExportConfigBaseIO(); //TODO: 其他格式暂不支持，返回空实例，后续应对每一格式提供特有的IO实例，取消default返回值
+    }
+}
+
+/** 单例实例 */
+export const exportConfigTypstIO = new ExportConfigTypstIO();
+export const exportConfigHMDIO = new ExportConfigHMDIO();
+export const exportManagerSettingsIO = new ExportManagerSettingsIO();
 
 // ======================== 默认值与常量 ========================
-
-export const DEFAULT_EXPORT_FORMATS_SETTINGS: ExportManagerSettings = {
-    exportConfigs: [],
-    batchExportEnabled: false,
-};
-
-export const EXPORT_CONFIGS_CONSTANTS = {
-    DEFAULT_OUTPUT_DIR: path.join(placeholders.VAR_VAULT_DIR, 'output'),
-    DEFAULT_OUTPUT_BASE_NAME: placeholders.VAR_NOTE_NAME,
-    DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE: path.join(placeholders.VAR_OUTPUT_DIR, 'assets'),
-    DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST: `#image("assets/${placeholders.VAR_ATTACHMENT_FILE_NAME}", width: 100%)`,
-    DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD: `![](assets/${placeholders.VAR_ATTACHMENT_FILE_NAME})`,
-    DEFAULT_EXCALIDRAW_EXPORT_TYPE: 'png' as const,
-    DEFAULT_EXCALIDRAW_PNG_SCALE: 2,
-    MIN_PNG_SCALE: 1,
-    MAX_PNG_SCALE: 9,
-    PNG_SCALE_STEP: 1,
-} as const;
 
 export const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
     { value: 'typst', label: 'Typst' },

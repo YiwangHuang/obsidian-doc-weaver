@@ -205,7 +205,7 @@
                     <v-text-field
                       v-model="editingConfig.outputDirAbsTemplate"
                       :label="getLocalizedText({ en: 'Output Directory', zh: '输出目录' })"
-                      :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_DIR"
+                      :placeholder="getExportConfigIO(editingConfig).getDefaults().outputDirAbsTemplate"
                       variant="outlined"
                       density="compact"
                     />
@@ -216,7 +216,7 @@
                     <v-text-field
                       v-model="editingConfig.outputBasenameTemplate"
                       :label="getLocalizedText({ en: 'Output Filename', zh: '输出文件名' })"
-                      :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_OUTPUT_BASE_NAME"
+                      :placeholder="getExportConfigIO(editingConfig).getDefaults().outputBasenameTemplate"
                       variant="outlined"
                       density="compact"
                     />
@@ -245,7 +245,7 @@
                     <v-text-field
                       v-model="editingConfig.imageDirAbsTemplate"
                       :label="getLocalizedText({ en: 'Image Export Directory', zh: '图片导出目录' })"
-                      :placeholder="EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
+                      :placeholder="getExportConfigIO(editingConfig).getDefaults().imageDirAbsTemplate"
                       variant="outlined"
                       density="compact"
                       class="mb-3"
@@ -258,7 +258,7 @@
                     <v-text-field
                       v-model="editingConfig.imageLinkTemplate"
                       :label="getLocalizedText({ en: 'Image Embed Link', zh: '图片嵌入链接' })"
-                      :placeholder="editingConfig.format === 'typst' ? EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_TYPST : EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_REF_TEMPLATE_HMD"
+                      :placeholder="getExportConfigIO(editingConfig).getDefaults().imageLinkTemplate"
                       variant="outlined"
                       density="compact"
                       class="mb-3"
@@ -317,9 +317,9 @@
                       <v-text-field
                         v-model="editingConfig.videoDirAbsTemplate"
                         :label="getLocalizedText({ en: 'Media Attachment Directory', zh: '媒体附件目录' })"
-                        :placeholder="editingConfig.imageDirAbsTemplate || EXPORT_CONFIGS_CONSTANTS.DEFAULT_ATTACHMENT_DIR_ABS_TEMPLATE"
+                        :placeholder="getExportConfigIO(editingConfig).getDefaults().videoDirAbsTemplate"
                         variant="outlined"
-                        density="compact"
+                        density="compact" 
                         class="mb-3"
                       />
                     </InputWithPlaceholders>
@@ -392,7 +392,7 @@
                     variant="outlined"
                     density="compact"
                     hide-details
-                    @update:model-value="handleExcalidrawTypeChange"
+                    @update:model-value="getExportConfigIO(editingConfig).sanitize(editingConfig)"
                   />
                 </v-col>
                 <v-col cols="2">
@@ -441,7 +441,7 @@ import type {
   ExportManagerSettings
 } from '../types';
 import { 
-  EXPORT_CONFIGS_CONSTANTS,
+  getExportConfigIO,
   FORMAT_OPTIONS,
   EXCALIDRAW_EXPORT_OPTIONS,
   EXTENSION_MAP
@@ -541,15 +541,7 @@ const openExportModal = (index: number) => {
   modalVisible.value = true;
 };
 
-/**
- * 处理Excalidraw导出类型变更
- */
-const handleExcalidrawTypeChange = () => {
-  // 当切换到PNG时，确保有默认的缩放值
-  if (editingConfig.value?.excalidrawExportType === 'png' && !editingConfig.value.excalidrawPngScale) {
-    editingConfig.value.excalidrawPngScale = EXPORT_CONFIGS_CONSTANTS.DEFAULT_EXCALIDRAW_PNG_SCALE;
-  }
-};
+
 
 /**
  * 打开资源文件夹

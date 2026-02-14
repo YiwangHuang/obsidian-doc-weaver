@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
-import { quickTemplateInfo, TemplateConfig, QuickTemplateSettings, isQuickTemplateSettings } from "./index";
+import { quickTemplateInfo, TemplateConfig, QuickTemplateSettings, quickTemplateSettingsIO, templateConfigIO } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/debugUtils";
 import { replaceDatePlaceholders } from "../lib/constant";
@@ -28,8 +28,8 @@ export class QuickTemplateManager {
         // 获取当前设置
         const currentSettings = this.plugin.settingList[quickTemplateInfo.name];
         
-        // 检查设置是否需要重置 - 使用优雅的类型守卫函数
-        const needsReset = !currentSettings || !isQuickTemplateSettings(currentSettings);
+        // 使用 ConfigIO 类型守卫校验并自动修复设置
+        const needsReset = !currentSettings || !quickTemplateSettingsIO.isValid(currentSettings);
         
         if (needsReset) {
             console.log(`Initializing settings for ${quickTemplateInfo.name} with type checking`);
@@ -175,10 +175,12 @@ export class QuickTemplateManager {
 
     /**
      * 添加新的模板项
+     * 通过 templateConfigIO.createConfig() 创建配置，使用 fieldDefs 中的默认值
      */
     addTemplateItem(): void {
         const templates = this.config.templates;
-        const newTemplate = this.generateTemplateItem();
+        const timestamp = generateTimestamp();
+        const newTemplate = templateConfigIO.createConfig(timestamp);
         templates.push(newTemplate);
         
         // 如果新模板是启用状态，注册命令并监听配置
@@ -233,25 +235,6 @@ export class QuickTemplateManager {
         this.watchConfig(newTemplate);
         
         debugLog('Template duplicated:', newTemplate.name);
-    }
-
-    /**
-     * 生成新的模板项
-     * @param name 模板名称
-     * @param template 模板内容
-     * @param icon 模板图标
-     * @returns 新的模板配置
-     */
-    generateTemplateItem(name?: string, template?: string, icon?: string): TemplateConfig {
-        const timestamp = generateTimestamp();
-        return {
-            id: `template-${timestamp}`,
-            commandId: `doc-weaver:template-${timestamp}`,
-            name: name || `Template-${timestamp}`,
-            template: template || '{{selectedText}}',
-            enabled: true,
-            icon: icon || 'file' // 必须提供图标，默认为'file'
-        };
     }
 
     /**

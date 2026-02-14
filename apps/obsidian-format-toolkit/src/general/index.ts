@@ -6,10 +6,10 @@ import { ModuleRegistration } from '../main';
 import { getLocalizedText } from '../lib/textUtils';
 import GeneralSettingsComponent from './components/GeneralSettings.vue';
 import type { ExtraCommandConfig } from './types';
-import { isExtraCommandConfig } from './types';
+import { ConfigIO } from '../lib/configIOUtils';
 
 /**
- * 通用模块设置接口，修改需同步修改类型守卫函数isGeneralSettings
+ * 通用模块设置接口，新增字段需同步修改 GeneralSettingsIO
  */
 export interface GeneralSettings {
     /** 是否显示 SpeedDial 悬浮按钮 */
@@ -19,33 +19,33 @@ export interface GeneralSettings {
 }
 
 /**
- * 类型守卫函数：检查对象是否符合 GeneralSettings 接口
- * @param obj 要检查的对象
- * @returns 是否符合 GeneralSettings 接口
+ * GeneralSettings 读写中间层
+ * 集中维护模块设置的校验与默认值
  */
-export function isGeneralSettings(obj: unknown): obj is GeneralSettings {
-    if (!obj || typeof obj !== 'object') return false;
-    
-    const settings = obj as Record<string, unknown>;
-    return typeof settings.showToolBar === 'boolean' &&
-           Array.isArray(settings.extraCommands) &&
-           settings.extraCommands.every((command: unknown) => isExtraCommandConfig(command));
+class GeneralSettingsIO extends ConfigIO<GeneralSettings> {
+    constructor() {
+        super({
+            showToolBar: { type: 'boolean', required: true, default: true },
+            extraCommands: { type: 'array', required: true, default: [] },
+        });
+    }
+
+    /** 覆盖父类返回值类型，便于调用侧直接获得完整类型 */
+    getDefaults(): GeneralSettings {
+        return super.getDefaults() as GeneralSettings;
+    }
 }
 
-/**
- * 通用模块的默认设置
- */
-export const DEFAULT_GENERAL_SETTINGS: GeneralSettings = {
-    showToolBar: true,
-    extraCommands: []
-};
+/** 单例实例：供入口和管理器复用 */
+export const generalSettingsIO = new GeneralSettingsIO();
 
 // General settings registry
 export const generalInfo: ModuleRegistration<GeneralSettings> = {
     name: 'general',
     settingTabName: getLocalizedText({ en: "Toolbar", zh: "工具栏" }),
     description: 'Settings for general functionality',
-    defaultConfigs: DEFAULT_GENERAL_SETTINGS,
+    // 通过 ConfigIO 统一管理默认配置，避免散落常量
+    defaultConfigs: generalSettingsIO.getDefaults(),
     component: GeneralSettingsComponent
 };
 

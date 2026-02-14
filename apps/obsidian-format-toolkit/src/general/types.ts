@@ -1,6 +1,8 @@
 /**
  * 编辑工具栏相关类型定义
  */
+import type { FieldDef } from "../lib/configIOUtils";
+import { ConfigIO } from "../lib/configIOUtils";
 
 
 /**
@@ -42,7 +44,7 @@ export interface ToolbarItemConfig extends BaseConfig {
 }
 
 /**
- * 单个命令配置接口，修改需同步修改类型守卫函数isExtraCommandConfig
+ * 单个命令配置接口，新增字段需同步修改 extraCommandConfigFields
  */
 export interface ExtraCommandConfig extends ToolbarItemConfig {
     /** 命令ID，用于执行Obsidian命令 */
@@ -55,17 +57,25 @@ export interface ExtraCommandConfig extends ToolbarItemConfig {
     enabled: boolean;
 }
 
+/** ExtraCommandConfig 字段定义：描述类型、是否必填和默认值 */
+const extraCommandConfigFields: Record<keyof ExtraCommandConfig, FieldDef> = {
+    commandId: { type: 'string',  required: true },
+    name:      { type: 'string',  required: true },
+    icon:      { type: 'string',  required: true, default: 'question-mark-glyph' },
+    enabled:   { type: 'boolean', required: true, default: true },
+    unfolded:  { type: 'boolean', required: false, default: false },
+    children:  { type: 'array',   required: false, default: [] },
+};
+
 /**
- * 类型守卫函数：检查对象是否符合 ExtraCommandConfig 接口
- * @param obj 要检查的对象
- * @returns 是否符合 ExtraCommandConfig 接口
+ * ExtraCommandConfig 读写中间层
+ * 负责命令项配置的校验、默认值和创建逻辑
  */
-export function isExtraCommandConfig(obj: unknown): obj is ExtraCommandConfig {
-    if (!obj || typeof obj !== 'object') return false;
-    
-    const cmd = obj as Record<string, unknown>;
-    return typeof cmd.commandId === 'string' &&
-           typeof cmd.name === 'string' &&
-           typeof cmd.enabled === 'boolean' &&
-           typeof cmd.icon === 'string';
+class ExtraCommandConfigIO extends ConfigIO<ExtraCommandConfig> {
+    constructor() {
+        super(extraCommandConfigFields);
+    }
 }
+
+/** 单例实例：供 general 模块复用 */
+export const extraCommandConfigIO = new ExtraCommandConfigIO();

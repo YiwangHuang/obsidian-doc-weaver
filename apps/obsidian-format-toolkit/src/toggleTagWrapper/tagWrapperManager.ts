@@ -1,7 +1,7 @@
 import type MyPlugin from "../main";
 import { Editor, MarkdownView, Command, EditorPosition, Notice } from "obsidian";
 import { watch } from "vue";
-import { TagConfig, TagWrapperSettings, isTagWrapperSettings, generateStartTagFromConfig, generateEndTagFromConfig } from "./types";
+import { TagConfig, TagWrapperSettings, tagConfigIO, tagWrapperSettingsIO, generateStartTagFromConfig, generateEndTagFromConfig } from "./types";
 import { tagWrapperInfo } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
 import { debugLog } from "../lib/debugUtils";
@@ -273,8 +273,8 @@ export class TagWrapperManager {
         // 获取当前设置
         const currentSettings = this.plugin.settingList[tagWrapperInfo.name];
         
-        // 使用类型守卫函数检查设置是否需要重置
-        const needsReset = !currentSettings || !isTagWrapperSettings(currentSettings);
+        // 使用 ConfigIO 类型守卫校验并自动修复设置
+        const needsReset = !currentSettings || !tagWrapperSettingsIO.isValid(currentSettings);
         
         if (needsReset) {
             console.log(`Initializing settings for ${tagWrapperInfo.name} with type checking`);
@@ -396,10 +396,13 @@ export class TagWrapperManager {
     
     addTagItem(): void {
         const tags = this.config.tags;
-        tags.push(this.generateTagItem());
-        this.addTagCommand(tags[tags.length - 1]);
-        this.injectCSS(tags[tags.length - 1]);
-        this.watchConfig(tags[tags.length - 1]);
+        const hexId = generateTimestamp();
+        // 使用 ConfigIO 创建新标签配置（默认值 + 动态 id/commandId）
+        const newTag = tagConfigIO.createConfig(hexId);
+        tags.push(newTag);
+        this.addTagCommand(newTag);
+        this.injectCSS(newTag);
+        this.watchConfig(newTag);
     }
 
     deleteTagItem(tagIndex: number): void {
@@ -447,39 +450,6 @@ export class TagWrapperManager {
         });
         this.injectedStyles.clear();
     }
-
-    generateTagItem(
-        name?: string,
-        tagType?: 'span' | 'font' | 'u' | 'i' | 's',
-        tagClass?: string,
-        typstPrefix?: string,
-        cssSnippet?: string,
-        icon?: string
-    ): TagConfig {
-        const hexId = generateTimestamp();
-        const defaultTagType = tagType || 'u';
-        const defaultTagClass = tagClass || '';
-        const defaultTypstPrefix = typstPrefix || '#underline';
-        
-        return {
-            id: `tag-${hexId}`,
-            commandId: `doc-weaver:tag-${hexId}`,
-            name: name || `${hexId}`,
-            tagType: defaultTagType,
-            tagClass: defaultTagClass,
-            typstPrefix: defaultTypstPrefix,
-            enabled: true,
-            cssSnippet: cssSnippet || `${defaultTagType} {
-    color: blue;
-    cursor: pointer; /* 鼠标悬停显示为手型 */
-    text-decoration: none; /* 去掉默认的下划线 */
-    border-bottom: 1px solid black; /* 使用边框模拟下划线 */
-    position: relative; /* 使得伪元素定位可以相对于元素 */
-}`,
-            icon: icon || 'tag' // 必须提供图标，默认为'tag'
-        };
-    }
-
 
     /**
      * 执行标签包装逻辑 - 使用选区处理器统一处理单选区和多选区

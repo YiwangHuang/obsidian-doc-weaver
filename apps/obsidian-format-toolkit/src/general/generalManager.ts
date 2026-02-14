@@ -3,7 +3,7 @@ import type { DocWeaverInstance } from "../main";
 import type { Command } from "obsidian";
 
 import { createApp, App as VueApp, computed, h } from "vue";
-import { generalInfo, GeneralSettings, isGeneralSettings } from "./index";
+import { generalInfo, GeneralSettings, generalSettingsIO } from "./index";
 import { debugLog } from "../lib/debugUtils";
 
 import EditingToolbar from './components/EditingToolbar.vue';
@@ -41,8 +41,8 @@ export class GeneralManager {
         // 获取当前设置
         const currentSettings = this.plugin.settingList[generalInfo.name];
         
-        // 使用类型守卫函数检查设置是否需要重置
-        const needsReset = !currentSettings || !isGeneralSettings(currentSettings);
+        // 使用 ConfigIO 类型守卫校验并自动修复设置
+        const needsReset = !currentSettings || !generalSettingsIO.isValid(currentSettings);
         
         if (needsReset) {
             console.log(`Initializing settings for ${generalInfo.name} with type checking`);

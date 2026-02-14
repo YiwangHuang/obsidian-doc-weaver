@@ -1,4 +1,6 @@
 import type { BaseConfig } from "../general/types";
+import type { FieldDef } from "../lib/configIOUtils";
+import { ConfigIO, oneOf } from "../lib/configIOUtils";
 /**
  * Toggle Tag Wrapper模块的类型定义
  */
@@ -18,6 +20,9 @@ export interface TagConfig extends BaseConfig {
     /** CSS 片段，会根据启用状态热插拔到 Obsidian */
     cssSnippet: string;
 }
+
+/** 支持的标签类型 */
+type SupportedTagType = TagConfig['tagType'];
 
 /**
  * 基于TagConfig生成HTML开始标签
@@ -51,64 +56,100 @@ export interface TagWrapperSettings {
     tags: TagConfig[];
 }
 
+/** TagConfig 字段定义：描述类型、是否必填和默认值 */
+const tagConfigFields: Record<keyof TagConfig, FieldDef> = {
+    name:        { type: 'string',  required: true },
+    icon:        { type: 'string',  required: false, default: 'tag' },
+    enabled:     { type: 'boolean', required: true,  default: true },
+    id:          { type: 'string',  required: true },
+    commandId:   { type: 'string',  required: true },
+    tagType:     { type: 'string',  required: true,  validate: oneOf('span', 'font', 'u', 'i', 's'), default: 'u' },
+    tagClass:    { type: 'string',  required: true,  default: '' },
+    typstPrefix: { type: 'string',  required: true,  default: '#underline' },
+    cssSnippet:  { type: 'string',  required: true,  default: `u {
+    color: blue;
+    cursor: pointer; /* 鼠标悬停显示为手型 */
+    text-decoration: none; /* 去掉默认的下划线 */
+    border-bottom: 1px solid black; /* 使用边框模拟下划线 */
+    position: relative; /* 使得伪元素定位可以相对于元素 */
+}` },
+};
+
 /**
- * 类型守卫函数：检查对象是否符合 TagConfig 接口
- * @param obj 要检查的对象
- * @returns 是否符合 TagConfig 接口
+ * TagConfig 读写中间层
+ * 负责创建新配置，并复用 ConfigIO 的校验与默认值机制
  */
-export function isTagConfig(obj: unknown): obj is TagConfig {
-    if (!obj || typeof obj !== 'object') return false;
-    
-    const config = obj as Record<string, unknown>;
-    const validTagTypes = ['span', 'font', 'u', 'i', 's'];
-    
-    return typeof config.id === 'string' &&
-           typeof config.commandId === 'string' &&
-           typeof config.name === 'string' &&
-           typeof config.tagType === 'string' &&
-           validTagTypes.includes(config.tagType as string) &&
-           typeof config.tagClass === 'string' &&
-           typeof config.typstPrefix === 'string' &&
-           typeof config.enabled === 'boolean' &&
-           typeof config.cssSnippet === 'string' &&
-           typeof config.icon === 'string';
+class TagConfigIO extends ConfigIO<TagConfig> {
+    constructor() {
+        super(tagConfigFields);
+    }
+
+    /** 生成某个标签类型对应的默认 CSS 片段 */
+    private getDefaultCssSnippet(tagType: SupportedTagType): string {
+        return `${tagType} {
+    color: blue;
+    cursor: pointer; /* 鼠标悬停显示为手型 */
+    text-decoration: none; /* 去掉默认的下划线 */
+    border-bottom: 1px solid black; /* 使用边框模拟下划线 */
+    position: relative; /* 使得伪元素定位可以相对于元素 */
+}`;
+    }
+
+    /**
+     * 基于 getDefaults() 创建新的标签配置
+     * @param hexId 唯一时间戳标识符
+     * @param overrides 可选覆盖项
+     */
+    createConfig(hexId: string, overrides: Partial<TagConfig> = {}): TagConfig {
+        const defaults = this.getDefaults() as Partial<TagConfig>;
+        const tagType = (overrides.tagType ?? defaults.tagType ?? 'u') as SupportedTagType;
+        return {
+            ...defaults,
+            ...overrides,
+            id: `tag-${hexId}`,
+            commandId: `doc-weaver:tag-${hexId}`,
+            name: overrides.name ?? hexId,
+            tagType,
+            cssSnippet: overrides.cssSnippet ?? this.getDefaultCssSnippet(tagType),
+        } as TagConfig;
+    }
 }
 
 /**
- * 类型守卫函数：检查对象是否符合 TagWrapperSettings 接口
- * @param obj 要检查的对象
- * @returns 是否符合 TagWrapperSettings 接口
+ * TagWrapperSettings 读写中间层
+ * 集中维护模块默认配置，替代原 DEFAULT 常量
  */
-export function isTagWrapperSettings(obj: unknown): obj is TagWrapperSettings {
-    if (!obj || typeof obj !== 'object') return false;
-    
-    const settings = obj as Record<string, unknown>;
-    if (!Array.isArray(settings.tags)) return false;
-    
-    return settings.tags.every((tag: unknown) => isTagConfig(tag));
-}
-
-/**
- * 标签包装器的默认设置
- */
-export const DEFAULT_TAG_WRAPPER_SETTINGS: TagWrapperSettings = {
-    tags: [
-        {
-            id: 'toggle-underline',
-            commandId: 'doc-weaver:toggle-underline',
-            name: 'Underline',
-            tagType: 'u',
-            tagClass: '',
-            typstPrefix: '#underline',
-            enabled: true,
-            cssSnippet: `u {
+class TagWrapperSettingsIO extends ConfigIO<TagWrapperSettings> {
+    constructor() {
+        super({
+            tags: { type: 'array', required: true, default: [
+                {
+                    id: 'toggle-underline',
+                    commandId: 'doc-weaver:toggle-underline',
+                    name: 'Underline',
+                    tagType: 'u',
+                    tagClass: '',
+                    typstPrefix: '#underline',
+                    enabled: true,
+                    cssSnippet: `u {
 color: blue; /* 下划线颜色 */
 cursor: pointer; /* 鼠标悬停显示为手型 */
 text-decoration: none; /* 去掉默认的下划线 */
 border-bottom: 1px solid black; /* 使用边框模拟下划线 */
 position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
 }`,
-            icon: 'underline'
-        },
-    ]
-};
+                    icon: 'underline'
+                },
+            ] },
+        });
+    }
+
+    /** 覆盖父类返回值类型，便于调用侧直接获得完整类型 */
+    getDefaults(): TagWrapperSettings {
+        return super.getDefaults() as TagWrapperSettings;
+    }
+}
+
+/** 单例实例：供模块入口与管理器复用 */
+export const tagConfigIO = new TagConfigIO();
+export const tagWrapperSettingsIO = new TagWrapperSettingsIO();

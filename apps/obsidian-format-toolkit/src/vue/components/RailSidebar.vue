@@ -88,8 +88,19 @@ defineEmits<{
   transition: width 0.2s ease;
 }
 .rail-sidebar-nav:hover > .v-list {
-  width: 220px;
+  width: max-content;  /* 根据文字内容自适应宽度 */
+  min-width: 56px;     /* 不小于收起宽度 */
+  overflow: visible;   /* 展开时取消裁剪 */
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 展开时确保列表项及标题不截断文字 */
+.rail-sidebar-nav:hover .v-list-item {
+  overflow: visible;
+}
+.rail-sidebar-nav:hover :deep(.v-list-item-title) {
+  overflow: visible;
+  text-overflow: unset;
 }
 
 /* 导航文字：收起时隐藏，展开时渐显。 */
@@ -108,7 +119,7 @@ defineEmits<{
   min-width: 0;
 }
 
-/* 导航图标：统一尺寸。 */
+/* 导航图标：统一尺寸，增加右侧间距与文字拉开距离。 */
 .rail-sidebar-icon {
   width: 18px;
   height: 18px;
@@ -116,5 +127,6 @@ defineEmits<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-right: 6px;
 }
 </style>

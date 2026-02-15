@@ -132,4 +132,13 @@ onUnmounted(() => {
 .vue-modal-content {
   min-height: 100px;
 }
+
+/* 覆盖 Obsidian 默认给 textarea / input 注入的边框，避免与 Vuetify 样式冲突 */
+/* 因为 Teleport 将内容移出了父组件 DOM 树，需要在此处单独覆盖 */
+:deep(.v-text-field textarea),
+:deep(.v-text-field input),
+:deep(.v-textarea textarea),
+:deep(.v-select input) {
+  border: none !important;
+}
 </style> 

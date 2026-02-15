@@ -77,3 +77,14 @@ const activeTab = ref(allTabs.value[0]?.name || 'tagWrapper');
   color: var(--text-accent) !important;
 }
 </style>
+
+<!-- 覆盖 Obsidian 默认给 textarea / input 注入的边框，避免与 Vuetify 样式冲突 -->
+<!-- 需要 scoped + :deep 提升优先级，放在根组件使全局生效 -->
+<style scoped>
+:deep(.v-text-field textarea),
+:deep(.v-text-field input),
+:deep(.v-textarea textarea),
+:deep(.v-select input) {
+  border: none !important;
+}
+</style>

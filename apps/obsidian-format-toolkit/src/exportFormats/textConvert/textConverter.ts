@@ -215,7 +215,8 @@ export class AdvancedConverter extends BaseConverter{
 
         const output_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.outputDirAbsTemplate)); // 跨平台路径处理
         const image_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.imageDirAbsTemplate).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
-        const media_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.videoDirAbsTemplate || '{{outputDir}}/assets').replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
+        const video_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.videoDirAbsTemplate || this.exportPreset.imageDirAbsTemplate).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
+        const audio_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.audioDirAbsTemplate || this.exportPreset.imageDirAbsTemplate).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
 
         // function getAttachmentDirAbs(attachment_dir_abs_template: string): string{
         //     return normalizeCrossPlatformPath(
@@ -250,9 +251,13 @@ export class AdvancedConverter extends BaseConverter{
                 makeDirIfNotExists(image_dir_abs);
                 fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(image_dir_abs, link.output_filename));
             }
-            else if(link.type === 'media'){
-                makeDirIfNotExists(media_dir_abs);
-                fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(media_dir_abs, link.output_filename));
+            else if(link.type === 'video'){
+                makeDirIfNotExists(video_dir_abs);
+                fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(video_dir_abs, link.output_filename));
+            }
+            else if(link.type === 'audio'){
+                makeDirIfNotExists(audio_dir_abs);
+                fs.copyFileSync(this.plugin.getPathAbs(link.source_path_rel_vault), path.posix.join(audio_dir_abs, link.output_filename));
             }
             // else{
             //     makeDirIfNotExists(image_dir_abs);

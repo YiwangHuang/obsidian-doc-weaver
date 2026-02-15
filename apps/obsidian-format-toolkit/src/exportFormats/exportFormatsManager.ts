@@ -207,6 +207,7 @@ export class ExportFormatsManager {
         }
         const sourceContent = (await getNoteInfo(this.plugin, sourceFile)).mainContent// 只获取笔记主要内容，暂时用不到笔记属性
         const converter = new TextConverter(this.plugin, sourceFile, item);
+        converter.linkParser.renameExportAttachment = item.renameExportAttachment;
 
         // 设置导出配置
         const style_dir_abs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.styleDirRel);

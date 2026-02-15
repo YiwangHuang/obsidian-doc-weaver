@@ -240,11 +240,33 @@
             />
           </template>
 
-          <!-- 附件设置：分为图片附件和视频附件两个分类 -->
+          <!-- 附件设置：通用选项 + 图片/视频/音频附件分类 -->
           <template v-else-if="activeSectionId === 'attachment'">
 
+            <!-- ========== 通用附件选项 ========== -->
+            <div class="d-flex align-center mb-3">
+              <div class="flex-grow-1">
+                <div class="text-subtitle-2 font-weight-medium">
+                  {{ getLocalizedText({ en: 'Rename Exported Attachments', zh: '重命名导出附件' }) }}
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ getLocalizedText({
+                    en: 'Add a random prefix to exported attachment filenames to avoid name conflicts',
+                    zh: '为导出的附件文件名添加随机前缀，避免同名冲突'
+                  }) }}
+                </div>
+              </div>
+              <v-switch
+                :model-value="!!editingConfig.renameExportAttachment"
+                @update:model-value="editingConfig.renameExportAttachment = $event ?? false"
+                density="compact"
+                hide-details
+              />
+            </div>
+            <v-divider class="border-opacity-100 my-2" />
+
             <!-- ========== 第一类：图片附件设置（含 Excalidraw） ========== -->
-            <div class="text-subtitle-1 font-weight-bold mb-3">
+            <div class="text-subtitle-2 font-weight-medium mb-3">
               {{ getLocalizedText({ en: 'Image Attachment Settings', zh: '图片附件设置' }) }}
             </div>
 
@@ -282,28 +304,24 @@
             />
 
             <!-- Excalidraw 导出设置（归属图片附件分类） -->
-            <v-divider class="border-opacity-100 my-3" />
-            <div class="text-subtitle-2 font-weight-medium mb-5">
-              {{ getLocalizedText({ en: 'Excalidraw Export Settings', zh: 'Excalidraw 导出设置' }) }}
-            </div>
-            <v-row class="mb-3">
-              <v-col cols="5">
+            <v-row class="mb-2">
+              <v-col cols="3">
                 <v-select
                   v-model="editingConfig.excalidrawExportType"
                   :items="excalidrawExportOptions"
                   item-title="label"
                   item-value="value"
-                  :label="getLocalizedText({ en: 'Export Type', zh: '导出类型' })"
+                  :label="getLocalizedText({ en: 'Excalidraw Export Type', zh: 'Excalidraw 导出类型' })"
                   variant="outlined"
                   density="compact"
                   hide-details
                   @update:model-value="getExportConfigIO(editingConfig).sanitize(editingConfig)"
                 />
               </v-col>
-              <v-col cols="2" />
-              <v-col cols="5" v-if="editingConfig.excalidrawExportType === 'png'">
+              <v-col cols="3" />
+              <v-col cols="6" v-if="editingConfig.excalidrawExportType === 'png'">
                 <div style="display:flex; align-items:center; gap:12px">
-                  <span>{{ getLocalizedText({ en: "PNG Scale", zh: "PNG缩放比例" }) }}</span>
+                  <span>{{ getLocalizedText({ en: "Excalidraw⇒PNG Scale", zh: "Excalidraw⇒PNG 缩放比例" }) }}</span>
                   <v-slider
                     v-model="editingConfig.excalidrawPngScale"
                     min="0.1"
@@ -318,11 +336,12 @@
               </v-col>
             </v-row>
 
-            <!-- ========== 第二类：视频附件导出设置 ========== -->
-            <v-divider class="border-opacity-100 my-4" />
+            <!-- ========== 第二类：音视频附件导出设置（仅 HMD 格式显示） ========== -->
+            <template v-if="editingConfig.format === 'HMD'">
+            <v-divider class="border-opacity-100 my-2" />
             <div class="d-flex align-center mb-3">
               <div class="flex-grow-1">
-                <div class="text-subtitle-1 font-weight-bold">
+                <div class="text-subtitle-2 font-weight-medium">
                   {{ getLocalizedText({ en: 'Video Attachment Settings', zh: '视频附件导出设置' }) }}
                 </div>
                 <div class="text-caption text-medium-emphasis">
@@ -345,7 +364,7 @@
             </div>
 
             <!-- 视频附件具体设置项：未启用时灰色不可编辑，始终可见 -->
-            <div :class="{ 'video-settings-disabled': !editingConfig.processVideo }">
+            <div :class="{ 'media-settings-disabled': !editingConfig.processVideo }">
               <v-row class="mb-3">
                 <v-col cols="6" class="pb-0">
                   <InputWithPlaceholders :placeholders="attachmentDirPlaceholders">
@@ -377,9 +396,73 @@
               <!-- 视频导出目录预览 -->
               <PreviewPanel
                 :title="getLocalizedText({ en: 'Video Export Directory Preview', zh: '视频导出目录预览' })"
-                :content="getMediaDirPreview(editingConfig)"
+                :content="getMediaDirPreview(editingConfig, editingConfig.videoDirAbsTemplate)"
               />
             </div>
+
+            <!-- ========== 第三类：音频附件导出设置 ========== -->
+            <v-divider class="border-opacity-100 my-4" />
+            <div class="d-flex align-center mb-3">
+              <div class="flex-grow-1">
+                <div class="text-subtitle-2 font-weight-medium">
+                  {{ getLocalizedText({ en: 'Audio Attachment Settings', zh: '音频附件导出设置' }) }}
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ getLocalizedText({ en: 'Enable processing of audio attachments during export', zh: '导出时启用音频附件的处理功能' }) }}
+                </div>
+              </div>
+              <!-- 音频附件导出总开关 -->
+              <v-tooltip :text="getLocalizedText({ en: 'Please ensure your publishing platform supports audio files before enabling this feature', zh: '启用前请确保您的发布平台支持音频文件' })" location="top" :open-delay="200">
+                <template #activator="{ props }">
+                  <v-switch
+                    v-bind="props"
+                    :model-value="!!editingConfig.processAudio"
+                    @update:model-value="editingConfig.processAudio = $event || undefined"
+                    density="compact"
+                    hide-details
+                    class="me-3"
+                  />
+                </template>
+              </v-tooltip>
+            </div>
+
+            <!-- 音频附件具体设置项：未启用时灰色不可编辑，始终可见 -->
+            <div :class="{ 'media-settings-disabled': !editingConfig.processAudio }">
+              <v-row class="mb-3">
+                <v-col cols="6" class="pb-0">
+                  <InputWithPlaceholders :placeholders="attachmentDirPlaceholders">
+                    <v-text-field
+                      v-model="editingConfig.audioDirAbsTemplate"
+                      :label="getLocalizedText({ en: 'Audio Export Directory', zh: '音频导出目录' })"
+                      :placeholder="getExportConfigIO(editingConfig).getDefaults().audioDirAbsTemplate"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-3"
+                      :disabled="!editingConfig.processAudio"
+                    />
+                  </InputWithPlaceholders>
+                </v-col>
+                <v-col cols="6" class="pb-0">
+                  <InputWithPlaceholders :placeholders="attachmentRefPlaceholders">
+                    <v-text-field
+                      v-model="editingConfig.audioLinkTemplate"
+                      :label="getLocalizedText({ en: 'Audio Reference Template', zh: '音频引用模板' })"
+                      :placeholder="editingConfig.imageLinkTemplate"
+                      variant="outlined"
+                      density="compact"
+                      class="mb-3"
+                      :disabled="!editingConfig.processAudio"
+                    />
+                  </InputWithPlaceholders>
+                </v-col>
+              </v-row>
+              <!-- 音频导出目录预览 -->
+              <PreviewPanel
+                :title="getLocalizedText({ en: 'Audio Export Directory Preview', zh: '音频导出目录预览' })"
+                :content="getMediaDirPreview(editingConfig, editingConfig.audioDirAbsTemplate)"
+              />
+            </div>
+            </template>
           </template>
 
         </RailSidebar>
@@ -657,14 +740,15 @@ const getAttachmentDirPreview = (config: ExportConfig): string => {
 };
 
 /**
- * 获取媒体附件目录预览（支持占位符替换，包括 {{outputDir}}）
- * 若未配置媒体附件目录模板，则回退到附件目录模板
+ * 获取媒体附件目录预览（视频/音频通用，支持占位符替换，包括 {{outputDir}}）
+ * 若未配置对应目录模板，则回退到图片附件目录模板
  * @param config 当前编辑的导出配置
+ * @param dirTemplate 目录模板（如 videoDirAbsTemplate 或 audioDirAbsTemplate）
  * @returns 媒体附件目录预览字符串
  */
-const getMediaDirPreview = (config: ExportConfig): string => {
-  // 若未配置媒体附件目录，回退使用附件目录模板
-  const mediaDirTemplate = config.videoDirAbsTemplate || config.imageDirAbsTemplate;
+const getMediaDirPreview = (config: ExportConfig, dirTemplate?: string): string => {
+  // 若未配置媒体附件目录，回退使用图片附件目录模板
+  const mediaDirTemplate = dirTemplate || config.imageDirAbsTemplate;
   
   // 获取当前活动文件
   const activeFile = props.plugin.app.workspace.getActiveFile();
@@ -749,8 +833,8 @@ code {
   justify-content: center !important;
 }
 
-/* 视频设置禁用态：整体降低透明度，禁止交互 */
-.video-settings-disabled {
+/* 媒体设置（视频/音频）禁用态：整体降低透明度，禁止交互 */
+.media-settings-disabled {
   opacity: 0.7;
   pointer-events: none;
 }

@@ -108,6 +108,17 @@
             class="mt-4"
           />
 
+          <!-- 试验：用只读 v-text-field 替代 PreviewPanel -->
+          <v-text-field
+            :model-value="previewPath"
+            :label="'输出路径预览'"
+            variant="outlined"
+            density="compact"
+            readonly
+            tabindex="-1"
+            class="mt-4 preview-field"
+          />
+
           <!-- 当前分组字段标签 -->
           <div class="text-caption text-medium-emphasis mt-4 mb-2">当前分组典型字段</div>
           <div class="d-flex flex-wrap ga-2">
@@ -158,6 +169,9 @@ const demoForm = reactive({
   processVideo: true,
   templateContent: '# {{note.title}}\n\n{{note.content}}',
 });
+
+// 模拟路径预览内容（用于试验只读 v-text-field 替代 PreviewPanel）
+const previewPath = computed(() => `${demoForm.outputDir}/${demoForm.fileName}.typ`);
 </script>
 
 <style scoped>
@@ -174,5 +188,21 @@ const demoForm = reactive({
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 只读预览字段：禁用一切交互态，强调色边框 + 弱化填充 + 强调色 label */
+.preview-field {
+  pointer-events: none;
+}
+.preview-field :deep(.v-field) {
+  background: color-mix(in srgb, var(--interactive-accent) 18%, transparent) !important;
+}
+.preview-field :deep(.v-field__outline) {
+  --v-field-border-opacity: 1;
+  color: var(--interactive-accent) !important;
+}
+.preview-field :deep(.v-label) {
+  color: var(--interactive-accent) !important;
+  opacity: 1 !important;
 }
 </style>

@@ -18,7 +18,7 @@ type DeepMoveCache = {
 async function deepCopy(plugin: MyPlugin, noteFile: TFile, text: string): Promise<void> {
     const converter = new TextConverter(plugin, noteFile);
     converter.linkParser.isRecursiveEmbedNote = false; // 默认不递归解析嵌入笔记TODO: 可以改为在设置界面中选择
-    converter.linkParser.isRenewExportName = true; // 为附件生成新的导出名称
+    converter.linkParser.renameExportAttachment = true; // 为附件生成新的导出名称
     //console.log(converter.linkParser.links);//.map(link => link.path)
     const copyText = await converter.convert(text, 'plain'); 
     console.log(copyText);

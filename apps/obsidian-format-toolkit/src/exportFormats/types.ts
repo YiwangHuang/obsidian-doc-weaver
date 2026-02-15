@@ -37,6 +37,7 @@ export interface ExportConfig extends BaseConfig {
     processAudio?: boolean;
     audioDirAbsTemplate?: string;
     audioLinkTemplate?: string;
+    renameExportAttachment: boolean; // 是否为导出附件名增加随机数后缀，避免同名冲突
     excalidrawExportType: 'png' | 'svg';
     excalidrawPngScale: number;
 }
@@ -104,6 +105,7 @@ const exportConfigBase: Record<keyof ExportConfig, FieldDef> = {
     processAudio:           { type: 'boolean', required: false, default: false },
     audioDirAbsTemplate:    { type: 'string',  required: false },
     audioLinkTemplate:      { type: 'string',  required: false },
+    renameExportAttachment: { type: 'boolean', required: true, default: false },
     excalidrawExportType:   { type: 'string',  required: true,  validate: oneOf('png', 'svg'), default: 'png' },
     excalidrawPngScale:     { type: 'number',  required: true,  validate: between(1, 9), default: 2 },
 } 

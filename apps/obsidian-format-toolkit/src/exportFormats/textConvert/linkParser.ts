@@ -14,14 +14,17 @@ import { debugLog } from "../../lib/debugUtils";
 // 适配"moduleResolution": "bundler"
 
 import { getLinkpath } from "obsidian";
-// 定义媒体和图片扩展名列表
-export const mediaExtensions = ['mp4','mp3','m4a',]
-export const imageExtensions = ['png','jpg','jpeg','gif','svg','webp']
+// 定义视频、音频和图片扩展名列表
+export const videoExtensions = ['mp4', 'mkv', 'mov', 'avi', 'wmv', 'flv', 'webm', 'm4v']
+
+export const audioExtensions = ['mp3', 'wav', 'aac', 'm4a', 'flac']
+
+export const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'pdf', 'tiff', 'tif', 'bmp', 'avif', 'heic', 'heif']
 
 export type LinkConfig = {
     source_path_rel_vault: string; // 源文件路径，相对于vault根目录
     output_filename: string; // 导出文件名，包含扩展名      
-    type?: 'media' | 'image' | 'markdown' | 'excalidraw';
+    type?: 'video' | 'audio' | 'image' | 'markdown' | 'excalidraw';
 }
 
 export interface LinkParseRule{
@@ -98,7 +101,7 @@ export class LinkParser {
     // 从AdvancedConverter迁移的属性
     private linkMap: Map<string, LinkConfig> = new Map(); // 链接附件信息，以source_path为键
     public isRecursiveEmbedNote = true; // 是否递归解析嵌入笔记
-    public isRenewExportName = false; // 是否为附件生成新的导出名称，默认不生成(使用原名称作为导出名)
+    public renameExportAttachment = false; // 是否为附件生成新的导出名称，默认不生成(使用原名称作为导出名)
     private noteFileStack: TFile[] = []; // 文件处理栈，用于跟踪文件处理层级
     public embedNoteCache: Record<string, NoteInfo> = {}; // 嵌入笔记缓存
     public embedNoteCount = 0; // 嵌入笔记数量，期望在Notice中显示
@@ -319,23 +322,24 @@ export class LinkParser {
     }
 
     /**
-     * 处理文件名,在扩展名前插入随机数
+     * 处理文件名,在文件名前插入随机数
      * @param filename 原始文件名
      * @param hexNum 随机数的十六进制位数，默认为2
      * @returns 处理后的文件名
      */
     public addHexId(filename: string, hexNum= 2): string {
-        // 基本扩展名，匹配: .txt, .png, .jpg, .mp3, .mp4
-        const basicExt = /\.([a-zA-Z0-9]+)$/;
-        //多重扩展名，匹配: .tar.gz, .min.js, .d.ts
-        const multiExt = /\.([a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*)$/;
+        return `${generateHexId(hexNum)}_${filename}`;
+        // // 基本扩展名，匹配: .txt, .png, .jpg, .mp3, .mp4
+        // const basicExt = /\.([a-zA-Z0-9]+)$/;
+        // //多重扩展名，匹配: .tar.gz, .min.js, .d.ts
+        // const multiExt = /\.([a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*)$/;
         
-        if(filename.match(multiExt)){
-            // 在扩展名前插入随机数
-            return filename.replace(multiExt, `_${generateHexId(hexNum)}.$1`);
-        }
-        // 在基本扩展名前插入随机数
-        return filename.replace(basicExt, `_${generateHexId(hexNum)}.$1`);
+        // if(filename.match(multiExt)){
+        //     // 在扩展名前插入随机数
+        //     return filename.replace(multiExt, `_${generateHexId(hexNum)}.$1`);
+        // }
+        // // 在基本扩展名前插入随机数
+        // return filename.replace(basicExt, `_${generateHexId(hexNum)}.$1`);
     }
 
     /**
@@ -443,7 +447,7 @@ LinkParser.registerRule({
                 let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
                 // 将文件名中的空格替换为下划线，避免路径问题
                 exportName = exportName.replace(/\s/g, '_');
-                if(parser.isRenewExportName){
+                if(parser.renameExportAttachment){
                     exportName = parser.addHexId(exportName);
                 }
                 parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path, type: 'image'});// 添加到链接列表中
@@ -456,67 +460,83 @@ LinkParser.registerRule({
     ]
 });
 
-LinkParser.registerRule({
-    name: "mediaExtensionRule",
-    description: "处理媒体链接",
-    priority: 'ext_name',
-    shouldProcess: (linkPart) => {
-        const mediaExtList = mediaExtensions.map(ext => '.' + ext);
-        return mediaExtList.some(ext => linkPart.toLowerCase().endsWith(ext));
-    },
-    processors: [
+/**
+ * 解析附件链接的公共逻辑：查找路径、生成导出名、添加到链接列表
+ * @param linkPart 链接文本
+ * @param parser 链接解析器实例
+ * @param type 附件类型
+ * @returns 导出文件名，失败时返回null
+ */
+function resolveAttachmentLink(linkPart: string, parser: LinkParser, type: LinkConfig['type']): string | null {
+    const attachmentPath = parser.findLinkPath(linkPart);
+    if (attachmentPath === null) {
+        new Notice(`未找到${type}链接: ${linkPart}`);
+        return null;
+    }
+    let exportName = path.basename(attachmentPath.path).replace(/\s/g, '_');
+    if (parser.renameExportAttachment) exportName = parser.addHexId(exportName);
+    parser.addLink({ output_filename: exportName, source_path_rel_vault: attachmentPath.path, type });
+    return exportName;
+}
+
+/**
+ * 创建视频/音频链接解析处理器（共用逻辑，按类型和开关字段区分）
+ * @param type 附件类型 'video' | 'audio'
+ * @param processFlag ExportConfig中对应的处理开关字段名
+ */
+function createMediaProcessors(type: 'video' | 'audio', processFlag: 'processVideo' | 'processAudio'): LinkProcessor[] {
+    return [
         {
-            description: "定义解析媒体链接的处理器，适用所有输出格式",
+            description: `解析${type}链接，适用plain格式`,
             formats: ['plain'],
-            processor: (linkPart, parser, mdState, linkToken) => {
-                const attachmentPath = parser.findLinkPath(linkPart);
-                if(attachmentPath === null){
-                    new Notice(`未找到媒体链接: ${linkPart}`);
-                    return;
-                }
-                let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
-                // 将文件名中的空格替换为下划线，避免路径问题
-                exportName = exportName.replace(/\s/g, '_');
-                if(parser.isRenewExportName){
-                    exportName = parser.addHexId(exportName);
-                }
-                parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path, type: 'media'});// 添加到链接列表中
+            processor: (linkPart, parser, _mdState, linkToken) => {
+                const exportName = resolveAttachmentLink(linkPart, parser, type);
+                if (!exportName) return;
                 linkToken.hidden = false;
                 linkToken.content = exportName;
                 linkToken.markup = '![[]]';
-                linkToken.meta = {...linkToken.meta, attchmentType: 'media'};
+                linkToken.meta = { ...linkToken.meta, attchmentType: type };
             }
         },
         {
-            description: "定义解析媒体链接的处理器，专用于typst格式，输出原文",
-            formats: ['HMD', 'quarto','typst'], // 专门处理typst格式
-            processor: (linkPart, parser, mdState, linkToken) => {
-                if(parser.exportConfig?.processVideo){
-                    const attachmentPath = parser.findLinkPath(linkPart);
-                    if(attachmentPath === null){
-                        new Notice(`未找到媒体链接: ${linkPart}`);
-                        return;
-                    }
-                    let exportName = path.basename(attachmentPath.path);// 获取附件名(带扩展名)
-                    // 将文件名中的空格替换为下划线，避免路径问题
-                    exportName = exportName.replace(/\s/g, '_');
-                    if(parser.isRenewExportName){
-                        exportName = parser.addHexId(exportName);
-                    }
-                    parser.addLink({output_filename: exportName, source_path_rel_vault: attachmentPath.path, type: 'media'});// 添加到链接列表中
-                    linkToken.hidden = false; 
+            description: `解析${type}链接，专用于HMD/quarto/typst格式（受开关控制）`,
+            formats: ['HMD', 'quarto', 'typst'],
+            processor: (linkPart, parser, _mdState, linkToken) => {
+                if (parser.exportConfig?.[processFlag]) {
+                    const exportName = resolveAttachmentLink(linkPart, parser, type);
+                    if (!exportName) return;
+                    linkToken.hidden = false;
                     linkToken.content = exportName;
                     linkToken.markup = '![[]]';
-                    linkToken.meta = {...linkToken.meta, attchmentType: 'media'};
+                    linkToken.meta = { ...linkToken.meta, attchmentType: type };
                 } else {
+                    // 未启用处理开关时，隐藏链接并保留原文
                     linkToken.content = linkPart;
                     linkToken.hidden = true;
                     linkToken.markup = '![[]]';
-                    linkToken.meta = {...linkToken.meta, attchmentType: 'media'};
+                    linkToken.meta = { ...linkToken.meta, attchmentType: type };
                 }
             }
         },
-    ]
+    ];
+}
+
+// 注册视频链接解析规则
+LinkParser.registerRule({
+    name: "videoExtensionRule",
+    description: "处理视频链接",
+    priority: 'ext_name',
+    shouldProcess: (linkPart) => videoExtensions.some(ext => linkPart.toLowerCase().endsWith('.' + ext)),
+    processors: createMediaProcessors('video', 'processVideo'),
+});
+
+// 注册音频链接解析规则
+LinkParser.registerRule({
+    name: "audioExtensionRule",
+    description: "处理音频链接",
+    priority: 'ext_name',
+    shouldProcess: (linkPart) => audioExtensions.some(ext => linkPart.toLowerCase().endsWith('.' + ext)),
+    processors: createMediaProcessors('audio', 'processAudio'),
 });
 
 LinkParser.registerRule({
@@ -546,7 +566,7 @@ LinkParser.registerRule({
                     let exportName = path.basename(embedNoteFile.path);// 获取附件名(带扩展名)
                     // 将文件名中的空格替换为下划线，避免路径问题
                     exportName = exportName.replace(/\s/g, '_');
-                    if(parser.isRenewExportName){
+                    if(parser.renameExportAttachment){
                         exportName = parser.addHexId(exportName);
                     }
                     parser.exportConfig?.excalidrawExportType === 'svg'?

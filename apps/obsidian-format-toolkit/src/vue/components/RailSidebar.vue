@@ -129,4 +129,13 @@ defineEmits<{
   justify-content: center;
   margin-right: 6px;
 }
+
+/* 选中项：强调色文字和图标，取消默认背景加深 */
+.rail-sidebar-nav :deep(.v-list-item--active) {
+  background: transparent !important;
+  color: var(--interactive-accent) !important;
+}
+.rail-sidebar-nav :deep(.v-list-item--active .v-list-item__overlay) {
+  opacity: 0 !important;
+}
 </style>

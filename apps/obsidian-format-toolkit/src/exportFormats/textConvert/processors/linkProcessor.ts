@@ -50,10 +50,12 @@ BaseConverter.registerProcessor({
             const attachment_file_name = linkToken.content;
             const attachmentType = linkToken.meta?.attchmentType as string | undefined;
 
-            // 根据attachmentType选择对应的引用模板：media类型使用media_link_template，image类型使用attachment_ref_template
+            // 根据attachmentType选择对应的引用模板：video/audio使用各自模板，其他使用image模板
             let template: string;
-            if (attachmentType === 'media') {
+            if (attachmentType === 'video') {
                 template = converter.exportPreset.videoLinkTemplate ?? converter.exportPreset.imageLinkTemplate;
+            } else if (attachmentType === 'audio') {
+                template = converter.exportPreset.audioLinkTemplate ?? converter.exportPreset.imageLinkTemplate;
             } else {
                 // 默认使用image模板（包括attchmentType为'image'或未定义的情况）
                 template = converter.exportPreset.imageLinkTemplate;
@@ -61,7 +63,9 @@ BaseConverter.registerProcessor({
 
             // 验证模板中是否包含附件文件名占位符，若缺失则弹出Notice提醒用户
             if (!template.includes(VAR_ATTACHMENT_FILE_NAME)) {
-                const typeLabel = attachmentType === 'media' ? '媒体附件引用模板' : '附件引用模板';
+                const typeLabel = attachmentType === 'video' ? '视频附件引用模板'
+                    : attachmentType === 'audio' ? '音频附件引用模板'
+                    : '附件引用模板';
                 new Notice(`⚠️ ${typeLabel}中缺少占位符 ${VAR_ATTACHMENT_FILE_NAME}，请检查导出配置`);
             }
 

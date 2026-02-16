@@ -12,11 +12,13 @@ import { ConfigIO, oneOf, between } from '../lib/configIOUtils';
 import * as placeholders from '../lib/constant';
 import * as path from 'path';
 import * as fs from 'fs';
+import { getLocalizedText } from '../lib/textUtils';
 
 // Typst 格式的主题依赖文件（通过 Vite ?raw 导入为字符串）
 import typstConfig from './defaultStyleConfig/typst/config.typ?raw';
-import typstCustomFormat from './defaultStyleConfig/typst/custom_format.typ?raw';
-import typstDemo from './defaultStyleConfig/typst/demo.typ?raw';
+import typstCustomFormat from './defaultStyleConfig/typst/DW_styles.typ?raw';
+import typstDemoZh from './defaultStyleConfig/typst/demo_zh.typ?raw';
+import typstDemoEn from './defaultStyleConfig/typst/demo_en.typ?raw';
 
 // ======================== 接口定义 ========================
 
@@ -69,22 +71,16 @@ tags:
 ---
 ${placeholders.VAR_CONTENT}`
 
-const YAML_TYPST =`---
-title: "${placeholders.VAR_NOTE_NAME}"
-author: "your name"
-date: "${placeholders.VAR_DATE}"
-format:
-  html:
-    toc: true
-    number-sections: true
-    code-fold: true
-    theme: cosmo
----
-${placeholders.VAR_CONTENT}`
+const YAML_TYPST =`#import "config.typ": *
 
-
-
-
+#show: doc => conf(
+  title: "${placeholders.VAR_NOTE_NAME}",
+  author: "",
+  date: "${placeholders.VAR_DATE}",
+  doc,
+)
+${placeholders.VAR_CONTENT}
+`
 
 const exportConfigBase: Record<keyof ExportConfig, FieldDef> = {
     name:                   { type: 'string',  required: true },
@@ -201,8 +197,8 @@ class ExportConfigTypstIO extends ExportConfigBaseIO {
     protected getThemeDependencies(): ThemeDependency[] {
         return [
             { relative_path: 'config.typ', content: typstConfig },
-            { relative_path: 'custom_format.typ', content: typstCustomFormat },
-            { relative_path: 'demo.typ', content: typstDemo },
+            { relative_path: 'DW_styles.typ', content: typstCustomFormat },
+            { relative_path: 'demo.typ', content: getLocalizedText({ en: typstDemoEn, zh: typstDemoZh }) },
         ];
     }
 }

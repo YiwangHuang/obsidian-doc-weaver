@@ -65,7 +65,7 @@ const tagConfigFields: Record<keyof TagConfig, FieldDef> = {
     commandId:   { type: 'string',  required: true },
     tagType:     { type: 'string',  required: true,  validate: oneOf('span', 'font', 'u', 'i', 's'), default: 'u' },
     tagClass:    { type: 'string',  required: true,  default: '' },
-    typstPrefix: { type: 'string',  required: true,  default: '#underline' },
+    typstPrefix: { type: 'string',  required: true,  default: '#DW_underline' },
     cssSnippet:  { type: 'string',  required: true,  default: `u {
     color: blue;
     cursor: pointer; /* 鼠标悬停显示为手型 */
@@ -84,17 +84,6 @@ class TagConfigIO extends ConfigIO<TagConfig> {
         super(tagConfigFields);
     }
 
-    /** 生成某个标签类型对应的默认 CSS 片段 */
-    private getDefaultCssSnippet(tagType: SupportedTagType): string {
-        return `${tagType} {
-    color: blue;
-    cursor: pointer; /* 鼠标悬停显示为手型 */
-    text-decoration: none; /* 去掉默认的下划线 */
-    border-bottom: 1px solid black; /* 使用边框模拟下划线 */
-    position: relative; /* 使得伪元素定位可以相对于元素 */
-}`;
-    }
-
     /**
      * 基于 getDefaults() 创建新的标签配置
      * @param hexId 唯一时间戳标识符
@@ -108,9 +97,10 @@ class TagConfigIO extends ConfigIO<TagConfig> {
             ...overrides,
             id: `tag-${hexId}`,
             commandId: `doc-weaver:tag-${hexId}`,
-            name: overrides.name ?? hexId,
-            tagType,
-            cssSnippet: overrides.cssSnippet ?? this.getDefaultCssSnippet(tagType),
+            name: `tag-${overrides.name ?? hexId}`,
+            tagType: tagType,
+            typstPrefix: '',
+            cssSnippet: '',
         } as TagConfig;
     }
 }
@@ -124,20 +114,10 @@ class TagWrapperSettingsIO extends ConfigIO<TagWrapperSettings> {
         super({
             tags: { type: 'array', required: true, default: [
                 {
+                    ...tagConfigIO.getDefaults(),
                     id: 'toggle-underline',
                     commandId: 'doc-weaver:toggle-underline',
                     name: 'Underline',
-                    tagType: 'u',
-                    tagClass: '',
-                    typstPrefix: '#underline',
-                    enabled: true,
-                    cssSnippet: `u {
-color: blue; /* 下划线颜色 */
-cursor: pointer; /* 鼠标悬停显示为手型 */
-text-decoration: none; /* 去掉默认的下划线 */
-border-bottom: 1px solid black; /* 使用边框模拟下划线 */
-position: relative; /* 使得伪元素定位可以相对于 <u> 元素 */
-}`,
                     icon: 'underline'
                 },
             ] },

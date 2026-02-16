@@ -1,14 +1,14 @@
-#import "@preview/mitex:0.2.5": * // 支持latex公式
-#import "@preview/tablem:0.3.0": tablem // 支持Markdown表格
-#import "custom_format.typ": *
+#import "@preview/mitex:0.2.5": * // LaTeX math support / 支持 LaTeX 公式
+#import "@preview/tablem:0.3.0": tablem // Markdown-style tables / 支持 Markdown 表格
+#import "DW_styles.typ": *
 
-// 自定义callout隐藏类型，预设hidden_types以包含更多隐藏类型
-#let callout = callout.with(hidden_types: ("todo"))
+// Customize hidden callout types via hidden_types / 通过 hidden_types 参数自定义需要隐藏的 callout 类型
+// #let callout = callout.with(hidden_types: ("todo", "info"))
 
-// 切换underline是否显示内容
-#let underline = underline.with(show_content: true)
+// Toggle whether underline shows content / 切换下划线是否显示内容
+#let DW_underline = DW_underline.with(show_content: true)
 
-// 设置分栏(grid)的默认间距
+// Default gutter for grid / 设置分栏（grid）的默认间距
 #let grid = grid.with(gutter: 1em)
 
 #let conf(
@@ -18,71 +18,67 @@
   doc,
 ) = {
   set text(
-    // 分别设置中英文字体
+    // Fonts for Latin/digits/CJK / 分别设置英文/数字/中文字体
     font: (
-      (name: "Times New Roman", covers: "latin-in-cjk"), // 英文字体
-      (name: "Times New Roman", covers: regex("[0-9]")), // 数字字体
-      "Songti SC", // 其他字体，默认：宋体
-      "Microsoft YaHei", // 备用字体：微软雅黑（Windows系统）
-      "PingFang SC", // 备用字体：苹方简体（macOS系统）
-      "LXGW WenKai", // 作者推荐字体：霞鹜文楷
+      (name: "Times New Roman", covers: "latin-in-cjk"), // Latin font / 英文字体
+      (name: "Times New Roman", covers: regex("[0-9]")), // Digits font / 数字字体
+      "Songti SC", // CJK fallback (default: Songti SC) / 其他字体，默认：宋体
+      "Microsoft YaHei", // Fallback: Microsoft YaHei (Windows) / 备用字体：微软雅黑（Windows 系统）
+      "PingFang SC", // Fallback: PingFang SC (macOS) / 备用字体：苹方简体（macOS 系统）
+      "LXGW WenKai", // Recommended: LXGW WenKai / 作者推荐字体：霞鹜文楷
     ),
     lang: "zh",
     size: 10pt
   )
 
-  // 设置标题编号
+  // Heading numbering / 设置标题编号
   set heading(numbering: "1.1.1")
 
-  // 设置页面边距
+  // Page margins / 设置页面边距
   // set page(margin: (
   // top: 1.2cm,
   // right: 1.5cm,
   // bottom: 2cm, 
   // left: 1.5cm   
   // ))
-  // 在这里添加所有的 show 规则
+  // Add all show rules here / 在这里添加所有 show 规则
   // 
   
-  // 设置图片默认居中显示
+  // Center images by default / 设置图片默认居中显示
   show image: it => align(center, it)
   
-  // 设置重点强调文本的样式
+  // Strong text style / 设置重点强调文本样式
   show strong: it => text(
     weight: "bold",
     fill: red.darken(20%), 
     it.body
   )
 
-  // 设置强调文本的样式
+  // Emphasis text style / 设置强调文本样式
   show emph: it => text(
     fill: purple.darken(20%),
     style: "italic",
     it.body
   )
 
-  set align(center) // 设置标题居中
+  set align(center) // Center-align title / 设置标题居中
   text(17pt, weight: "bold")[#title]
   
-  // 显示作者信息
-  if (author != ()) and (author != "") {
-    v(0em) // 添加标题和作者之间的垂直间距，为0时起到换行的作用
+  // Render author / 显示作者信息
+  if (author != "") {
+    v(0em) // Vertical spacing between title and author (0 acts as line break) / 添加标题和作者之间的垂直间距，为 0 时起到换行的作用
     text(12pt, weight: "medium")[
-      #if type(author) == "array" {
-        author.join("   ") // 如果是多个作者，用空格分隔
-      } else {
-        author // 单个作者直接显示
-      }
+        #author // Render single author / 单个作者直接显示
     ]
   }
 
   if date != "" {
-    v(0em) // 添加标题和作者之间的垂直间距，为0时起到换行的作用
+    v(0em) // Vertical spacing between title and date (0 acts as line break) / 添加标题和日期之间的垂直间距，为 0 时起到换行的作用
     text(12pt, weight: "medium")[#date]
   }
   
-  // v(0.2em) // 添加作者和正文之间的垂直间距
-  set align(left) // 设置正文靠左对齐
-  columns(1,doc) // 在这里修改全文的分栏数，1表示单栏，2表示双栏
+  // v(0.2em) // Vertical spacing between header and body / 添加作者与正文之间的垂直间距
+  set align(left) // Left-align body / 设置正文靠左对齐
+  columns(1,doc) // Set column count (1=single, 2=two) / 在这里修改全文分栏数，1 表示单栏，2 表示双栏
 
 }

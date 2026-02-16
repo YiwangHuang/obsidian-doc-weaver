@@ -3,7 +3,7 @@ import { Editor, MarkdownView, Command, EditorPosition, Notice } from "obsidian"
 import { watch } from "vue";
 import { TagConfig, TagWrapperSettings, tagConfigIO, tagWrapperSettingsIO, generateStartTagFromConfig, generateEndTagFromConfig } from "./types";
 import { tagWrapperInfo } from "./index";
-import { generateTimestamp } from "../lib/idGenerator";
+import { generateHexId } from "../lib/idGenerator";
 import { debugLog } from "../lib/debugUtils";
 import { debounce } from 'lodash';
 import { getLocalizedText } from "../lib/textUtils";
@@ -396,7 +396,7 @@ export class TagWrapperManager {
     
     addTagItem(): void {
         const tags = this.config.tags;
-        const hexId = generateTimestamp();
+        const hexId = generateHexId();
         // 使用 ConfigIO 创建新标签配置（默认值 + 动态 id/commandId）
         const newTag = tagConfigIO.createConfig(hexId);
         tags.push(newTag);
@@ -419,7 +419,7 @@ export class TagWrapperManager {
      */
     duplicateTagItem(tagIndex: number): void {
         const originalTag = this.config.tags[tagIndex];
-        const hexId = generateTimestamp();
+        const hexId = generateHexId();
         
         // 创建标签配置的深拷贝并生成新的ID
         const newTag: TagConfig = {

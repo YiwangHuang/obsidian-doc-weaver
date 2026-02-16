@@ -37,7 +37,7 @@ export interface LocalizedTextOptions {
  * 获取当前语言设置
  * @returns 当前语言代码
  */
-function getCurrentLanguage(): string {
+function getLocale(): string {
     try {
         return getLanguage().split('-')[0]; // 'zh-cn' -> 'zh'
     } catch {
@@ -51,7 +51,7 @@ function getCurrentLanguage(): string {
  * @returns 根据当前语言返回对应文本，匹配不到返回英语
  */
 export function getLocalizedText(options: LocalizedTextOptions): string {
-    const lang = getCurrentLanguage();
+    const lang = getLocale();
     return options[lang as keyof LocalizedTextOptions] || options.en;
 }
 

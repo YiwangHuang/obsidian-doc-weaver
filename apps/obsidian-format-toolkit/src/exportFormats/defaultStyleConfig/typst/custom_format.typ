@@ -5,19 +5,35 @@
   // 如果type在hidden_types中，返回空内容
   if type in hidden_types { return [] }
 
-  let color = if  type == "done" { rgb("#27ad27") } // 使用深绿色 (Dark Green)
-    else if type == "question" { orange }
-    else if type == "danger" { red }
-    else if type == "tip"or type == "note"  { blue }
-    else if type == "info" { purple }
+  // ── 颜色定义：按语义分组，相近类型共享颜色 ──
+  let color = if type in ("note", "seealso") { rgb("#448aff") }                  // 蓝色 (Blue) — 笔记/另见
+    else if type in ("abstract", "summary", "tldr") { rgb("#00bcd4") }            // 青色 (Cyan) — 摘要/总结
+    else if type in ("info", "todo") { rgb("#448aff") }                           // 蓝色 (Blue) — 信息/待办
+    else if type in ("tip", "hint", "important") { rgb("#00bcd4") }               // 青色 (Cyan) — 提示/重要
+    else if type in ("success", "check", "done") { rgb("#4caf50") }               // 绿色 (Green) — 成功/完成
+    else if type in ("question", "help", "faq") { rgb("#e6a700") }                // 黄色 (Amber) — 疑问/帮助
+    else if type in ("warning", "caution", "attention") { rgb("#ff9800") }        // 橙色 (Orange) — 警告/注意
+    else if type in ("failure", "missing") { rgb("#f44336") }                     // 红色 (Red) — 失败/缺失
+    else if type in ("danger", "error") { rgb("#e53935") }                        // 深红色 (Dark Red) — 危险/错误
+    else if type == "bug" { rgb("#f44336") }                                      // 红色 (Red) — 缺陷
+    else if type == "example" { rgb("#7c4dff") }                                  // 紫色 (Purple) — 示例
+    else if type in ("quote", "cite") { rgb("#9e9e9e") }                          // 灰色 (Gray) — 引用
     else { gray }
 
-  let icon = if type == "note" { "ℹ" }
-    // else if type == "warning" { image("alert-circle.svg", height:0.9em) }
-    else if type == "question" { octique("question", width: 1em, color: color) }
-    else if type == "tip" { octique("light-bulb", width: 1em, color: color) } //  bell-fill
-    else if type == "info" { octique("pencil", width: 1em, color: color) } //  bookmark
-    else if type == "done" { octique("check-circle", width: 1em, color: color) }
+  // ── 图标定义：使用 Octicons 图标，相近类型共享图标 ──
+  let icon = if type in ("note", "seealso") { octique("pencil", width: 1em, color: color) }                  // 铅笔图标
+    else if type in ("abstract", "summary", "tldr") { octique("list-unordered", width: 1em, color: color) }  // 无序列表图标
+    else if type == "info" { octique("info", width: 1em, color: color) }                                     // 信息图标
+    else if type == "todo" { octique("checklist", width: 1em, color: color) }                                // 清单图标
+    else if type in ("tip", "hint", "important") { octique("light-bulb", width: 1em, color: color) }         // 灯泡图标
+    else if type in ("success", "check", "done") { octique("check-circle", width: 1em, color: color) }       // 勾选圆圈图标
+    else if type in ("question", "help", "faq") { octique("question", width: 1em, color: color) }            // 问号图标
+    else if type in ("warning", "caution", "attention") { octique("alert", width: 1em, color: color) }       // 警告三角图标
+    else if type in ("failure", "missing") { octique("x-circle", width: 1em, color: color) }                 // X圆圈图标
+    else if type in ("danger", "error") { octique("zap", width: 1em, color: color) }                         // 闪电图标
+    else if type == "bug" { octique("bug", width: 1em, color: color) }                                       // 虫子图标
+    else if type == "example" { octique("list-ordered", width: 1em, color: color) }                           // 有序列表图标
+    else if type in ("quote", "cite") { octique("quote", width: 1em, color: color) }                         // 引号图标
     else { ">" }
   
   block(

@@ -1,11 +1,11 @@
 {
 	"id": "doc-weaver",
 	"name": "Doc Weaver",
-	"version": "0.5.0",
-	"minAppVersion": "0.15.0",
-	"description": "A comprehensive toolkit for note formatting, exporting and creation in Obsidian.",
+	"version": "1.0.0",
+	"minAppVersion": "1.9.12",
+	"description": "Export Markdown notes and their attachments as structured documents in formats like Typst, HTML, or hybrid Markdown workflows.",
 	"author": "Huang Yifan",
-	"authorUrl": "https://obsidian.md",
+	"authorUrl": "https://github.com/YiwangHuang",
 	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"isDesktopOnly": true
 }

@@ -1,6 +1,7 @@
 import type { BaseConfig } from "../general/types";
 import type { FieldDef } from "../lib/configIOUtils";
 import { ConfigIO, oneOf } from "../lib/configIOUtils";
+import {getLocalizedText} from "../lib/textUtils";
 /**
  * Toggle Tag Wrapper模块的类型定义
  */
@@ -65,14 +66,8 @@ const tagConfigFields: Record<keyof TagConfig, FieldDef> = {
     commandId:   { type: 'string',  required: true },
     tagType:     { type: 'string',  required: true,  validate: oneOf('span', 'font', 'u', 'i', 's'), default: 'u' },
     tagClass:    { type: 'string',  required: true,  default: '' },
-    typstPrefix: { type: 'string',  required: true,  default: '#DW_underline' },
-    cssSnippet:  { type: 'string',  required: true,  default: `u {
-    color: blue;
-    cursor: pointer; /* 鼠标悬停显示为手型 */
-    text-decoration: none; /* 去掉默认的下划线 */
-    border-bottom: 1px solid black; /* 使用边框模拟下划线 */
-    position: relative; /* 使得伪元素定位可以相对于元素 */
-}` },
+    typstPrefix: { type: 'string',  required: true,  default: '' },
+    cssSnippet:  { type: 'string',  required: true,  default: '' },
 };
 
 /**
@@ -99,8 +94,6 @@ class TagConfigIO extends ConfigIO<TagConfig> {
             commandId: `doc-weaver:tag-${hexId}`,
             name: `tag-${overrides.name ?? hexId}`,
             tagType: tagType,
-            typstPrefix: '',
-            cssSnippet: '',
         } as TagConfig;
     }
 }
@@ -118,7 +111,44 @@ class TagWrapperSettingsIO extends ConfigIO<TagWrapperSettings> {
                     id: 'toggle-underline',
                     commandId: 'doc-weaver:toggle-underline',
                     name: 'Underline',
-                    icon: 'underline'
+                    icon: 'underline',
+                    typstPrefix: '#DW_underline',
+                    cssSnippet: getLocalizedText({
+                        en: `/* Re-draw underline using border instead of text-decoration to avoid rendering issues with LaTeX math formulas */
+u {
+    color: blue;
+    text-decoration: none; /* disable native underline */
+    border-bottom: 1px solid black; /* custom underline */
+    position: relative; /* base for pseudo-element if needed */
+}`,
+                        zh: `/* 使用 border 重绘下划线，而不是 text-decoration 以避免与 LaTeX 数学公式产生渲染冲突 */
+u {
+    color: blue;
+    text-decoration: none; /* 禁用原生下划线 */
+    border-bottom: 1px solid black; /* 自定义下划线效果 */
+    position: relative; /* 为伪元素或扩展样式提供定位基准 */
+}`,
+                    }),
+                },
+                {
+                    ...tagConfigIO.getDefaults(),
+                    id: 'toggle-highlight',
+                    commandId: 'doc-weaver:toggle-highlight',
+                    name: 'Highlight',
+                    icon: 'type',
+                    tagType: 'font',
+                    tagClass: 'highlight',
+                    typstPrefix: '#text(fill: red)',
+                    cssSnippet: getLocalizedText({
+                        en: `/* Highlight text with red color */
+    font.highlight  {
+    color: red;
+}`,
+                        zh: `/* 高亮文本为红色 */
+    font.highlight  {
+    color: red;
+}`,
+                    }),
                 },
             ] },
         });

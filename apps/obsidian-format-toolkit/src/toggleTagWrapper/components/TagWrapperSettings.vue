@@ -188,8 +188,18 @@
         <PreviewPanel
           v-if="editingTag"
           :title="getLocalizedText({ en: 'Live Preview', zh: '实时预览' })"
+          content=" "
         >
-          <!-- 带样式的HTML预览 -->
+          <!-- 带样式的HTML预览，通过插槽覆盖显示在预览面板上方 -->
+          <!-- 标签结构预览 -->
+          <div class="d-flex align-center">
+                  <span>{{ generateStartTagFromConfig(editingTag) }}</span>
+                  <span>{{ getLocalizedText({ en: "Text", zh: "文本" }) }}</span>
+                  <span>{{ generateEndTagFromConfig(editingTag) }}</span>
+          </div>
+          <!-- 推导符号 -->
+          <span class="mx-2" style="font-size: 1.2em; color: var(--text-accent);">⟹</span>
+          <!-- CSS 样式渲染预览 -->
           <div v-html="styledPreviewHtml"></div>
         </PreviewPanel>
       </div>

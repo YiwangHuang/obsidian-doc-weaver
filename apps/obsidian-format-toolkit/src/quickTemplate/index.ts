@@ -11,6 +11,7 @@ import QuickTemplateSettingsComponent from './components/QuickTemplateSettings.v
 import type { BaseConfig } from '../general/types';
 import type { FieldDef } from '../lib/configIOUtils';
 import { ConfigIO } from '../lib/configIOUtils';
+import * as placeholders from '../lib/constant';
 
 // ======================== 接口定义 ========================
 
@@ -82,16 +83,24 @@ class QuickTemplateSettingsIO extends ConfigIO<QuickTemplateSettings> {
                 {
                     id: 'quick-template-multi-column',
                     commandId: 'doc-weaver:quick-template-multi-column',
-                    name: 'Multi Column Template',
-                    template: ":::col|width(50%, 50%)\n\n@col\n\n{{selectedText}}\n\n@col\n\n\n\n:::\n",
+                    name: 'Multi Column (need AnyBlock plugin)',
+                    template: `:::col|width(50%, 50%)\n\n@col\n\n${placeholders.VAR_CONTENT}\n\n@col\n\n\n\n:::\n`,
                     enabled: true,
                     icon: 'columns-2'
                 },
                 {
+                    id: 'quick-template-callout-anyblock',
+                    commandId: 'doc-weaver:quick-template-callout-anyblock',
+                    name: 'Callout Tip (need AnyBlock plugin)',
+                    template: `::: tip \n\n${placeholders.VAR_CONTENT}\n\n:::`,
+                    enabled: true,
+                    icon: 'quote'
+                },
+                {
                     id: 'quick-template-callout',
                     commandId: 'doc-weaver:quick-template-callout',
-                    name: 'Callout Template',
-                    template: '> [!info] 讲解注释\n> {{selectedText}}',
+                    name: 'Callout Tip (without AnyBlock plugin)',
+                    template: `> [!tip] \n> ${placeholders.VAR_CONTENT}`,
                     enabled: true,
                     icon: 'quote'
                 }

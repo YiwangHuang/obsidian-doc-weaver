@@ -45,11 +45,26 @@ export interface ExportConfig extends BaseConfig {
 }
 
 /** 主题依赖文件描述符：描述一个需要写入到样式目录的文件 */
-interface ThemeDependency {
+export interface ThemeDependency {
     /** 相对于样式目录的文件路径 */
     relative_path: string;
     /** 文件内容 */
     content: string;
+}
+
+/**
+ * 预设模板描述符：描述一种格式下的一个预设方案
+ * 用于在"添加导出格式"时提供可选的内置模板
+ */
+export interface PresetDescriptor {
+    /** 预设显示名称（如 'Typst - 默认'），同时作为新建配置的初始名称 */
+    name: string;
+    /** 所属格式 */
+    format: OutputFormat;
+    /** 覆盖的 ExportConfig 字段（如 contentTemplate 等），不含动态字段 */
+    overrides: Partial<ExportConfig>;
+    /** 该预设专属的风格文件列表 */
+    themeDependencies: ThemeDependency[];
 }
 
 /** 导出管理器设置接口，新增字段需同步修改 exportManagerSettingsIO */
@@ -131,16 +146,19 @@ const exportConfigHMD: Record<keyof ExportConfig, FieldDef> = {
 
 /**
  * ExportConfig 中间基类
- * 提供 createConfig / createAssetStructure 等通用方法，
- * 子类通过覆盖 getThemeDependencies() 提供格式特定配置
+ * 提供 createConfig / createAssetStructure / getPresets 等通用方法，
+ * 子类通过覆盖 getPresets() 提供格式特定的预设模板列表
  */
 class ExportConfigBaseIO extends ConfigIO<ExportConfig> {
     constructor(fieldDefs: Record<string, FieldDef> = exportConfigBase) {
         super(fieldDefs);
     }
 
-    /** 主题依赖文件列表，子类覆盖以提供格式特定的资源文件 */
-    protected getThemeDependencies(): ThemeDependency[] {
+    /**
+     * 获取该格式下所有可用预设模板，子类覆盖以提供格式特定预设
+     * @returns 预设模板描述符数组
+     */
+    getPresets(): PresetDescriptor[] {
         return [];
     }
 
@@ -148,28 +166,32 @@ class ExportConfigBaseIO extends ConfigIO<ExportConfig> {
      * 基于 getDefaults() 创建一个新的导出配置
      * 动态字段（id、commandId 等）由 hexId 生成，其余使用 fieldDefs 中的默认值（含 icon）
      * @param hexId 唯一标识符（十六进制时间戳）
+     * @param preset 可选预设模板，提供时将合并其 overrides 字段，并以预设名称作为初始名称
      * @returns 完整的 ExportConfig 对象
      */
-    createConfig(hexId: string): ExportConfig {
+    createConfig(hexId: string, preset?: PresetDescriptor): ExportConfig {
         const defaults = this.getDefaults();
         return {
             ...defaults,
-            // 以下为动态字段，需基于 hexId 生成，无法在 fieldDefs 中预设
+            // 预设覆盖字段（放在动态字段之前，不会覆盖 id/commandId 等动态字段）
+            ...(preset?.overrides ?? {}),
+            // 以下为动态字段，始终基于 hexId 生成，不受预设覆盖影响
             id: `export-${hexId}`,
             commandId: `doc-weaver:export-${hexId}`,
             styleDirRel: path.posix.join('styles', hexId),
-            name: `export-${hexId}`,
+            name: preset?.name ?? `export-${hexId}`,
             outputDirAbsTemplate: path.posix.join(defaults.outputDirAbsTemplate as string, hexId),
         } as ExportConfig;
     }
 
     /**
-     * 在指定路径创建格式的默认资源文件结构
-     * 基于 getThemeDependencies() 返回的文件列表逐一写入
+     * 在指定路径创建格式的资源文件结构
+     * 基于预设的 themeDependencies 逐一写入文件
      * @param basePath 样式目录的绝对路径
+     * @param preset 可选预设模板，提供时使用其 themeDependencies
      */
-    createAssetStructure(basePath: string): void {
-        const dependencies = this.getThemeDependencies();
+    createAssetStructure(basePath: string, preset?: PresetDescriptor): void {
+        const dependencies = preset?.themeDependencies ?? [];
         if (dependencies.length === 0) return;
 
         for (const dependency of dependencies) {
@@ -193,12 +215,20 @@ class ExportConfigTypstIO extends ExportConfigBaseIO {
         super(exportConfigTypst);
     }
 
-    /** Typst 格式的主题依赖文件（config.typ、custom_format.typ、demo.typ） */
-    protected getThemeDependencies(): ThemeDependency[] {
+    /** Typst 格式的预设模板列表 */
+    getPresets(): PresetDescriptor[] {
         return [
-            { relative_path: 'config.typ', content: typstConfig },
-            { relative_path: 'DW_styles.typ', content: typstCustomFormat },
-            { relative_path: 'demo.typ', content: getLocalizedText({ en: typstDemoEn, zh: typstDemoZh }) },
+            {
+                name: 'Typst - ' + getLocalizedText({ en: 'Default', zh: '默认' }),
+                format: 'typst',
+                overrides: {},
+                themeDependencies: [
+                    { relative_path: 'config.typ', content: typstConfig },
+                    { relative_path: 'DW_styles.typ', content: typstCustomFormat },
+                    { relative_path: 'demo.typ', content: getLocalizedText({ en: typstDemoEn, zh: typstDemoZh }) },
+                ],
+            },
+            // 在此追加更多 Typst 预设模板...
         ];
     }
 }
@@ -209,7 +239,18 @@ class ExportConfigHMDIO extends ExportConfigBaseIO {
         super(exportConfigHMD);
     }
 
-    // HMD 格式无主题依赖文件，使用基类默认的空数组
+    /** HMD 格式的预设模板列表 */
+    getPresets(): PresetDescriptor[] {
+        return [
+            {
+                name: 'HMD - ' + getLocalizedText({ en: 'Default', zh: '默认' }),
+                format: 'HMD',
+                overrides: {},
+                themeDependencies: [],
+            },
+            // 在此追加更多 HMD 预设模板...
+        ];
+    }
 }
 
 /** ExportManagerSettings 读写中间层，可在此扩展 Settings 特有的方法 */
@@ -227,15 +268,17 @@ class ExportManagerSettingsIO extends ConfigIO<ExportManagerSettings> {
     // 在此添加 Settings 专用方法
 }
 
-/** 根据导出格式获取对应的IO实例 */
+/** 根据已有导出配置对象获取对应的IO实例 */
 export function getExportConfigIO(exportConfig: ExportConfig): ExportConfigTypstIO | ExportConfigHMDIO | ExportConfigBaseIO {
-    switch (exportConfig.format) {
-        case 'typst':   
-            return exportConfigTypstIO;
-        case 'HMD':
-            return exportConfigHMDIO;
-        default:
-            return new ExportConfigBaseIO(); //TODO: 其他格式暂不支持，返回空实例，后续应对每一格式提供特有的IO实例，取消default返回值
+    return getExportConfigIOByFormat(exportConfig.format);
+}
+
+/** 根据格式字符串获取对应的IO实例（用于"添加"流程中尚无 ExportConfig 对象时） */
+export function getExportConfigIOByFormat(format: OutputFormat): ExportConfigBaseIO {
+    switch (format) {
+        case 'typst':   return exportConfigTypstIO;
+        case 'HMD':     return exportConfigHMDIO;
+        default:        return new ExportConfigBaseIO(); //TODO: 其他格式暂不支持，返回空实例
     }
 }
 

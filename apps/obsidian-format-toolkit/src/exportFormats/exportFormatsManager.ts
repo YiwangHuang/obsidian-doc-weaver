@@ -1,11 +1,12 @@
 import type MyPlugin from "../main";
 import path from "path";
 import fs from "fs";
-import { ExportManagerSettings, ExportConfig, exportConfigTypstIO, exportConfigHMDIO, exportManagerSettingsIO } from "./types";
+import { ExportManagerSettings, ExportConfig, exportManagerSettingsIO, getExportConfigIOByFormat } from "./types";
+import type { PresetDescriptor } from "./types";
 import { exportFormatsInfo } from "./index";
 import { TextConverter } from './textConvert/index';
 import { generateTimestamp } from "../lib/idGenerator";
-import { OutputFormat, extensionNameOfFormat } from "./textConvert/textConverter";
+import { extensionNameOfFormat } from "./textConvert/textConverter";
 import { debugLog } from "../lib/debugUtils";
 import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
@@ -60,28 +61,16 @@ export class ExportFormatsManager {
 
     /**
      * 添加新导出格式配置
+     * @param preset 预设模板描述符，包含格式类型、字段覆盖值和风格文件
      */
-    addExportFormatItem(format: OutputFormat): void {
+    addExportFormatItem(preset: PresetDescriptor): void {
         const hexId = generateTimestamp("hex");
 
-        // 根据格式类型，获取对应的 ConfigIO 实例
-        let configIO: typeof exportConfigTypstIO | typeof exportConfigHMDIO;
+        // 根据预设的格式类型获取对应的 ConfigIO 实例
+        const configIO = getExportConfigIOByFormat(preset.format);
 
-        switch (format) {
-            case 'typst':
-                configIO = exportConfigTypstIO;
-                break;
-            case 'HMD':
-                configIO = exportConfigHMDIO;
-                break;
-            default:
-                // 其他格式（quarto、plain 等）暂不支持，直接返回不做操作
-                debugLog(`Format "${format}" is not supported yet, skipping.`);
-                return;
-        }
-
-        // 通过 ConfigIO 创建配置（默认值 + 动态字段）
-        const newConfig = configIO.createConfig(hexId);
+        // 通过 ConfigIO 创建配置（默认值 + 预设覆盖 + 动态字段）
+        const newConfig = configIO.createConfig(hexId, preset);
 
         // 创建对应的资源文件夹
         const styleDirAbs = path.posix.join(
@@ -91,8 +80,8 @@ export class ExportFormatsManager {
         if (!fs.existsSync(styleDirAbs)) {
             fs.mkdirSync(styleDirAbs, { recursive: true });
         }
-        // 通过 ConfigIO 写入格式特定的主题依赖文件
-        configIO.createAssetStructure(styleDirAbs);
+        // 通过 ConfigIO 写入预设指定的风格文件
+        configIO.createAssetStructure(styleDirAbs, preset);
 
         debugLog('New export config added:', newConfig.name);
         // 添加命令和监听仍在此方法中执行

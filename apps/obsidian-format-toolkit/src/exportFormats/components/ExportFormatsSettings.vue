@@ -144,28 +144,12 @@
       </template>
     </draggable>
 
-    <!-- 添加新导出格式按钮 -->
+    <!-- 添加新导出格式按钮：点击后弹出 Obsidian 自带的模糊搜索选择器 -->
     <div class="text-center mt-4">
-      <div class="d-flex align-center justify-center ga-3">
-        <v-select
-          v-model="selectedFormat"
-          :label="getLocalizedText({ en: 'Export Format', zh: '导出格式' })"
-          :items="formatOptions"
-          item-title="label"
-          item-value="value"
-          variant="outlined"
-          density="compact"
-          style="max-width: 200px;"
-          hide-details
-        />
-        <v-btn
-          @click="props.plugin.exportFormatsManager.addExportFormatItem(selectedFormat)"
-          :disabled="!selectedFormat"
-        >
-          <Icon name="plus" class="me-1" />
-          {{ getLocalizedText({ en: "Add Export Format", zh: "添加导出格式" }) }}
-        </v-btn>
-      </div>
+      <v-btn @click="handleAddFormat">
+        <Icon name="plus" class="me-1" />
+        {{ getLocalizedText({ en: "Add Export Format", zh: "添加导出格式" }) }}
+      </v-btn>
     </div>
 
     <!-- 导出格式编辑弹窗 -->
@@ -479,6 +463,7 @@ import draggable from 'vuedraggable';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
+import { FuzzySuggestModal } from 'obsidian';
 import type MyPlugin from '../../main';
 import { ConfirmModal } from '../../lib/modalUtils';
 import type { 
@@ -487,11 +472,12 @@ import type {
 } from '../types';
 import { 
   getExportConfigIO,
+  getExportConfigIOByFormat,
   FORMAT_OPTIONS,
   EXCALIDRAW_EXPORT_OPTIONS,
   EXTENSION_MAP
 } from '../types';
-import type { OutputFormat } from '../textConvert/textConverter';
+import type { PresetDescriptor } from '../types';
 import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import Icon from '../../vue/components/Icon.vue';
@@ -541,9 +527,29 @@ const modalSectionsLocalized = computed(() =>
 const activeSectionId = ref('basic');
 
 // 表单选项
-const selectedFormat = ref<OutputFormat>('typst');
-const formatOptions = FORMAT_OPTIONS;
 const excalidrawExportOptions = EXCALIDRAW_EXPORT_OPTIONS;
+
+/**
+ * 汇总所有格式的预设模板列表，用于选择器展示
+ */
+const allPresets: PresetDescriptor[] = FORMAT_OPTIONS.flatMap(f =>
+  getExportConfigIOByFormat(f.value).getPresets()
+);
+
+/**
+ * 打开 Obsidian 自带的模糊搜索选择器，选择预设模板后添加导出格式
+ */
+const handleAddFormat = () => {
+  /** 预设模板模糊搜索选择器 */
+  class PresetSuggestModal extends FuzzySuggestModal<PresetDescriptor> {
+    getItems() { return allPresets; }
+    getItemText(item: PresetDescriptor) { return item.name; }
+    onChooseItem(item: PresetDescriptor) {
+      props.plugin.exportFormatsManager.addExportFormatItem(item);
+    }
+  }
+  new PresetSuggestModal(props.plugin.app).open();
+};
 
 /**
  * 获取输出路径预览（支持占位符替换）

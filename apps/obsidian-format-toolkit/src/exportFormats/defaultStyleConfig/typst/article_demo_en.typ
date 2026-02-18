@@ -1,4 +1,4 @@
-#import "config.typ": *
+#import "article_config.typ": *
 
 // Code block styling / 代码块样式
 #import "@preview/codly:1.3.0": *
@@ -14,7 +14,7 @@
   radius: 2pt,
 )
 
-#show: conf.with(
+#show: DW_article.with(
   title: "Typst Style Demo",
   author: "Author",
   date: "Date",
@@ -27,31 +27,16 @@ This file demonstrates the Typst export produced by Doc Weaver. The plugin turns
 
 Common constructs like headings, code blocks, tables, and callouts are preserved as much as possible. Doc Weaver also adapts outputs from content-enhancement plugins (for example AnyBlock and Excalidraw) to make the final rendering more stable.
 
-To tweak fonts, heading numbering, or block styles, edit `config.typ` and `DW_styles.typ`, then export again.
+To tweak fonts, heading numbering, or block styles, edit `article_config.typ` and `DW_styles.typ`, then export again.
 
 
 = Third-party packages
 
-This demo depends on the following packages. Typst will download them automatically the first time you open the file. If it does not render correctly, please wait a moment.
-
-```typst
-// LaTeX math (inline #mi, block #mitex)
-#import "@preview/mitex:0.2.5": *
-
-// Markdown-style tables
-#import "@preview/tablem:0.3.0": tablem
-
-// GitHub Octicons icons (used by callout icons)
-#import "@preview/octique:0.1.0": *
-
-// Code block highlighting and styling
-#import "@preview/codly:1.3.0": *
-#import "@preview/codly-languages:0.1.1": *
-```
+Dependencies (mitex, tablem, octique, codly, etc.) are imported in `article_config.typ`. Typst installs them on first open; if rendering fails, wait a moment.
 
 = Configuration
 
-All custom styles in this template are defined in `DW_styles.typ` and configured via `config.typ`. You can edit `config.typ` to control the global formatting and behavior.
+Custom styles live in `DW_styles.typ` and are configured in `article_config.typ`. Below are common configuration examples.
 
 == Basic configuration
 
@@ -74,7 +59,7 @@ show strong: it => text(weight: "bold", fill: red.darken(20%), it.body)
 #callout(
   type: "tip",
   title: [Note],
-  [Copy the snippets below into `config.typ` to enable the corresponding heading numbering scheme.]
+  [Copy the snippets below into `article_config.typ` to enable the corresponding heading numbering scheme.]
 )
 
 === Start numbering from level 3

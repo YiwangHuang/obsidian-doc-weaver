@@ -11,7 +11,7 @@
 // Default gutter for grid / 设置分栏（grid）的默认间距
 #let grid = grid.with(gutter: 1em)
 
-#let conf(
+#let DW_article(
   title: none,
   author: (),
   date:"",

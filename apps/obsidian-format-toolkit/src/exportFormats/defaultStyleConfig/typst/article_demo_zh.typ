@@ -1,4 +1,4 @@
-#import "config.typ": *
+#import "article_config.typ": *
 
 // 设置代码块的样式
 #import "@preview/codly:1.3.0": *
@@ -14,7 +14,7 @@
   radius: 2pt,
 )
 
-#show: conf.with(
+#show: DW_article.with(
   title: "Typst 格式演示",
   author: "作者",
   date: "日期",
@@ -27,31 +27,16 @@
 
 常见的标题、代码块、表格与 callout 等语法会在导出后尽量保持一致；对于部分内容增强类插件（例如 AnyBlock、Excalidraw）的产物，Doc Weaver 也会做适配处理。
 
-若需调整字体、标题编号或各类块的样式，请修改 `config.typ` 与 `custom_format.typ` 后重新导出即可。
+若需调整字体、标题编号或各类块的样式，请修改 `article_config.typ` 与 `DW_styles.typ` 后重新导出即可。
 
 
 = 第三方包依赖
 
-本 Demo 依赖以下第三方包，第一次打开时会自动安装，如果没能正确渲染，请稍作等待。
-
-```typst
-// LaTeX 公式支持（行内公式 #mi、块级公式 #mitex）
-#import "@preview/mitex:0.2.5": *
-
-// Markdown 风格表格
-#import "@preview/tablem:0.3.0": tablem
-
-// GitHub Octicons 图标（用于 callout 图标）
-#import "@preview/octique:0.1.0": *
-
-// 代码块语法高亮与样式
-#import "@preview/codly:1.3.0": *
-#import "@preview/codly-languages:0.1.1": *
-```
+本 Demo 的依赖（mitex、tablem、octique、codly 等）均在 `article_config.typ` 中引入；首次打开时会自动安装，若未正确渲染请稍候。
 
 = 配置说明
 
-本模板的所有自定义格式都定义在 `DW_styles.typ` 文件中，并通过 `config.typ` 进行配置。你可以在 `config.typ` 中修改以下内容来全局控制文档的格式和行为。
+自定义格式定义在 `DW_styles.typ`，通过 `article_config.typ` 配置。以下为常用配置示例。
 
 == 基础配置
 
@@ -74,7 +59,7 @@ show strong: it => text(weight: "bold", fill: red.darken(20%), it.body)
 #callout(
   type: "tip",
   title: [说明],
-  [复制以下代码到 `config.typ` 中即可使用对应的标题编号方案。]
+  [复制以下代码到 `article_config.typ` 中即可使用对应的标题编号方案。]
 )
 
 === 从第三级开始编号

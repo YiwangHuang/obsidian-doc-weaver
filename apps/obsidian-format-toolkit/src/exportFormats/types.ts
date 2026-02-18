@@ -15,10 +15,13 @@ import * as fs from 'fs';
 import { getLocalizedText } from '../lib/textUtils';
 
 // Typst 格式的主题依赖文件（通过 Vite ?raw 导入为字符串）
-import typstConfig from './defaultStyleConfig/typst/config.typ?raw';
-import typstCustomFormat from './defaultStyleConfig/typst/DW_styles.typ?raw';
-import typstDemoZh from './defaultStyleConfig/typst/demo_zh.typ?raw';
-import typstDemoEn from './defaultStyleConfig/typst/demo_en.typ?raw';
+import typstArticleConfig from './defaultStyleConfig/typst/article_config.typ?raw';
+import typstArticleDemoZh from './defaultStyleConfig/typst/article_demo_zh.typ?raw';
+import typstArticleDemoEn from './defaultStyleConfig/typst/article_demo_en.typ?raw';
+import typstSlidesConfig from './defaultStyleConfig/typst/slides_config.typ?raw';
+import typstSlidesDemoZh from './defaultStyleConfig/typst/slides_demo_zh.typ?raw';
+import typstSlidesDemoEn from './defaultStyleConfig/typst/slides_demo_en.typ?raw';
+import typstCustomStyles from './defaultStyleConfig/typst/DW_styles.typ?raw';
 
 // ======================== 接口定义 ========================
 
@@ -86,14 +89,10 @@ tags:
 ---
 ${placeholders.VAR_CONTENT}`
 
-const YAML_TYPST =`#import "config.typ": *
-
-#show: doc => conf(
-  title: "${placeholders.VAR_NOTE_NAME}",
-  author: "",
-  date: "${placeholders.VAR_DATE}",
-  doc,
-)
+const YAML_TYPST =`#import "DW_styles.typ": *
+#import "@preview/mitex:0.2.5": *
+#import "@preview/tablem:0.3.0": tablem
+#import "DW_styles.typ": *
 ${placeholders.VAR_CONTENT}
 `
 
@@ -179,7 +178,7 @@ class ExportConfigBaseIO extends ConfigIO<ExportConfig> {
             id: `export-${hexId}`,
             commandId: `doc-weaver:export-${hexId}`,
             styleDirRel: path.posix.join('styles', hexId),
-            name: preset?.name ?? `export-${hexId}`,
+            name: preset?.name ? `${preset.name}-${hexId}` : `export-${hexId}`,
             outputDirAbsTemplate: path.posix.join(defaults.outputDirAbsTemplate as string, hexId),
         } as ExportConfig;
     }
@@ -219,13 +218,46 @@ class ExportConfigTypstIO extends ExportConfigBaseIO {
     getPresets(): PresetDescriptor[] {
         return [
             {
-                name: 'Typst - ' + getLocalizedText({ en: 'Default', zh: '默认' }),
+                name: 'Typst - ' + getLocalizedText({ en: 'Article', zh: '文章' }),
                 format: 'typst',
-                overrides: {},
+                overrides: {
+                    contentTemplate: `#import "article_config.typ": *
+
+#show: DW_article.with(
+  title: [${placeholders.VAR_NOTE_NAME}],
+  author: [Author],
+  date: [${placeholders.VAR_DATE}],
+)
+${placeholders.VAR_CONTENT}
+`
+                },
                 themeDependencies: [
-                    { relative_path: 'config.typ', content: typstConfig },
-                    { relative_path: 'DW_styles.typ', content: typstCustomFormat },
-                    { relative_path: 'demo.typ', content: getLocalizedText({ en: typstDemoEn, zh: typstDemoZh }) },
+                    { relative_path: 'article_config.typ', content: typstArticleConfig },
+                    { relative_path: 'DW_styles.typ', content: typstCustomStyles },
+                    { relative_path: 'demo.typ', content: getLocalizedText({ en: typstArticleDemoEn, zh: typstArticleDemoZh }) },
+                ],
+            },
+            {
+                name: 'Typst - ' + getLocalizedText({ en: 'Slides', zh: '幻灯片' }),
+                format: 'typst',
+                overrides: {
+                    contentTemplate: `#import "slides_config.typ": *
+
+#show: DW_slides.with(
+  title: [${placeholders.VAR_NOTE_NAME}],
+  subtitle: [],
+  author: [Author],
+  date: [${placeholders.VAR_DATE}],
+  institution: [],
+  logo: none,
+)
+${placeholders.VAR_CONTENT}
+`
+                },
+                themeDependencies: [
+                    { relative_path: 'slides_config.typ', content: typstSlidesConfig },
+                    { relative_path: 'DW_styles.typ', content: typstCustomStyles },
+                    { relative_path: 'demo.typ', content: getLocalizedText({ en: typstSlidesDemoEn, zh: typstSlidesDemoZh }) },
                 ],
             },
             // 在此追加更多 Typst 预设模板...

@@ -124,18 +124,6 @@
                   >
                     <Icon name="trash-2" />
                   </v-btn>
-                  <v-tooltip :text="getLocalizedText({ en: 'Open the style folder to customize export style', zh: '打开样式文件夹，自定义导出样式' })" location="top" :open-delay="200">
-                    <template #activator="{ props }"> 
-                      <v-btn
-                        v-bind="props"
-                        size="small"
-                        @click="openAssetsFolder(config)"
-                        class="icon-btn-square"
-                      >
-                        <Icon name="folder" />
-                      </v-btn>
-                    </template>
-                  </v-tooltip>
                 </div>
               </v-col>
             </v-row>
@@ -172,7 +160,7 @@
             <!-- 格式名称 -->
             <v-text-field
               v-model="editingConfig.name"
-              :label="getLocalizedText({ en: 'Format Name', zh: '格式名称' })"
+              :label="getLocalizedText({ en: 'Preset Name', zh: '预设名称' })"
               variant="outlined"
               density="compact"
               class="mb-3"
@@ -182,8 +170,8 @@
             <InputWithPlaceholders :placeholders="templatePlaceholders">
               <v-textarea
                 v-model="editingConfig.contentTemplate"
-                :label="getLocalizedText({ en: 'Template Configuration', zh: '模板配置' })"
-                placeholder="Enter export format template..."
+                :label="getLocalizedText({ en: 'Content Template', zh: '内容模板' })"
+                placeholder="Enter content template..."
                 variant="outlined"
                 rows="8"
                 density="compact"
@@ -219,8 +207,8 @@
 
             <!-- 输出路径预览 -->
             <PreviewPanel
-              :title="getLocalizedText({ en: 'Output Path Preview', zh: '输出路径预览' })"
-              :content="getPreviewPath(editingConfig)"
+              :title="getLocalizedText({ en: 'Output Directory Preview', zh: '输出目录预览' })"
+              :content="getPreviewOutputDir(editingConfig)"
             />
           </template>
 
@@ -286,39 +274,6 @@
               :title="getLocalizedText({ en: 'Image Export Directory Preview', zh: '图片导出目录预览' })"
               :content="getAttachmentDirPreview(editingConfig)"
             />
-
-            <!-- Excalidraw 导出设置（归属图片附件分类） -->
-            <v-row class="mb-2">
-              <v-col cols="3">
-                <v-select
-                  v-model="editingConfig.excalidrawExportType"
-                  :items="excalidrawExportOptions"
-                  item-title="label"
-                  item-value="value"
-                  :label="getLocalizedText({ en: 'Excalidraw Export Type', zh: 'Excalidraw 导出类型' })"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  @update:model-value="getExportConfigIO(editingConfig).sanitize(editingConfig)"
-                />
-              </v-col>
-              <v-col cols="3" />
-              <v-col cols="6" v-if="editingConfig.excalidrawExportType === 'png'">
-                <div style="display:flex; align-items:center; gap:12px">
-                  <span>{{ getLocalizedText({ en: "Excalidraw⇒PNG Scale", zh: "Excalidraw⇒PNG 缩放比例" }) }}</span>
-                  <v-slider
-                    v-model="editingConfig.excalidrawPngScale"
-                    min="0.1"
-                    max="9"
-                    step="0.1"
-                    density="compact"
-                    thumb-label="always"
-                    hide-details
-                    style="transform: translateY(-3px)"
-                  />
-                </div>
-              </v-col>
-            </v-row>
 
             <!-- ========== 第二类：音视频附件导出设置（仅 HMD 格式显示） ========== -->
             <template v-if="editingConfig.format === 'HMD'">
@@ -449,6 +404,75 @@
             </template>
           </template>
 
+          <!-- 高级设置：打开样式文件夹、Excalidraw 导出选项 -->
+          <template v-else-if="activeSectionId === 'advanced'">
+
+            <!-- Excalidraw 导出设置 -->
+            <div class="text-subtitle-2 font-weight-medium mb-3">
+              {{ getLocalizedText({ en: 'Excalidraw Export Settings', zh: 'Excalidraw 导出设置' }) }}
+            </div>
+            <v-row class="mb-2">
+              <v-col cols="3">
+                <v-select
+                  v-model="editingConfig.excalidrawExportType"
+                  :items="excalidrawExportOptions"
+                  item-title="label"
+                  item-value="value"
+                  :label="getLocalizedText({ en: 'Excalidraw Export Type', zh: 'Excalidraw 导出类型' })"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  @update:model-value="getExportConfigIO(editingConfig).sanitize(editingConfig)"
+                />
+              </v-col>
+              <v-col cols="3" />
+              <v-col cols="6" v-if="editingConfig.excalidrawExportType === 'png'">
+                <div style="display:flex; align-items:center; gap:12px">
+                  <span>{{ getLocalizedText({ en: "Excalidraw⇒PNG Scale", zh: "Excalidraw⇒PNG 缩放比例" }) }}</span>
+                  <v-slider
+                    v-model="editingConfig.excalidrawPngScale"
+                    min="0.1"
+                    max="9"
+                    step="0.1"
+                    density="compact"
+                    thumb-label="always"
+                    hide-details
+                    style="transform: translateY(-3px)"
+                  />
+                </div>
+              </v-col>
+            </v-row>
+
+            <v-divider class="border-opacity-100 my-2" />
+
+            <!-- 打开样式文件夹，用于自定义导出样式 -->
+            <v-row align="center">
+              <v-col cols="6" class="d-flex flex-column justify-center">
+                <div class="text-subtitle-2 font-weight-medium">
+                  {{ getLocalizedText({ en: 'Open Style Folder', zh: '打开样式文件夹' }) }}
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  {{ getLocalizedText({ en: 'Open the style folder to customize export style', zh: '打开样式文件夹，自定义导出样式' }) }}
+                </div>
+              </v-col>
+              <v-col cols="6" class="d-flex align-center justify-end">
+                <v-tooltip :text="getLocalizedText({ en: 'Open the style folder to customize export style', zh: '打开样式文件夹，自定义导出样式' })" location="top" :open-delay="200">
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        size="Large"
+                        @click="editingConfig && openAssetsFolder(editingConfig)"
+                        class="icon-btn-square me-2"
+                      >
+                        <Icon name="folder" />
+                        <!-- {{ getLocalizedText({ en: 'Open Style Folder', zh: '打开样式文件夹' }) }} -->
+                      </v-btn>
+                    </template>
+                  </v-tooltip>
+              </v-col>
+            </v-row>
+          </template>
+
         </RailSidebar>
         </div>
       </div>
@@ -514,10 +538,11 @@ const editingConfig = ref<ExportConfig | null>(null);
 const deleteConfirmVisible = ref(false);
 const deleteConfigIndex = ref<number | null>(null);
 
-// 侧栏分组数据：基本设置 + 附件设置。
+// 侧栏分组数据：基本设置 + 附件设置 + 高级设置。
 const modalSections = [
   { id: 'basic',      icon: 'file-text',  title: { en: 'Basic Settings',       zh: '基本设置' } },
   { id: 'attachment', icon: 'paperclip',  title: { en: 'Attachments Settings', zh: '附件设置' } },
+  { id: 'advanced',   icon: 'settings',   title: { en: 'Advanced Settings',    zh: '高级设置' } },
 ];
 // 翻译后的分组列表，传给 RailSidebar 组件。
 const modalSectionsLocalized = computed(() =>
@@ -556,21 +581,19 @@ const handleAddFormat = () => {
  * @param config 当前编辑的导出配置
  * @returns 输出路径预览字符串
  */
-const getPreviewPath = (config: ExportConfig): string => {
-  const pathTemplate = `${config.outputDirAbsTemplate}/${config.outputBasenameTemplate}.${EXTENSION_MAP[config.format] || 'txt'}`;
-  
+const getPreviewOutputDir = (config: ExportConfig): string => {
   // 获取当前活动文件
   const activeFile = props.plugin.app.workspace.getActiveFile();
   if (!activeFile) {
-    return pathTemplate;
+    return config.outputDirAbsTemplate;
   }
   
   try {
     const converter = new TextConverter(props.plugin, activeFile, config);
-    return converter.replacePlaceholders(pathTemplate);
+    return converter.replacePlaceholders(config.outputDirAbsTemplate);
   } catch (error) {
-    debugLog('Error replacing placeholders in preview path:', error);
-    return pathTemplate;
+    debugLog('Error replacing placeholders in preview output directory:', error);
+    return config.outputDirAbsTemplate;
   }
 };
 
@@ -685,6 +708,7 @@ const onModalVisibilityChange = (visible: boolean) => {
 // 路径相关的占位符
 const pathPlaceholders = [
   { value: placeholders.VAR_VAULT_DIR, description: getLocalizedText({ en: 'Vault directory', zh: '库目录' }) },
+  { value: placeholders.VAR_PRESET_NAME, description: getLocalizedText({ en: 'Preset name', zh: '预设名称' }) },
   { value: placeholders.VAR_NOTE_NAME, description: getLocalizedText({ en: 'Note name', zh: '笔记名称' }) },
   { value: placeholders.VAR_DATE, description: getLocalizedText({ en: 'Current date', zh: '当前日期' }) },
 ];
@@ -728,16 +752,8 @@ const getAttachmentDirPreview = (config: ExportConfig): string => {
   
   try {
     const converter = new TextConverter(props.plugin, activeFile, config);
-    
-    // 先获取并替换输出目录路径（用于替换 {{outputDir}}）
-    const outputDirResolved = converter.replacePlaceholders(config.outputDirAbsTemplate);
-    
-    // 替换附件目录模板中的 {{outputDir}} 占位符
-    // let dirPreview = attachmentDirTemplate.replace(placeholders.VAR_OUTPUT_DIR, outputDirResolved);
-    
-    // 替换其他占位符
-    const attachmentDirPreview = converter.replacePlaceholders(attachmentDirTemplate).replace(placeholders.VAR_OUTPUT_DIR, outputDirResolved);
-    
+    // 占位符（含 {{outputDir}}）由 replacePlaceholders 在 textConverter 内统一按依赖顺序替换
+    const attachmentDirPreview = converter.replacePlaceholders(attachmentDirTemplate);
     return path.posix.resolve(attachmentDirPreview);
   } catch (error) {
     debugLog('Error replacing placeholders in attachment directory preview:', error);
@@ -764,13 +780,8 @@ const getMediaDirPreview = (config: ExportConfig, dirTemplate?: string): string 
   
   try {
     const converter = new TextConverter(props.plugin, activeFile, config);
-    
-    // 先获取并替换输出目录路径（用于替换 {{outputDir}}）
-    const outputDirResolved = converter.replacePlaceholders(config.outputDirAbsTemplate);
-    
-    // 替换媒体附件目录模板中的占位符
-    const mediaDirPreview = converter.replacePlaceholders(mediaDirTemplate).replace(placeholders.VAR_OUTPUT_DIR, outputDirResolved);
-    
+    // 占位符（含 {{outputDir}}）由 replacePlaceholders 在 textConverter 内统一按依赖顺序替换
+    const mediaDirPreview = converter.replacePlaceholders(mediaDirTemplate);
     return path.posix.resolve(mediaDirPreview);
   } catch (error) {
     debugLog('Error replacing placeholders in media directory preview:', error);

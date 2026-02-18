@@ -173,28 +173,63 @@ export class AdvancedConverter extends BaseConverter{
     }
 
     /**
-     * replacePlaceholders方法，替换模板中的占位符为实际值
+     * 仅替换「不依赖其他占位符」的独立占位符（vaultDir / noteDir / noteName / date）。
+     * 作为依赖型占位符解析链的起点，避免递归调用 replacePlaceholders 导致死循环。
+     */
+    private replaceIndependentPlaceholders(template: string): string {
+        return placeholders.replaceDatePlaceholders(template
+            .replaceAll(placeholders.VAR_VAULT_DIR, this.plugin.VAULT_ABS_PATH)
+            .replaceAll(placeholders.VAR_NOTE_DIR, path.dirname(this.plugin.getPathAbs(this.entryNote.path)))
+            .replaceAll(placeholders.VAR_NOTE_NAME, this.entryNote.basename))
+            .replaceAll(placeholders.VAR_PRESET_NAME, this.exportPreset.name);
+    }
+
+    /**
+     * 返回按依赖优先级排序的依赖型占位符列表。
+     * 排在前面的先被解析，后面的来源模板中可以引用前面已解析的占位符。
+     * 新增依赖占位符只需在数组中按正确位置添加一项。
+     */
+    private getDependentPlaceholders(): Array<{ token: string; template: string }> {
+        return [
+            // Level 1：outputDir 仅依赖独立占位符
+            { token: placeholders.VAR_OUTPUT_DIR, template: this.exportPreset.outputDirAbsTemplate },
+            // Level 2+：未来若有依赖 outputDir 的占位符，按优先级追加在此
+        ];
+    }
+
+    /**
+     * 替换模板中的占位符为实际值。占位符分两类按顺序处理以避免死循环：
+     * 1. 独立占位符：vaultDir / noteDir / noteName / date —— 先全部替换；
+     * 2. 依赖占位符：按 getDependentPlaceholders() 的优先级顺序逐个解析，
+     *    每个的来源模板用「独立占位符 + 前序已解析的依赖占位符」替换，绝不递归调用 replacePlaceholders。
      * @param template 包含占位符的字符串模板
-     * @param content 处理后的笔记内容（可选参数），用于处理含占位符的模板；若无此参数则仅处理含占位符的路径
+     * @param content 处理后的笔记内容（可选），用于 {{content}}；无此参数时仅处理路径等占位符
      * @returns 替换后的字符串
      */
     public replacePlaceholders(template: string, content?: string): string {
-        // 先替换基础占位符（日期、路径等）
-        let result = placeholders.replaceDatePlaceholders(template
-            .replaceAll(placeholders.VAR_VAULT_DIR, this.plugin.VAULT_ABS_PATH)
-            .replaceAll(placeholders.VAR_NOTE_DIR, path.dirname(this.plugin.getPathAbs(this.entryNote.path)))
-            .replaceAll(placeholders.VAR_NOTE_NAME, this.entryNote.basename));
-        
-        // 如果提供了content参数，处理模板与内容的整合
+        // 第一步：替换所有独立占位符
+        let result = this.replaceIndependentPlaceholders(template);
+
+        // 第二步：按优先级逐个解析依赖型占位符，resolvedValues 累积已解析值供后续依赖使用
+        const resolvedValues = new Map<string, string>();
+        for (const { token, template: srcTemplate } of this.getDependentPlaceholders()) {
+            if (!result.includes(token)) continue;
+
+            // 对来源模板先做独立占位符替换，再用前序已解析的依赖占位符替换
+            let resolved = this.replaceIndependentPlaceholders(srcTemplate);
+            for (const [prevToken, prevValue] of resolvedValues) {
+                resolved = resolved.replaceAll(prevToken, prevValue);
+            }
+
+            resolvedValues.set(token, resolved);
+            result = result.replaceAll(token, resolved);
+        }
+
+        // 第三步：处理 {{content}} 占位符或追加内容
         if (content !== undefined) {
-            // 检查模板中是否包含{{content}}占位符
-            const hasContentPlaceholder = result.includes(placeholders.VAR_CONTENT);
-            
-            if (hasContentPlaceholder) {
-                // 模板中有{{content}}占位符，直接替换
+            if (result.includes(placeholders.VAR_CONTENT)) {
                 result = result.replaceAll(placeholders.VAR_CONTENT, content);
             } else {
-                // 模板中没有{{content}}占位符，将内容追加到模板后面
                 result = result + '\n' + content;
             }
         }
@@ -213,10 +248,10 @@ export class AdvancedConverter extends BaseConverter{
      */
     public async copyAttachment(): Promise<void>{
 
-        const output_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.outputDirAbsTemplate)); // 跨平台路径处理
-        const image_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.imageDirAbsTemplate).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
-        const video_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.videoDirAbsTemplate || this.exportPreset.imageDirAbsTemplate).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
-        const audio_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.audioDirAbsTemplate || this.exportPreset.imageDirAbsTemplate).replace(placeholders.VAR_OUTPUT_DIR, output_dir_abs));
+        // 占位符（含 {{outputDir}}）统一由 replacePlaceholders 按「不依赖 → 依赖」顺序替换，避免重复调用与死循环
+        const image_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.imageDirAbsTemplate));
+        const video_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.videoDirAbsTemplate || this.exportPreset.imageDirAbsTemplate));
+        const audio_dir_abs = normalizeCrossPlatformPath(this.replacePlaceholders(this.exportPreset.audioDirAbsTemplate || this.exportPreset.imageDirAbsTemplate));
 
         // function getAttachmentDirAbs(attachment_dir_abs_template: string): string{
         //     return normalizeCrossPlatformPath(

@@ -18,6 +18,7 @@ export function replaceDatePlaceholders(template: string): string {
 // console.log(result); // 输出: Today's date is 2024-02-20. (假设今天是2024年2月20日)
 
 // 变量占位符
+export const VAR_PRESET_NAME = "{{presetName}}";        // 预设名称占位符
 export const VAR_DATE = "{{date: YYYY-MM-DD}}";      // 日期
 export const VAR_VAULT_DIR = "{{vaultDir}}";         // 仓库目录
 export const VAR_NOTE_DIR = "{{noteDir}}";          // 笔记所在目录

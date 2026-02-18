@@ -218,7 +218,7 @@ class ExportConfigTypstIO extends ExportConfigBaseIO {
     getPresets(): PresetDescriptor[] {
         return [
             {
-                name: 'Typst - ' + getLocalizedText({ en: 'Article', zh: '文章' }),
+                name: 'Typst-' + getLocalizedText({ en: 'Article', zh: '文章' }),
                 format: 'typst',
                 overrides: {
                     contentTemplate: `#import "article_config.typ": *
@@ -238,7 +238,7 @@ ${placeholders.VAR_CONTENT}
                 ],
             },
             {
-                name: 'Typst - ' + getLocalizedText({ en: 'Slides', zh: '幻灯片' }),
+                name: 'Typst-' + getLocalizedText({ en: 'Slides', zh: '幻灯片' }),
                 format: 'typst',
                 overrides: {
                     contentTemplate: `#import "slides_config.typ": *
@@ -275,7 +275,7 @@ class ExportConfigHMDIO extends ExportConfigBaseIO {
     getPresets(): PresetDescriptor[] {
         return [
             {
-                name: 'HMD - ' + getLocalizedText({ en: 'Default', zh: '默认' }),
+                name: 'HMD',
                 format: 'HMD',
                 overrides: {},
                 themeDependencies: [],

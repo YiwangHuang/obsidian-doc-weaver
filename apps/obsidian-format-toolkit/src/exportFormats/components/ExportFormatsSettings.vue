@@ -71,7 +71,7 @@
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
               <!-- 格式标签 -->
-              <v-col cols="6">
+              <v-col cols="7">
                 <div class="d-flex align-center">
                   <v-chip class="me-2"
                     :color="config.enabled ? OBSIDIAN_PRIMARY_COLOR : 'grey'" 
@@ -89,7 +89,7 @@
               </v-col>
               
               <!-- 操作按钮 -->
-              <v-col cols="6">
+              <v-col cols="5">
                 <div class="d-flex align-center justify-end">
                   <v-switch
                     v-model="config.enabled"
@@ -463,8 +463,9 @@
                         size="Large"
                         @click="editingConfig && openAssetsFolder(editingConfig)"
                         class="icon-btn-square me-2"
+                        style="width: 38px !important; height: 38px !important;"
                       >
-                        <Icon name="folder" />
+                        <Icon name="folder" :scale="1.25"/>
                         <!-- {{ getLocalizedText({ en: 'Open Style Folder', zh: '打开样式文件夹' }) }} -->
                       </v-btn>
                     </template>

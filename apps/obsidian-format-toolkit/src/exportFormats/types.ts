@@ -105,7 +105,7 @@ const exportConfigBase: Record<keyof ExportConfig, FieldDef> = {
     styleDirRel:            { type: 'string',  required: true,  default: path.join(placeholders.VAR_VAULT_DIR, 'output') },
     format:                 { type: 'string',  required: true,  validate: oneOf('quarto', 'HMD', 'typst', 'plain') },
     contentTemplate:        { type: 'string',  required: true,  default: '' },
-    outputDirAbsTemplate:   { type: 'string',  required: true,  default: path.join(placeholders.VAR_VAULT_DIR, 'output') }, // 默认值为 vault 根目录下的 output 目录
+    outputDirAbsTemplate:   { type: 'string',  required: true,  default: path.join(placeholders.VAR_VAULT_DIR, 'output', placeholders.VAR_PRESET_NAME) }, // 默认值为 vault 根目录下的 output 目录
     outputBasenameTemplate: { type: 'string',  required: true,  default: placeholders.VAR_NOTE_NAME + '_' + placeholders.VAR_DATE },
     imageDirAbsTemplate:    { type: 'string',  required: true,  default: path.join(placeholders.VAR_OUTPUT_DIR, 'assets') },
     imageLinkTemplate:      { type: 'string',  required: true },
@@ -179,7 +179,6 @@ class ExportConfigBaseIO extends ConfigIO<ExportConfig> {
             commandId: `doc-weaver:export-${hexId}`,
             styleDirRel: path.posix.join('styles', hexId),
             name: preset?.name ? `${preset.name}-${hexId}` : `export-${hexId}`,
-            outputDirAbsTemplate: path.posix.join(defaults.outputDirAbsTemplate as string, hexId),
         } as ExportConfig;
     }
 

@@ -39,7 +39,7 @@
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
               <!-- 标签名称和图标 -->
-              <v-col cols="3.5">
+              <v-col cols="7">
                 <div class="d-flex align-center">
                   <v-chip class="me-2"
                     :color="tag.enabled ? OBSIDIAN_PRIMARY_COLOR : 'grey'" 
@@ -54,13 +54,13 @@
               </v-col>
 
               <!-- 预览 -->
-              <v-col cols="4.5">
+              <!-- <v-col cols="4.5">
                 <div class="text-caption text-medium-emphasis d-flex align-center">
                   <span style="color: var(--text-accent);">{{ generateStartTagFromConfig(tag) }}</span>
                   <span>{{ getLocalizedText({ en: "Text", zh: "文本" }) }}</span>
                   <span style="color: var(--text-accent);">{{ generateEndTagFromConfig(tag) }}</span>
                 </div>
-              </v-col>
+              </v-col> -->
               
               <!-- 操作按钮 -->
               <v-col cols="5">

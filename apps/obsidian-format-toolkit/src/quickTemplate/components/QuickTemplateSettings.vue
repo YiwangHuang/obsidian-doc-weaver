@@ -31,7 +31,7 @@
           <v-card-text class="py-3">
             <v-row align="center" no-gutters>
               <!-- 模板名称和图标 -->
-               <v-col cols="6">
+               <v-col cols="7">
                  <div class="d-flex align-center">
                    <IconSelectButton :app="props.plugin.app" :command="template" />
                    <div class="text-subtitle-2 font-weight-medium">{{ template.name }}</div>
@@ -48,7 +48,7 @@
               </v-col> -->
               
               <!-- 操作按钮 -->
-              <v-col cols="6">
+              <v-col cols="5">
                 <div class="d-flex align-center justify-end">
                   <v-switch
                     v-model="template.enabled"

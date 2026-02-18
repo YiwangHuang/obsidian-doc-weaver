@@ -32,8 +32,8 @@ import {
 } from './quickTemplate/index';
 
 import {
-    GeneralManager
-} from './general/index';
+    ToolbarManager
+} from './toolbar/index';
 
 
 export interface DocWeaverInstance {
@@ -61,7 +61,7 @@ export default class MyPlugin extends Plugin {
     tagWrapperManager: TagWrapperManager;
     exportFormatsManager: ExportFormatsManager;
     quickTemplateManager: QuickTemplateManager;
-    generalManager: GeneralManager;
+    toolbarManager: ToolbarManager;
     
     // 用于控制是否启用自动保存，避免初始化时触发保存
     private enableAutoSave = false;
@@ -84,7 +84,7 @@ export default class MyPlugin extends Plugin {
         this.exportFormatsManager = new ExportFormatsManager(this);
         this.tagWrapperManager = new TagWrapperManager(this);
         this.quickTemplateManager = new QuickTemplateManager(this);
-        this.generalManager = new GeneralManager(this);
+        this.toolbarManager = new ToolbarManager(this);
 
         // 设置watch监听器，监听settingList的深层变化并自动保存
         // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积
@@ -147,8 +147,8 @@ export default class MyPlugin extends Plugin {
         if (this.quickTemplateManager) {
             this.quickTemplateManager.cleanup();
         }
-        if (this.generalManager) {
-            this.generalManager.destroy();
+        if (this.toolbarManager) {
+            this.toolbarManager.destroy();
         }
         console.log('Plugin unloaded, commands cleaned up');
 	}

@@ -39,19 +39,19 @@
  */
 
 import type MyPlugin from '../../main';
-import type { GeneralSettings } from '../index';
+import type { ToolbarSettings } from '../index';
 import { getLocalizedText } from '../../lib/textUtils';
-import { generalInfo } from '../index';
+import { toolbarInfo } from '../index';
 import ExtraCommandSettings from './ExtraCommandSettings.vue';
 
-interface GeneralSettingsProps {
+interface ToolbarSettingsProps {
   plugin: MyPlugin;
 }
 
-const props = defineProps<GeneralSettingsProps>();
+const props = defineProps<ToolbarSettingsProps>();
 
 // 初始化设置
-const configs = props.plugin.settingList[generalInfo.name] as GeneralSettings;
+const configs = props.plugin.settingList[toolbarInfo.name] as ToolbarSettings;
 </script>
 
 <style scoped>

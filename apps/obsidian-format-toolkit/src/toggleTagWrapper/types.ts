@@ -1,4 +1,4 @@
-import type { BaseConfig } from "../general/types";
+import type { BaseConfig } from "../toolbar/types";
 import type { FieldDef } from "../lib/configIOUtils";
 import { ConfigIO, oneOf } from "../lib/configIOUtils";
 import {getLocalizedText} from "../lib/textUtils";

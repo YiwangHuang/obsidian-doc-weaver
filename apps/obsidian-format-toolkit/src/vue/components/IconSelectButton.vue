@@ -14,7 +14,7 @@
 import type { App as ObsidianApp } from 'obsidian';
 import Icon from './Icon.vue';
 import { openIconSelector } from '../../lib/iconUtils';
-import type { ToolbarItemConfig } from '../../general/types';
+import type { BaseConfig } from '../../toolbar/types';
 
 /**
  * 组件属性：
@@ -23,7 +23,7 @@ import type { ToolbarItemConfig } from '../../general/types';
  */
 interface Props {
   app: ObsidianApp;
-  command: ToolbarItemConfig;
+  command: BaseConfig;
 }
 
 const props = defineProps<Props>();

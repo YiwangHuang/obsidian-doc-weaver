@@ -38,7 +38,7 @@ import { ref, reactive, computed, inject, onMounted, onUnmounted } from 'vue';
 import ToolbarButton from './ToolbarButton.vue';
 import type { ToolbarItemConfig } from '../types';
 import { MarkdownView } from 'obsidian';
-import { generalInfo, GeneralSettings } from '../index';
+import { toolbarInfo, ToolbarSettings } from '../index';
 import type { DocWeaverInstance } from '../../main';
 
 
@@ -79,7 +79,7 @@ const dragState = reactive({
 
 // 注入工具栏上下文
 const toolbarContext = inject<DocWeaverInstance>('docWeaverInstance');
-const configs = toolbarContext?.plugin.settingList[generalInfo.name] as GeneralSettings;
+const configs = toolbarContext?.plugin.settingList[toolbarInfo.name] as ToolbarSettings;
 const visible = computed(() => configs.showToolBar)
 
 // 编辑器状态

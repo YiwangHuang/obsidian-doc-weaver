@@ -8,7 +8,7 @@
 import { ModuleRegistration } from '../main';
 import { getLocalizedText } from '../lib/textUtils';
 import QuickTemplateSettingsComponent from './components/QuickTemplateSettings.vue';
-import type { BaseConfig } from '../general/types';
+import type { BaseConfig } from '../toolbar/types';
 import type { FieldDef } from '../lib/configIOUtils';
 import { ConfigIO } from '../lib/configIOUtils';
 import * as placeholders from '../lib/constant';

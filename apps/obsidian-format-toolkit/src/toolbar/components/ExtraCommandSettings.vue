@@ -113,10 +113,10 @@
 import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import type MyPlugin from '../../main';
-import type { ExtraCommandConfig, GeneralSettings } from '../index';
+import type { ExtraCommandConfig, ToolbarSettings } from '../index';
 import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
-import { generalInfo } from '../index';
+import { toolbarInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
 import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
@@ -131,7 +131,7 @@ interface ExtraCommandSettingsProps {
 const props = defineProps<ExtraCommandSettingsProps>();
 
 // 初始化设置
-const configs = props.plugin.settingList[generalInfo.name] as GeneralSettings;
+const configs = props.plugin.settingList[toolbarInfo.name] as ToolbarSettings;
 
 // 弹窗状态
 const modalVisible = ref(false);
@@ -174,7 +174,7 @@ const openCommandModal = (index: number) => {
  const addNewCommand = async () => {
     const result = await openCommandSelector(props.plugin.app);
     if (result) {
-      props.plugin.generalManager.addExtraCommand(result);
+      props.plugin.toolbarManager.addExtraCommand(result);
     } else {
       console.log('用户取消了命令选择');
     }

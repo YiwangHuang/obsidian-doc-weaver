@@ -3,7 +3,7 @@ import type { DocWeaverInstance } from "../main";
 import type { Command } from "obsidian";
 
 import { createApp, App as VueApp, computed, h } from "vue";
-import { generalInfo, GeneralSettings, generalSettingsIO } from "./index";
+import { toolbarInfo, ToolbarSettings, generalSettingsIO } from "./index";
 import { debugLog } from "../lib/debugUtils";
 
 import EditingToolbar from './components/EditingToolbar.vue';
@@ -22,7 +22,7 @@ import { ExportManagerSettings } from '../exportFormats/types';
  * 通用模块管理器
  * 负责管理通用配置和功能
  */
-export class GeneralManager {
+export class ToolbarManager {
     private plugin: MyPlugin;
     private toolBarApp: VueApp | null = null;
     private toolBarContainer: HTMLElement | null = null;
@@ -39,25 +39,25 @@ export class GeneralManager {
      */
     private registerSettings(): void {
         // 获取当前设置
-        const currentSettings = this.plugin.settingList[generalInfo.name];
+        const currentSettings = this.plugin.settingList[toolbarInfo.name];
         
         // 使用 ConfigIO 类型守卫校验并自动修复设置
         const needsReset = !currentSettings || !generalSettingsIO.isValid(currentSettings);
         
         if (needsReset) {
-            console.log(`Initializing settings for ${generalInfo.name} with type checking`);
-            this.plugin.settingList[generalInfo.name] = generalInfo.defaultConfigs;
+            console.log(`Initializing settings for ${toolbarInfo.name} with type checking`);
+            this.plugin.settingList[toolbarInfo.name] = toolbarInfo.defaultConfigs;
         }
 
         // 将模块信息添加到插件的模块设置列表中
-        this.plugin.moduleSettings.push(generalInfo);
+        this.plugin.moduleSettings.push(toolbarInfo);
     }
 
     /**
      * 获取当前配置（始终从响应式settingList中获取最新配置）
      */
-    get config(): GeneralSettings {
-        return this.plugin.settingList[generalInfo.name] as GeneralSettings;
+    get config(): ToolbarSettings {
+        return this.plugin.settingList[toolbarInfo.name] as ToolbarSettings;
     }
 
     /**
@@ -80,7 +80,7 @@ export class GeneralManager {
         const exportFormatsItems = this.plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;
         const tagWrapperItems = this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings;
         const quickTemplateItems = this.plugin.settingList[quickTemplateInfo.name] as QuickTemplateSettings;
-        const generalItems = this.plugin.settingList[generalInfo.name] as GeneralSettings;
+        const generalItems = this.plugin.settingList[toolbarInfo.name] as ToolbarSettings;
         
         // 创建数组副本以确保数组增减操作能被响应式系统追踪
         items.push({

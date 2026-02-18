@@ -6,7 +6,7 @@
  */
 
 import type { OutputFormat } from './textConvert/textConverter';
-import type { BaseConfig } from '../general/types';
+import type { BaseConfig } from '../toolbar/types';
 import type { FieldDef } from '../lib/configIOUtils';
 import { ConfigIO, oneOf, between } from '../lib/configIOUtils';
 import * as placeholders from '../lib/constant';

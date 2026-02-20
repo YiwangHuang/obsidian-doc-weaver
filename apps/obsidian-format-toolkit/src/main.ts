@@ -50,6 +50,7 @@ export interface ModuleRegistration<T = any> {
     defaultConfigs: T;
     settingTabName: string; // 设置页面中显示的标签名
     component?: any; // Vue组件，可选字段
+    hideSettingTab?: boolean; // 为 true 时不渲染该模块的设置选项卡
 }
 
 export default class MyPlugin extends Plugin {

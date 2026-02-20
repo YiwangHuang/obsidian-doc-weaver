@@ -57,8 +57,9 @@ const demoTab: ModuleRegistration = {
   component: DemoModalComponent
 };
 
+// 过滤掉 hideSettingTab 为 true 的模块，不渲染其选项卡
 const allTabs = computed(() => [
-  ...props.moduleSettings,
+  ...props.moduleSettings.filter(m => !m.hideSettingTab),
   ...(DEBUG ? [demoTab] : [])
 ]);
 

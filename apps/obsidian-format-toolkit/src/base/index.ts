@@ -8,6 +8,7 @@ import { getLocalizedText } from '../lib/textUtils';
 import BaseSettingsComponent from './components/BaseSettings.vue';
 import type { BaseSettings } from './types';
 import { baseSettingsIO } from './types';
+import { DEBUG } from '../lib/debugUtils';
 
 /**
  * Base 模块设置注册信息
@@ -19,7 +20,8 @@ export const baseInfo: ModuleRegistration<BaseSettings> = {
     description: 'Placeholder module without concrete functionality, reserved for future extensions.',
     // 通过 ConfigIO 统一管理默认配置，当前为空对象，占位使用
     defaultConfigs: baseSettingsIO.getDefaults(),
-    component: BaseSettingsComponent
+    component: BaseSettingsComponent,
+    hideSettingTab: !DEBUG,
 };
 
 // 导出管理器，供主插件在 onload 时初始化

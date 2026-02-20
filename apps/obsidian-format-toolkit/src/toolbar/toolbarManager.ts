@@ -38,16 +38,11 @@ export class ToolbarManager {
      * 注册模块设置到插件的响应式设置列表中
      */
     private registerSettings(): void {
-        // 获取当前设置
-        const currentSettings = this.plugin.settingList[toolbarInfo.name];
-        
-        // 使用 ConfigIO 类型守卫校验并自动修复设置
-        const needsReset = !currentSettings || !toolbarSettingsIO.isValid(currentSettings);
-        
-        if (needsReset) {
-            console.log(`Initializing settings for ${toolbarInfo.name} with type checking`);
-            this.plugin.settingList[toolbarInfo.name] = toolbarInfo.defaultConfigs;
-        }
+        // 校验并修复当前设置，无效或缺失时回退到默认配置
+        this.plugin.settingList[toolbarInfo.name] = toolbarSettingsIO.ensureValid(
+            this.plugin.settingList[toolbarInfo.name],
+            toolbarInfo.defaultConfigs
+        );
 
         // 将模块信息添加到插件的模块设置列表中
         this.plugin.moduleSettings.push(toolbarInfo);

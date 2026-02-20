@@ -1,5 +1,6 @@
+import { DEBUG } from "./debugUtils";
 import { Notice } from "obsidian";
-
+import { getLocalizedText } from "./textUtils";
 // ======================== 字段描述符 ========================
 
 /** 支持的字段类型：基础类型 + 数组（仅检查 Array.isArray） */
@@ -37,45 +38,34 @@ export class ConfigIO<T extends object> {
         return true;
     }
 
-    /**
-     * 校验并修复单个字段
-     * @param silent 为 true 时静默修复（不弹 Notice），用于 sanitize 场景
-     * @returns true = 合法或已修复；false = 无法修复
-     */
-    private repairField(record: Record<string, unknown>, key: string, def: FieldDef, silent = false): boolean {
+    /** 校验并修复单个字段；返回 true = 合法或已修复，false = 无法修复；silent 为 true 时静默修复（不弹 Notice） */
+    private repairField(record: Record<string, unknown>, key: string, def: FieldDef, silent = !DEBUG): boolean {
         if (this.isFieldValid(record[key], def)) return true;
         if (!('default' in def)) return false;
         if (!silent) {
-            const old = record[key] === undefined ? '(缺失)' : JSON.stringify(record[key]);
-            new Notice(`配置项 "${key}" 的值 ${old} 无效，已重置为默认值: ${JSON.stringify(def.default)}`);
+            const old = record[key] === undefined ? getLocalizedText({en: '(missing)', zh: '(缺失)'}) : JSON.stringify(record[key]);
+            new Notice(getLocalizedText({ 
+                en: `Configuration item "${key}" value ${old} is invalid, reset to default value: ${JSON.stringify(def.default)}`, 
+                zh: `配置项 "${key}" 的值 ${old} 无效，已重置为默认值: ${JSON.stringify(def.default)}` }), 5000)
         }
         record[key] = def.default;
         return true;
     }
 
-    /** 类型守卫：校验并自动修复（弹 Notice） */
-    isValid(obj: unknown): obj is T {
+    /**
+     * 原地修复对象中所有非法或缺失的字段
+     * @param obj 需要修复的对象
+     * @param silent 为 true 时静默修复（不弹 Notice）
+     * @returns true = 全部字段合法或已修复；false = 存在无法修复的字段（obj 为 null/非对象或有无默认值的必填字段）
+     */
+    sanitize(obj: unknown, silent?: boolean): obj is T {
         if (!obj || typeof obj !== 'object') return false;
         const record = obj as Record<string, unknown>;
         let ok = true;
         for (const [key, def] of Object.entries(this.fieldDefs)) {
-            if (!this.repairField(record, key, def)) ok = false;
+            if (!this.repairField(record, key, def, silent)) ok = false;
         }
         return ok;
-    }
-
-    /** 安全解析：合法返回 T，否则 undefined */
-    parse(obj: unknown): T | undefined {
-        return this.isValid(obj) ? obj : undefined;
-    }
-
-    /** 静默修复所有不合法或缺失的字段（不弹 Notice） */
-    sanitize(config: T): T {
-        const record = config as Record<string, unknown>;
-        for (const [key, def] of Object.entries(this.fieldDefs)) {
-            this.repairField(record, key, def, true);
-        }
-        return config;
     }
 
     /** 获取指定字段的默认值 */
@@ -91,6 +81,20 @@ export class ConfigIO<T extends object> {
             if ('default' in def) result[key] = def.default;
         }
         return result as Partial<T>;
+    }
+
+    /**
+     * 确保配置有效：不存在时返回默认值，存在时原地修复并返回
+     * 集中处理"校验 + 修复 + 兜底重置"逻辑，避免各 Manager 重复实现
+     * @param obj 当前持久化的配置（可能为 null/undefined）
+     * @param defaults 兜底默认配置（所有字段均无法修复时使用）
+     * @returns 有效的配置对象（原地修复后的 obj 或 defaults 的副本）
+     */
+    ensureValid(obj: unknown, defaults: Partial<T>): Partial<T> {
+        if (!obj || typeof obj !== 'object') return { ...defaults };
+        if (this.sanitize(obj)) return obj as Partial<T>;
+        // sanitize 返回 false 表示存在无法修复的字段，回退到默认配置
+        return { ...defaults };
     }
 }
 

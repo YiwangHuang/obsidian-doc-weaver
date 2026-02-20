@@ -28,16 +28,11 @@ export class ExportFormatsManager {
      * 注册模块设置到插件的响应式设置列表中
      */
     private registerSettings(): void {
-        // 获取当前设置
-        const currentSettings = this.plugin.settingList[exportFormatsInfo.name];
-        
-        // 使用类型守卫函数检查设置是否需要重置
-        const needsReset = !currentSettings || !exportManagerSettingsIO.isValid(currentSettings);
-        
-        if (needsReset) {
-            console.log(`Initializing settings for ${exportFormatsInfo.name} with type checking`);
-            this.plugin.settingList[exportFormatsInfo.name] = exportFormatsInfo.defaultConfigs;
-        }
+        // 校验并修复当前设置，无效或缺失时回退到默认配置
+        this.plugin.settingList[exportFormatsInfo.name] = exportManagerSettingsIO.ensureValid(
+            this.plugin.settingList[exportFormatsInfo.name],
+            exportFormatsInfo.defaultConfigs
+        );
 
         // 将模块信息添加到插件的模块设置列表中
         this.plugin.moduleSettings.push(exportFormatsInfo);

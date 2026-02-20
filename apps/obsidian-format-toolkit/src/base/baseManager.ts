@@ -1,5 +1,5 @@
 import type MyPlugin from "../main";
-import { baseInfo, baseSettingsIO, BaseSettings } from "./index";
+import { baseInfo, baseSettingsIO } from "./index";
 
 /**
  * Base 模块管理器
@@ -21,16 +21,11 @@ export class BaseManager {
      * 包含默认值初始化与类型校验，并在设置面板中增加对应的标签页。
      */
     private registerSettings(): void {
-        // 获取当前已保存的设置
-        const currentSettings = this.plugin.settingList[baseInfo.name] as BaseSettings | undefined;
-
-        // 使用 ConfigIO 类型守卫校验并在必要时重置为默认配置
-        const needsReset = !currentSettings || !baseSettingsIO.isValid(currentSettings);
-
-        if (needsReset) {
-            console.log(`Initializing settings for ${baseInfo.name} with type checking`);
-            this.plugin.settingList[baseInfo.name] = baseInfo.defaultConfigs;
-        }
+        // 校验并修复当前设置，无效或缺失时回退到默认配置
+        this.plugin.settingList[baseInfo.name] = baseSettingsIO.ensureValid(
+            this.plugin.settingList[baseInfo.name],
+            baseInfo.defaultConfigs
+        );
 
         // 将模块的元信息添加到插件的模块设置列表中，用于设置面板渲染标签页
         this.plugin.moduleSettings.push(baseInfo);

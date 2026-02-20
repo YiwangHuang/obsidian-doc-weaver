@@ -121,7 +121,7 @@ export const quickTemplateSettingsIO = new QuickTemplateSettingsIO();
 // Quick template settings registry
 export const quickTemplateInfo: ModuleRegistration<QuickTemplateSettings> = {
     name: 'quickTemplate',
-    settingTabName: getLocalizedText({ en: "Quick Template", zh: "快速模板" }),
+    settingTabName: getLocalizedText({ en: "Quick Template", zh: "快捷模板" }),
     description: 'Settings for quick template',
     defaultConfigs: quickTemplateSettingsIO.getDefaults(),
     component: QuickTemplateSettingsComponent

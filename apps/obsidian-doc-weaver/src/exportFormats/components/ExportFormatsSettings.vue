@@ -575,9 +575,9 @@ const deleteConfigIndex = ref<number | null>(null);
 
 // 侧栏分组数据：基本设置 + 附件设置 + 高级设置。
 const modalSections = [
-  { id: 'basic',      icon: 'file-text',  title: { en: 'Basic Settings',       zh: '基本设置' } },
-  { id: 'attachment', icon: 'paperclip',  title: { en: 'Attachments Settings', zh: '附件设置' } },
-  { id: 'advanced',   icon: 'settings',   title: { en: 'Advanced Settings',    zh: '高级设置' } },
+  { id: 'basic',      icon: 'file-text',  title: { en: 'Basic',       zh: '基本设置' } },
+  { id: 'attachment', icon: 'paperclip',  title: { en: 'Attachment', zh: '附件设置' } },
+  { id: 'advanced',   icon: 'settings',   title: { en: 'Advanced',    zh: '高级设置' } },
 ];
 // 翻译后的分组列表，传给 RailSidebar 组件。
 const modalSectionsLocalized = computed(() =>

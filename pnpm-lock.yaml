@@ -19,7 +19,7 @@ importers:
         specifier: 5.8.3
         version: 5.8.3
 
-  apps/obsidian-format-toolkit:
+  apps/obsidian-doc-weaver:
     dependencies:
       html-parse-string:
         specifier: ^0.0.9
@@ -58,6 +58,9 @@ importers:
         specifier: ^3.9.2
         version: 3.9.2(typescript@5.8.3)(vue@3.5.17(typescript@5.8.3))
     devDependencies:
+      '@obsidian-toolkit/sass-components':
+        specifier: workspace:*
+        version: link:../../packages/sass-components
       '@rollup/plugin-node-resolve':
         specifier: ^13.3.0
         version: 13.3.0(rollup@4.40.0)
@@ -96,38 +99,7 @@ importers:
         version: 2.29.4
       obsidian:
         specifier: latest
-        version: 1.8.7(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
-      tslib:
-        specifier: 2.4.0
-        version: 2.4.0
-      typescript:
-        specifier: 5.8.3
-        version: 5.8.3
-      vite:
-        specifier: ^5.0.0
-        version: 5.4.18(@types/node@16.18.126)(sass@1.90.0)
-
-  apps/obsidian-plugin:
-    dependencies:
-      test-module:
-        specifier: workspace:*
-        version: link:../../packages/test-module
-    devDependencies:
-      '@types/node':
-        specifier: ^16.11.6
-        version: 16.18.126
-      '@typescript-eslint/eslint-plugin':
-        specifier: 5.29.0
-        version: 5.29.0(@typescript-eslint/parser@5.29.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)(typescript@5.8.3)
-      '@typescript-eslint/parser':
-        specifier: 5.29.0
-        version: 5.29.0(eslint@8.57.1)(typescript@5.8.3)
-      builtin-modules:
-        specifier: 3.3.0
-        version: 3.3.0
-      obsidian:
-        specifier: latest
-        version: 1.8.7(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
+        version: 1.12.2(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
       tslib:
         specifier: 2.4.0
         version: 2.4.0
@@ -1498,11 +1470,11 @@ packages:
     resolution: {integrity: sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  obsidian@1.8.7:
-    resolution: {integrity: sha512-h4bWwNFAGRXlMlMAzdEiIM2ppTGlrh7uGOJS6w4gClrsjc+ei/3YAtU2VdFUlCiPuTHpY4aBpFJJW75S1Tl/JA==}
+  obsidian@1.12.2:
+    resolution: {integrity: sha512-DGAzpt6vo+sMDET/o8Zj26Bj2hbHrFsNUU8TtnzCyerO/OHksMFQnU9QEnPHVsOMstt/WnHXfC56j2r1syObWg==}
     peerDependencies:
-      '@codemirror/state': ^6.0.0
-      '@codemirror/view': ^6.0.0
+      '@codemirror/state': 6.5.0
+      '@codemirror/view': 6.38.6
 
   once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
@@ -1592,10 +1564,6 @@ packages:
 
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
-
-  postcss@8.5.3:
-    resolution: {integrity: sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A==}
-    engines: {node: ^10 || ^12 || >=14}
 
   postcss@8.5.6:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
@@ -2367,7 +2335,7 @@ snapshots:
       '@typescript-eslint/scope-manager': 5.29.0
       '@typescript-eslint/type-utils': 5.29.0(eslint@8.57.1)(typescript@5.8.3)
       '@typescript-eslint/utils': 5.29.0(eslint@8.57.1)(typescript@5.8.3)
-      debug: 4.4.0
+      debug: 4.4.1
       eslint: 8.57.1
       functional-red-black-tree: 1.0.1
       ignore: 5.3.2
@@ -2384,7 +2352,7 @@ snapshots:
       '@typescript-eslint/scope-manager': 5.29.0
       '@typescript-eslint/types': 5.29.0
       '@typescript-eslint/typescript-estree': 5.29.0(typescript@5.8.3)
-      debug: 4.4.0
+      debug: 4.4.1
       eslint: 8.57.1
     optionalDependencies:
       typescript: 5.8.3
@@ -2399,7 +2367,7 @@ snapshots:
   '@typescript-eslint/type-utils@5.29.0(eslint@8.57.1)(typescript@5.8.3)':
     dependencies:
       '@typescript-eslint/utils': 5.29.0(eslint@8.57.1)(typescript@5.8.3)
-      debug: 4.4.0
+      debug: 4.4.1
       eslint: 8.57.1
       tsutils: 3.21.0(typescript@5.8.3)
     optionalDependencies:
@@ -2413,7 +2381,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 5.29.0
       '@typescript-eslint/visitor-keys': 5.29.0
-      debug: 4.4.0
+      debug: 4.4.1
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.7.1
@@ -3125,7 +3093,7 @@ snapshots:
     dependencies:
       path-key: 4.0.0
 
-  obsidian@1.8.7(@codemirror/state@6.5.2)(@codemirror/view@6.36.5):
+  obsidian@1.12.2(@codemirror/state@6.5.2)(@codemirror/view@6.36.5):
     dependencies:
       '@codemirror/state': 6.5.2
       '@codemirror/view': 6.36.5
@@ -3209,12 +3177,6 @@ snapshots:
       util-deprecate: 1.0.2
 
   postcss-value-parser@4.2.0: {}
-
-  postcss@8.5.3:
-    dependencies:
-      nanoid: 3.3.11
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
 
   postcss@8.5.6:
     dependencies:
@@ -3536,7 +3498,7 @@ snapshots:
   vite@5.4.18(@types/node@16.18.126)(sass@1.90.0):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.5.3
+      postcss: 8.5.6
       rollup: 4.40.0
     optionalDependencies:
       '@types/node': 16.18.126

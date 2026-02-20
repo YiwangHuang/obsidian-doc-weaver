@@ -3,9 +3,9 @@
 	"name": "Doc Weaver",
 	"version": "1.0.0",
 	"minAppVersion": "1.9.12",
-	"description": "Export Markdown notes and their attachments as structured documents in formats like Typst, HTML, or hybrid Markdown workflows.",
+	"description": "Export Obsidian Markdown notes and attachments as structured documents: Typst, LaTeX (in development), and HMD (Markdown for downstream processing and publishing, with lots of HTML)",
 	"author": "Huang Yifan",
 	"authorUrl": "https://github.com/YiwangHuang",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"fundingUrl": "",
 	"isDesktopOnly": true
 }

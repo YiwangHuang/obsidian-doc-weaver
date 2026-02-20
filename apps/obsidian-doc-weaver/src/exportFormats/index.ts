@@ -5,7 +5,7 @@ import ExportFormatsSettings from './components/ExportFormatsSettings.vue';
 
 // Export formats settings registry
 export const exportFormatsInfo: ModuleRegistration<ExportManagerSettings> = {
-    name: 'exportFormats',
+    name: 'export',
     settingTabName: getLocalizedText({ en: "Export Config", zh: "导出配置" }),
     description: 'Settings for export formats',
     defaultConfigs: exportManagerSettingsIO.getDefaults(),

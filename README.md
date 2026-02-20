@@ -35,10 +35,13 @@ Doc Weaver is an Obsidian plugin that exports **Markdown notes and their attachm
 
 ## TODO
 
-- [ ] Provide multiple default presets for the same export format
-- [ ] Export to LaTeX documents
-- [ ] Export to Pandoc documents
-- [ ] Export to Quarto documents
+- [x] Provide multiple default presets for the same export format  
+- [ ] Add a **General Settings** tab and **example notes** (including a Typst basics tutorial, with an emphasis on further editing Typst source files in VS Code)  
+- [ ] Support exporting to **LaTeX** documents  
+- [ ] Create a **GitHub Pages** site for the plugin  
+- [ ] Support images referenced via **image hosting services**  
+- [ ] Support exporting to **Pandoc** documents  
+- [ ] Support exporting to **Quarto** documents  
 
 ## License
 

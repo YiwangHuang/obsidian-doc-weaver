@@ -1,43 +1,12 @@
-import { Notice, TFile, TAbstractFile, TFolder, Editor, Menu } from 'obsidian';
+import { Notice, TFile, TAbstractFile, TFolder, Menu } from 'obsidian';
 import DocWeaver from '../main';
 import { exportFormatsInfo } from './index';
 import type { ExportManagerSettings, ExportConfig } from './types';
-import { TextConverter } from './textConvert/index';
-import { extensionNameOfFormat, OutputFormat } from './textConvert/textConverter';
-import { DEBUG, debugLog } from '../lib/debugUtils';
+import { debugLog } from '../lib/debugUtils';
 import { getLocalizedText } from '../lib/textUtils';
 import { ConfirmModal } from '../lib/modalUtils';
 
 //TODO: 新增功能：直接通过typst的WebAssembly版本导出为pdf
-
-type DeepMoveCache = {
-    text: string;
-    converter: TextConverter;
-};
-
-async function deepCopy(plugin: DocWeaver, noteFile: TFile, text: string): Promise<void> {
-    const converter = new TextConverter(plugin, noteFile);
-    converter.linkParser.isRecursiveEmbedNote = false; // 默认不递归解析嵌入笔记TODO: 可以改为在设置界面中选择
-    converter.linkParser.renameExportAttachment = true; // 为附件生成新的导出名称
-    //console.log(converter.linkParser.links);//.map(link => link.path)
-    const copyText = await converter.convert(text, 'plain'); 
-    console.log(copyText);
-    plugin.commandCache['deepMove'] = {text: copyText, converter} as DeepMoveCache;
-}
-
-function deepPaste(plugin: DocWeaver, editor: Editor): void {//TODO: 为深度拷贝后的附件名中添加随机数，同时更新笔记中的链接
-    if(!plugin.commandCache['deepMove']) {
-        new Notice('No deep move cache found');
-        return;
-    }
-    const currentFile = plugin.app.workspace.getActiveFile() as TFile;
-    const {text, converter} = plugin.commandCache['deepMove'] as DeepMoveCache;
-    console.log(converter.linkParser.linkList);
-    editor.replaceRange(text, editor.getCursor());
-    if(currentFile.parent){
-        converter.copyAttachment(plugin.getPathAbs(currentFile.parent.path));
-    }
-}
 
 /**
  * 递归收集所有TFile类型的文件
@@ -225,42 +194,6 @@ export function addExportFormatsCommands(plugin: DocWeaver): void {
         })
     );
 
-    if (DEBUG) {
-        // 深度拷贝和粘贴(笔记与附件打包迁移工具)
-        plugin.registerEvent(
-            plugin.app.workspace.on("editor-menu", (menu, editor, info) => {
-                menu.addItem((item)=>
-                    item.setTitle("Deep copy")
-                        .setIcon("document")
-                        .onClick(async () => await deepCopy(plugin, plugin.app.workspace.getActiveFile() as TFile, editor.getSelection()))
-                )
-                menu.addItem((item)=>
-                    item.setTitle("Deep paste")
-                        .setIcon("document")
-                        .onClick(() => deepPaste(plugin, editor))
-                )
-            }
-        ))
-        // 调用baseConverter测试文本转换规则
-        plugin.registerEvent(
-            plugin.app.workspace.on("editor-menu", (menu, editor, info) => {
-                for (const format of Object.keys(extensionNameOfFormat)) {
-                    menu.addItem((item) =>
-                    item
-                        .setTitle(`Export ${format} test `)
-                        .setIcon("document")
-                        .onClick(async () => {
-                            // console.log(info);
-                            const content = editor.getSelection();
-                            new Notice(`选中的文本是: ${content}`);
-                            const converter = new TextConverter(plugin, plugin.app.workspace.getActiveFile() as TFile);
-                            console.log(await converter.convert(content, format as OutputFormat));
-                            // console.log(converter.linkParser.linkList);
-                            console.log(converter.md.parse(content, {}));
-                            })
-                    );
-                }
-            })
-        );
-    }
+    // DEBUG 调试代码已移除：包含 deepCopy/deepPaste（笔记与附件打包迁移工具）和
+    // TextConverter 文本转换规则测试，功能尚未完善，需要时可从 git 历史中恢复
 }

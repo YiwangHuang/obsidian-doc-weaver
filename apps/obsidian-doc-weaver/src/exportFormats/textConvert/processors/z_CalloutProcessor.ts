@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 import { BaseConverter } from '../textConverter';
-import * as url from 'url';
+// import * as url from 'url';
 
 
 
@@ -185,35 +185,35 @@ function calloutPlugin(md: MarkdownIt) {
     });
 }
 
-// 测试代码
-if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
-    const text = `
-> [!info]+ 这是一个带标题的可折叠信息块
->
-> 
-> 这是一个信息块
->
-> 第二行内容
-> - 列表项1
-> - 列表项2
->
-> ### 三级标题
-> 第三行*内容*
+// // 测试代码
+// if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
+//     const text = `
+// > [!info]+ 这是一个带标题的可折叠信息块
+// >
+// > 
+// > 这是一个信息块
+// >
+// > 第二行内容
+// > - 列表项1
+// > - 列表项2
+// >
+// > ### 三级标题
+// > 第三行*内容*
 
-> [!warning]- 这是一个带标题的不可折叠警告块
-> 警告内容
+// > [!warning]- 这是一个带标题的不可折叠警告块
+// > 警告内容
 
-> [!tip] 这是一个只有标题的提示块
-> 提示内容
+// > [!tip] 这是一个只有标题的提示块
+// > 提示内容
 
-普通文本
+// 普通文本
 
-> 普通quote
-> 1
-> 2
-`;
+// > 普通quote
+// > 1
+// > 2
+// `;
 
-    const converter = new BaseConverter('quarto');
-    console.log(converter.convert(text));
-    // console.log(converter.md.parse(text, {}));
-}
+//     const converter = new BaseConverter('quarto');
+//     console.log(converter.convert(text));
+//     // console.log(converter.md.parse(text, {}));
+// }

@@ -91,6 +91,8 @@ export default class MyPlugin extends Plugin {
         this.quickTemplateManager = new QuickTemplateManager(this);
         this.toolbarManager = new ToolbarManager(this);
 
+        await this.saveData(this.settingList);
+
         // 设置watch监听器，监听settingList的深层变化并自动保存
         // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积
         watch(() => this.settingList, debounce(async (newVal, oldVal) => {

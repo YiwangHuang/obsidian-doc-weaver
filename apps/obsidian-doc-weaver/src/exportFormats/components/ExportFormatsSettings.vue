@@ -522,7 +522,7 @@ import draggable from 'vuedraggable';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as child_process from 'child_process';
-import { FuzzySuggestModal } from 'obsidian';
+import { FuzzySuggestModal, type App as ObsidianApp } from 'obsidian';
 import type DocWeaver from '../../main';
 import { ConfirmModal } from '../../lib/modalUtils';
 import type { 
@@ -608,7 +608,7 @@ const handleAddFormat = () => {
       props.plugin.exportFormatsManager.addExportFormatItem(item);
     }
   }
-  new PresetSuggestModal(props.plugin.app).open();
+  new PresetSuggestModal(props.plugin.app as unknown as ObsidianApp).open();
 };
 
 /**

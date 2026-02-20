@@ -1,0 +1,56 @@
+name: Release Obsidian Plugin
+
+on:
+  # 推送版本标签时自动发布，例如 1.0.1 或 v1.0.1
+  push:
+    tags:
+      - "*"
+  # 允许在 GitHub 页面手动触发，便于调试发布流程
+  workflow_dispatch:
+
+permissions:
+  # 需要写权限来创建 GitHub Release 并上传附件
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # 拉取当前仓库代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 安装 pnpm，版本与项目 packageManager/lockfile 兼容即可
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      # 安装 Node.js，并启用 pnpm 依赖缓存
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # 安装依赖（使用锁文件保证可复现构建）
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 执行 monorepo 构建（会输出根目录 main.js / styles.css / manifest.json）
+      - name: Build plugin
+        run: pnpm build
+
+      # 提前校验发布必须文件，避免创建空 Release
+      - name: Verify release assets
+        run: |
+          test -f manifest.json
+          test -f main.js
+          test -f styles.css
+
+      # 创建 GitHub Release，并上传 Obsidian 社区插件要求的三个文件
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            manifest.json
+            main.js
+            styles.css

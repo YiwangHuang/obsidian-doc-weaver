@@ -4,10 +4,10 @@
 	"description": "Obsidian plugin monorepo",
 	"private": true,
 	"scripts": {
-		"dev": "pnpm --filter obsidian-doc-weaver dev",
-		"dev:all": "pnpm -r --parallel dev",
-		"build": "pnpm --filter obsidian-doc-weaver build",
-		"build:all": "pnpm --filter '*' build",
+		"dev": "turbo run dev --filter=obsidian-doc-weaver",
+		"dev:all": "turbo run dev",
+		"build": "turbo run build --filter=obsidian-doc-weaver",
+		"build:all": "turbo run build",
 		"lint": "pnpm --filter '*' lint",
 		"test": "pnpm --filter '*' test",
 		"clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules dist .turbo"

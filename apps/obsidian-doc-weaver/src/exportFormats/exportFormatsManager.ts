@@ -12,6 +12,9 @@ import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
 import { normalizeCrossPlatformPath, copyFilesRecursively } from "../lib/pathUtils";
 import { watch } from "vue";
+import { getLocalizedText } from "../lib/textUtils";
+// sass-components 编译产物，通过 ?raw 在构建时静态内联，无需运行时读文件
+import sassComponentsCSS from '../../../../packages/sass-components/dist/index.css?raw';
 // import { registerHtmlProcessor } from "./textConvert/processors/htmlProcessor";
 
 export class ExportFormatsManager {
@@ -232,6 +235,64 @@ export class ExportFormatsManager {
         console.log('打印附件信息')//
         for (const link of converter.linkParser.linkList) {
             console.log(`Path: ${link.source_path_rel_vault}, Type: ${link.type}`);
+        }
+    }
+
+    /**
+     * 下载 HMD 格式所需的 CSS 文件
+     * 合并来源：
+     *   1. packages/sass-components/dist/index.css（组件库基础样式，构建时通过 ?raw 静态内联）
+     *   2. toggleTagWrapper 中所有已启用 Tag 的 cssSnippet（标签自定义样式）
+     * 通过 Electron 原生 Save 对话框保存到用户指定路径
+     */
+    async downloadCSSForHMD(): Promise<void> {
+        try {
+            // 1. sass-components CSS 已通过 ?raw 导入，直接使用内联字符串
+            const sassCSS = sassComponentsCSS;
+
+            // 2. 收集所有已启用 Tag 的 cssSnippet
+            const enabledTagsCSS = this.plugin.tagWrapperManager.config.tags
+                .filter((tag) => tag.enabled && tag.cssSnippet?.trim())
+                .map((tag) => `/* Tag: ${tag.name} */\n${tag.cssSnippet.trim()}`)
+                .join('\n\n');
+
+            // 3. 拼合最终 CSS（保留各部分的注释分隔标记，便于阅读和维护）
+            const parts: string[] = [];
+            if (enabledTagsCSS) {
+                parts.push(`/* ===== Tag Wrapper Custom Styles ===== */\n${enabledTagsCSS}`);
+            }
+            if (sassCSS) {
+                parts.push(`/* ===== Doc Weaver Styles For Callout And Columns ===== */\n${sassCSS.trim()}`);
+            }
+            const combinedCSS = parts.join('\n\n');
+
+            // 4. 通过 Electron 原生对话框让用户选择保存路径
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const electron = (window as any).require('electron');
+            const dialog = (electron.remote ?? electron).dialog as {
+                showSaveDialog: (options: object) => Promise<{ canceled: boolean; filePath?: string }>;
+            };
+
+            const result = await dialog.showSaveDialog({
+                title: getLocalizedText({ en: 'Save CSS for HMD', zh: '保存 HMD 的 CSS 文件' }),
+                defaultPath: 'DW-styles.css',
+                filters: [{ name: 'CSS Files', extensions: ['css'] }],
+            });
+
+            if (!result.canceled && result.filePath) {
+                fs.writeFileSync(result.filePath, combinedCSS, 'utf-8');
+                new Notice(
+                    getLocalizedText({ en: 'CSS saved successfully', zh: 'CSS 已成功保存' }) +
+                        ': ' + result.filePath
+                );
+                debugLog('CSS for HMD saved to:', result.filePath);
+            }
+        } catch (error) {
+            debugLog('Error downloading CSS for HMD:', error);
+            new Notice(
+                getLocalizedText({ en: 'Failed to save CSS', zh: '保存 CSS 失败' }) +
+                    ': ' + (error as Error).message
+            );
         }
     }
     

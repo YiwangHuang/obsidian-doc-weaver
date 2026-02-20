@@ -43,6 +43,40 @@
 
     <!-- 分割线 -->
     <v-divider class="border-opacity-100 my-2" />
+
+    <!-- 下载 HMD CSS 功能区 -->
+    <div class="d-flex align-center my-2">
+      <div class="flex-grow-1">
+        <div class="text-subtitle-2 font-weight-medium">
+          {{ getLocalizedText({ en: 'Download CSS for HMD', zh: '下载 HMD CSS 文件' }) }}
+        </div>
+        <div class="text-caption text-medium-emphasis">
+          {{ getLocalizedText({
+            en: 'Download: Doc Weaver styles (for callout and columns) + enabled tag CSS snippets',
+            zh: '下载：Doc Weaver 样式（用于 callout 和 columns） + 已启用的标签 CSS 片段'
+          }) }}
+        </div>
+      </div>
+      <v-tooltip
+        :text="getLocalizedText({ en: 'Download CSS for HMD', zh: '下载 HMD CSS 文件' })"
+        location="top"
+        :open-delay="200"
+      >
+        <template #activator="{ props: tooltipProps }">
+          <v-btn
+            v-bind="tooltipProps"
+            size="small"
+            @click="props.plugin.exportFormatsManager.downloadCSSForHMD()"
+            class="icon-btn-square mx-2"
+          >
+            <Icon name="download" />
+          </v-btn>
+        </template>
+      </v-tooltip>
+    </div>
+
+    <!-- 分割线 -->
+    <v-divider class="border-opacity-100 my-2" />
   
     <div class="my-2">
       <div class="text-subtitle-2 font-weight-medium">{{ getLocalizedText({ en: "Configure Export Presets", zh: "配置导出预设" }) }}</div>

@@ -23,6 +23,9 @@ jobs:
       # 安装 pnpm，版本与项目 packageManager/lockfile 兼容即可
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          # 显式指定 pnpm 主版本，避免 workflow_dispatch 时无法推断版本
+          version: 9
 
       # 安装 Node.js，并启用 pnpm 依赖缓存
       - name: Setup Node.js

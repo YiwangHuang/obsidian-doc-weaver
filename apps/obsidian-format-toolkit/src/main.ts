@@ -35,7 +35,9 @@ import {
     ToolbarManager
 } from './toolbar/index';
 
-
+import {
+    BaseManager
+} from './base/index';
 export interface DocWeaverInstance {
     plugin: MyPlugin;
     app: App;
@@ -62,6 +64,7 @@ export default class MyPlugin extends Plugin {
     exportFormatsManager: ExportFormatsManager;
     quickTemplateManager: QuickTemplateManager;
     toolbarManager: ToolbarManager;
+    baseManager: BaseManager;
     
     // 用于控制是否启用自动保存，避免初始化时触发保存
     private enableAutoSave = false;
@@ -81,6 +84,7 @@ export default class MyPlugin extends Plugin {
         debugLog('settingList', savedData);
 
         // 初始化管理器（每个管理器会在构造函数中自动注册自己的设置）
+        this.baseManager = new BaseManager(this);
         this.exportFormatsManager = new ExportFormatsManager(this);
         this.tagWrapperManager = new TagWrapperManager(this);
         this.quickTemplateManager = new QuickTemplateManager(this);
@@ -149,6 +153,9 @@ export default class MyPlugin extends Plugin {
         }
         if (this.toolbarManager) {
             this.toolbarManager.destroy();
+        }
+        if (this.baseManager) {
+            this.baseManager.destroy();
         }
         console.log('Plugin unloaded, commands cleaned up');
 	}

@@ -3,7 +3,7 @@ import type { DocWeaverInstance } from "../main";
 import type { Command } from "obsidian";
 
 import { createApp, App as VueApp, computed, h } from "vue";
-import { toolbarInfo, ToolbarSettings, generalSettingsIO } from "./index";
+import { toolbarInfo, ToolbarSettings, toolbarSettingsIO } from "./index";
 import { debugLog } from "../lib/debugUtils";
 
 import EditingToolbar from './components/EditingToolbar.vue';
@@ -42,7 +42,7 @@ export class ToolbarManager {
         const currentSettings = this.plugin.settingList[toolbarInfo.name];
         
         // 使用 ConfigIO 类型守卫校验并自动修复设置
-        const needsReset = !currentSettings || !generalSettingsIO.isValid(currentSettings);
+        const needsReset = !currentSettings || !toolbarSettingsIO.isValid(currentSettings);
         
         if (needsReset) {
             console.log(`Initializing settings for ${toolbarInfo.name} with type checking`);
@@ -80,7 +80,7 @@ export class ToolbarManager {
         const exportFormatsItems = this.plugin.settingList[exportFormatsInfo.name] as ExportManagerSettings;
         const tagWrapperItems = this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings;
         const quickTemplateItems = this.plugin.settingList[quickTemplateInfo.name] as QuickTemplateSettings;
-        const generalItems = this.plugin.settingList[toolbarInfo.name] as ToolbarSettings;
+        const toolbarItems = this.plugin.settingList[toolbarInfo.name] as ToolbarSettings;
         
         // 创建数组副本以确保数组增减操作能被响应式系统追踪
         items.push({
@@ -109,7 +109,7 @@ export class ToolbarManager {
         });
         
         // 添加用户自定义命令（只有启用的才显示）
-        const extraCommands = generalItems.extraCommands
+        const extraCommands = toolbarItems.extraCommands
         if (extraCommands.length > 0) {
             items.push(...extraCommands.map(cmd => ({ ...cmd }))); // 创建副本追踪变化
         }
@@ -123,7 +123,7 @@ export class ToolbarManager {
     private initializeToolBar(): void {
         try {
             // 检查是否已经存在容器，如果存在则不重复创建
-            const existingContainer = document.getElementById('general-speed-dial-container');
+            const existingContainer = document.getElementById('toolbar-speed-dial-container');
             if (existingContainer) {
                 debugLog('SpeedDial container already exists, skipping initialization');
                 return;
@@ -131,7 +131,7 @@ export class ToolbarManager {
 
             // 创建容器元素
             this.toolBarContainer = document.createElement('div');
-            this.toolBarContainer.id = 'general-speed-dial-container';
+            this.toolBarContainer.id = 'toolbar-speed-dial-container';
             
             // 将容器添加到 body
             document.body.appendChild(this.toolBarContainer);
@@ -206,9 +206,9 @@ export class ToolbarManager {
                 this.toolBarContainer = null;
             }
             
-            debugLog('General manager destroyed');
+            debugLog('Toolbar manager destroyed');
         } catch (error) {
-            console.error('Failed to destroy general manager:', error);
+            console.error('Failed to destroy toolbar manager:', error);
         }
     }
 }

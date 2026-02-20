@@ -77,5 +77,5 @@ class ExtraCommandConfigIO extends ConfigIO<ExtraCommandConfig> {
     }
 }
 
-/** 单例实例：供 general 模块复用 */
+/** 单例实例：供 toolbar 模块复用 */
 export const extraCommandConfigIO = new ExtraCommandConfigIO();

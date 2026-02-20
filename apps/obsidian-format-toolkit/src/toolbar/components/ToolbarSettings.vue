@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 /**
- * General 模块设置组件
+ * Toolbar 模块设置组件
  * 提供通用模块的配置界面
  */
 

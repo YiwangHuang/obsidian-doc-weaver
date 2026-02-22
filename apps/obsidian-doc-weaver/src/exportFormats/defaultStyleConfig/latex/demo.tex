@@ -1,0 +1,92 @@
+% Demo: Obsidian-style Callout and multi-column layout in LaTeX
+% Build: pdflatex demo.tex  (for Chinese use: xelatex + ctex)
+% Requires: multicol, geometry, enumitem, lipsum
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=2cm}
+
+% 把 callout 的样式与图标定义集中在独立 sty 中，便于复用和维护。
+\usepackage{callout-boxes}
+\usepackage{multicol}
+\usepackage{paracol}
+\usepackage{enumitem}
+\usepackage{lipsum}
+
+% ========== 正文 ==========
+\begin{document}
+
+\title{Callout \& Multi-column Demo}
+\author{Obsidian-format-toolkit}
+\maketitle
+
+\section{Callout examples}
+
+\begin{callout}[note]
+This is \textbf{Note}-style content, similar to Obsidian \texttt{::: note} or \texttt{> [!note]}.
+It can contain multiple paragraphs and lists.
+\begin{itemize}[noitemsep]
+\item First item
+\item Second item
+\end{itemize}
+\end{callout}
+
+\begin{callout}[tip][Custom title]
+Tip with a custom title:
+use \texttt{tcolorbox} and set \texttt{title=\{\#1\}}.
+This matches Obsidian callout title behaviour.
+\end{callout}
+
+\begin{callout}[warning]
+Warning without custom title; the default ``Warning'' is shown. \lipsum[1][1-2]
+\end{callout}
+
+\begin{callout}[info][Info caption]
+Info box for explanatory content. Multi-column layout is in the next section.
+\end{callout}
+
+\section{Multi-column (multicol)}
+
+\begin{multicols}{2}
+\subsection*{Column one}
+\lipsum[1][1-4]
+
+\subsection*{Column two}
+\lipsum[2][1-4]
+\end{multicols}
+
+\section{Multi-column (minipage, custom ratio)}
+
+% 通过 minipage 比例模拟 ::: col|width(...) 的自定义分栏。
+% 0.58 + 0.38 + \hfill 间距 ~= 100% 可用宽度。
+\noindent
+\begin{minipage}[t]{0.58\textwidth}
+\subsection*{Left (58\%)}
+\lipsum[3][1-3]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.38\textwidth}
+\subsection*{Right (38\%)}
+\lipsum[4][1-3]
+\end{minipage}
+
+\vspace{1em}
+
+\section{Callout + columns}
+
+% 使用 paracol 做稳定的双栏排版，避免 tcbraster 在某些模板下退化为竖排。
+\columnratio{0.7,0.3}
+\begin{paracol}{2}
+\begin{callout}[tip][]
+Using callouts inside a column
+mimics Obsidian @col blocks.
+\end{callout}
+\switchcolumn
+\begin{callout}[note][Right]
+Placing note or warning boxes in each column
+creates a highlighted layout.
+\end{callout}
+\end{paracol}
+
+
+\end{document}

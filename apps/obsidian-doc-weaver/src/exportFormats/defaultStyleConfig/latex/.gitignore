@@ -1,0 +1,89 @@
+# =========================
+# LaTeX core auxiliary files
+# =========================
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.nav
+*.snm
+*.vrb
+
+# =========================
+# Bibliography (BibTeX / Biber)
+# =========================
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# =========================
+# Index / Glossary
+# =========================
+*.idx
+*.ind
+*.ilg
+*.glg
+*.glo
+*.gls
+*.ist
+*.xdy
+*.acn
+*.acr
+*.alg
+
+# =========================
+# LaTeXmk / build directories
+# =========================
+.latexmkrc
+latexmk/
+build/
+out/
+
+# =========================
+# Temporary / backup files
+# =========================
+*.bak
+*.backup
+*.tmp
+*.swp
+*.swo
+*~
+
+# =========================
+# Package-specific leftovers
+# =========================
+*.thm
+*.dvi
+*.ps
+
+# =========================
+# Beamer
+# =========================
+*.auxlock
+
+# =========================
+# OS / Editor junk
+# =========================
+.DS_Store
+.vscode/
+.idea/
+
+# =========================
+# ignore outputs
+# =========================
+*.pdf
+
+# =========================
+# Keep source files (do NOT ignore)
+# =========================
+!*.tex
+!*.bib
+!*.sty
+!*.cls

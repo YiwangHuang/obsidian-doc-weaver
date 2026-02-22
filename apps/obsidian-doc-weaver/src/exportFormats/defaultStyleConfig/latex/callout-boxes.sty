@@ -1,0 +1,172 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{callout-boxes}[2026/02/21 Obsidian-like callout boxes]
+
+% 统一管理 callout 相关依赖。
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{xcolor}
+\RequirePackage{fontawesome5}
+\RequirePackage{xparse}
+
+% ===== 颜色分组（对齐 DW_styles.typ）=====
+% 按语义分组定义主色，后续各类型复用同组颜色。
+\definecolor{dwCalloutBlue}{HTML}{448AFF}
+\definecolor{dwCalloutCyan}{HTML}{00BCD4}
+\definecolor{dwCalloutGreen}{HTML}{4CAF50}
+\definecolor{dwCalloutAmber}{HTML}{E6A700}
+\definecolor{dwCalloutOrange}{HTML}{FF9800}
+\definecolor{dwCalloutRed}{HTML}{F44336}
+\definecolor{dwCalloutDarkRed}{HTML}{E53935}
+\definecolor{dwCalloutPurple}{HTML}{7C4DFF}
+\definecolor{dwCalloutGray}{HTML}{9E9E9E}
+
+% ===== 通用基础样式 =====
+% 目标：接近 typst 版本的视觉风格（浅色背景 + 左侧色条 + 紧凑圆角块）。
+\tcbset{
+  calloutbase/.style={
+    enhanced,
+    breakable,
+    width=\linewidth,
+    before upper=\raggedright,
+    arc=5pt,
+    boxrule=0pt,
+    left=6pt,
+    right=6pt,
+    top=6pt,
+    bottom=6pt,
+    colback=#1!10,
+    colframe=#1,
+    borderline west={2pt}{0pt}{#1},
+    fonttitle=\bfseries,
+    colbacktitle=#1!10,
+    coltitle=#1!90!black,
+    titlerule=0pt,
+    before skip=0.5em,
+    after skip=0.5em,
+  }
+}
+
+% ===== 统一 callout 环境（推荐业务侧直接使用）=====
+% 用法：\begin{callout}[type][title] ... \end{callout}
+% - type 为空时默认 note
+% - title 省略或显式传空 [] 时，自动使用该 type 的默认标题
+% - 未预设 type 走默认样式：quote（灰色 + quote-left + Quote）
+\ExplSyntaxOn
+\cs_new:Npn \dw_callout_color:n #1
+  {
+    \str_case:nnF {#1}
+      {
+        {note}{dwCalloutBlue}
+        {seealso}{dwCalloutBlue}
+        {abstract}{dwCalloutCyan}
+        {summary}{dwCalloutCyan}
+        {tldr}{dwCalloutCyan}
+        {info}{dwCalloutBlue}
+        {todo}{dwCalloutBlue}
+        {tip}{dwCalloutCyan}
+        {hint}{dwCalloutCyan}
+        {important}{dwCalloutCyan}
+        {success}{dwCalloutGreen}
+        {check}{dwCalloutGreen}
+        {done}{dwCalloutGreen}
+        {question}{dwCalloutAmber}
+        {help}{dwCalloutAmber}
+        {faq}{dwCalloutAmber}
+        {warning}{dwCalloutOrange}
+        {caution}{dwCalloutOrange}
+        {attention}{dwCalloutOrange}
+        {failure}{dwCalloutRed}
+        {missing}{dwCalloutRed}
+        {danger}{dwCalloutDarkRed}
+        {error}{dwCalloutDarkRed}
+        {bug}{dwCalloutRed}
+        {example}{dwCalloutPurple}
+        {quote}{dwCalloutGray}
+        {cite}{dwCalloutGray}
+      }
+      {dwCalloutGray}
+  }
+
+\cs_new:Npn \dw_callout_icon:n #1
+  {
+    \str_case:nnF {#1}
+      {
+        {note}{sticky-note}
+        {seealso}{book-open}
+        {abstract}{list-ul}
+        {summary}{list-ul}
+        {tldr}{list-ul}
+        {info}{info-circle}
+        {todo}{tasks}
+        {tip}{lightbulb}
+        {hint}{lightbulb}
+        {important}{lightbulb}
+        {success}{check-circle}
+        {check}{check-circle}
+        {done}{check-circle}
+        {question}{question-circle}
+        {help}{question-circle}
+        {faq}{question-circle}
+        {warning}{exclamation-triangle}
+        {caution}{exclamation-triangle}
+        {attention}{exclamation-triangle}
+        {failure}{times-circle}
+        {missing}{times-circle}
+        {danger}{bolt}
+        {error}{bolt}
+        {bug}{bug}
+        {example}{list-ol}
+        {quote}{quote-left}
+        {cite}{quote-left}
+      }
+      {quote-left}
+  }
+
+\cs_new:Npn \dw_callout_default_title:n #1
+  {
+    \str_case:nnF {#1}
+      {
+        {note}{Note}
+        {seealso}{See also}
+        {abstract}{Abstract}
+        {summary}{Summary}
+        {tldr}{TL;DR}
+        {info}{Info}
+        {todo}{Todo}
+        {tip}{Tip}
+        {hint}{Hint}
+        {important}{Important}
+        {success}{Success}
+        {check}{Check}
+        {done}{Done}
+        {question}{Question}
+        {help}{Help}
+        {faq}{FAQ}
+        {warning}{Warning}
+        {caution}{Caution}
+        {attention}{Attention}
+        {failure}{Failure}
+        {missing}{Missing}
+        {danger}{Danger}
+        {error}{Error}
+        {bug}{Bug}
+        {example}{Example}
+        {quote}{Quote}
+        {cite}{Cite}
+      }
+      {Quote}
+  }
+
+\NewDocumentEnvironment{callout}{ O{note} O{} }
+  {
+    \begin{tcolorbox}[
+      calloutbase=\dw_callout_color:n{#1},
+      title={
+        \faIcon{\dw_callout_icon:n{#1}}\ 
+        \tl_if_blank:nTF {#2} {\dw_callout_default_title:n{#1}} {#2}
+      }
+    ]
+  }
+  {
+    \end{tcolorbox}
+  }
+\ExplSyntaxOff

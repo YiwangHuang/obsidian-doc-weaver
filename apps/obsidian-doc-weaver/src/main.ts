@@ -21,7 +21,8 @@ import {
     ExportFormatsManager,
     // exportToFormats,
     addExportFormatsCommands
-} from './exportFormats/index';	
+} from './exportFormats/index';
+import { debugCommands } from './exportFormats/commandsDebug';
 
 import { 
     TagWrapperManager
@@ -121,6 +122,7 @@ export default class DocWeaver extends Plugin {
         
         // 注册其他命令（保持原有方式）
         addExportFormatsCommands(this);
+        debugCommands(this);
         
         console.log('Plugin loaded with dynamic command management and reactive settings');
 	}

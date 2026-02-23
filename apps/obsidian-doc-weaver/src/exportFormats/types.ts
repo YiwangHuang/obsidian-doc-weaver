@@ -5,7 +5,6 @@
  * - exportConfigBaseIO / exportConfigTypstIO / exportConfigHMDIO / exportManagerSettingsIO：预置实例
  */
 
-import type { OutputFormat } from './textConvert/textConverter';
 import type { BaseConfig } from '../toolbar/types';
 import type { FieldDef } from '../lib/configIOUtils';
 import { ConfigIO, oneOf, between } from '../lib/configIOUtils';
@@ -22,6 +21,34 @@ import typstSlidesConfig from './defaultStyleConfig/typst/slides_config.typ?raw'
 import typstSlidesDemoZh from './defaultStyleConfig/typst/slides_demo_zh.typ?raw';
 import typstSlidesDemoEn from './defaultStyleConfig/typst/slides_demo_en.typ?raw';
 import typstCustomStyles from './defaultStyleConfig/typst/DW_styles.typ?raw';
+
+// ======================== 默认值与常量 ========================
+
+export const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
+    { value: 'typst', label: 'Typst' },
+    { value: 'HMD', label: 'HMD' },
+];
+
+// TODO: 暂时不支持，后续待开发
+// { value: 'quarto', label: 'Quarto' },
+// { value: 'plain', label: 'Plain' }
+
+export const EXCALIDRAW_EXPORT_OPTIONS = [
+    { value: 'png', label: 'PNG' },
+    { value: 'svg', label: 'SVG' },
+] as { value: 'png' | 'svg'; label: string }[];
+
+
+// 支持的输出格式类型
+export type OutputFormat = 'quarto' | 'HMD' | 'typst' | 'plain' | 'latex'; //HMD: Hybrid/HTML Markdown
+
+export const EXTENSION_MAP: Record<OutputFormat, string> = {
+    'typst': 'typ',
+    'HMD': 'md',
+    'quarto': 'qmd',
+    'plain': 'md',
+    'latex': 'tex',
+} as const;
 
 // ======================== 接口定义 ========================
 
@@ -318,25 +345,3 @@ export const exportConfigTypstIO = new ExportConfigTypstIO();
 export const exportConfigHMDIO = new ExportConfigHMDIO();
 export const exportManagerSettingsIO = new ExportManagerSettingsIO();
 
-// ======================== 默认值与常量 ========================
-
-export const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
-    { value: 'typst', label: 'Typst' },
-    { value: 'HMD', label: 'HMD' },
-];
-
-// TODO: 暂时不支持，后续待开发
-// { value: 'quarto', label: 'Quarto' },
-// { value: 'plain', label: 'Plain' }
-
-export const EXCALIDRAW_EXPORT_OPTIONS = [
-    { value: 'png', label: 'PNG' },
-    { value: 'svg', label: 'SVG' },
-] as { value: 'png' | 'svg'; label: string }[];
-
-export const EXTENSION_MAP: Record<OutputFormat, string> = {
-    'typst': 'typ',
-    'HMD': 'md',
-    'quarto': 'qmd',
-    'plain': 'md',
-} as const;

@@ -46,45 +46,6 @@ BaseConverter.registerProcessor({
         converter.md.renderer.rules.s_close = () => "]";
         // 添加高亮规则
 
-        // // 添加下划线规则，已在htmlProcessor中用重定义html_inline渲染规则实现
-        // converter.md.inline.ruler.after('backticks', 'underline', (state, silent) => {
-        //     const start = state.pos;
-            
-        //     // 检查是否以<u>开头
-        //     if (state.src.slice(start, start + 3) !== '<u>') {
-        //         return false;
-        //     }
-            
-        //     // 寻找结束标签
-        //     const endPos = state.src.indexOf('</u>', start + 3);
-        //     if (endPos === -1) {
-        //         return false;
-        //     }
-            
-        //     // 如果是静默模式，直接返回true
-        //     if (silent) {
-        //         return true;
-        //     }
-            
-        //     // 创建tokens
-        //     state.push('underline_open', 'u', 1);
-            
-        //     // 解析标签内的文本
-        //     const oldPos = state.pos;
-        //     const oldMax = state.posMax;
-        //     state.pos = start + 3;
-        //     state.posMax = endPos;
-        //     state.md.inline.tokenize(state);
-        //     state.pos = oldPos;
-        //     state.posMax = oldMax;
-            
-        //     state.push('underline_close', 'u', -1);
-            
-        //     // 更新解析位置
-        //     state.pos = endPos + 4;
-        //     return true;
-        // });
-
         // 添加下划线渲染规则
         converter.md.renderer.rules.underline_open = () => "#underline[";
         converter.md.renderer.rules.underline_close = () => "]";

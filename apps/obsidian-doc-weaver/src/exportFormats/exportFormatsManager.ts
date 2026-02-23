@@ -6,7 +6,7 @@ import type { PresetDescriptor } from "./types";
 import { exportFormatsInfo } from "./index";
 import { TextConverter } from './textConvert/index';
 import { generateTimestamp } from "../lib/idGenerator";
-import { extensionNameOfFormat } from "./textConvert/textConverter";
+import { EXTENSION_MAP } from "./types";
 import { debugLog } from "../lib/debugUtils";
 import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
@@ -199,7 +199,7 @@ export class ExportFormatsManager {
         // 设置导出配置
         const style_dir_abs = path.posix.join(this.plugin.PLUGIN_ABS_PATH, item.styleDirRel);
         const output_dir_abs = normalizeCrossPlatformPath(converter.replacePlaceholders(item.outputDirAbsTemplate)); // 跨平台路径处理
-        const output_filename = `${converter.replacePlaceholders(item.outputBasenameTemplate)}.${extensionNameOfFormat[item.format]}`;
+        const output_filename = `${converter.replacePlaceholders(item.outputBasenameTemplate)}.${EXTENSION_MAP[item.format]}`;
         const output_file_path = path.posix.join(output_dir_abs, output_filename);
 
 

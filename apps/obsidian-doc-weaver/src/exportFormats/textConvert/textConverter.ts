@@ -5,7 +5,7 @@ import type  DocWeaver  from '../../main';
 import * as fs from 'fs';
 import * as path from 'path';
 import { exportToPng, exportToSvg } from '../../lib/excalidrawUtils';
-import { ExportConfig } from '../types';
+import { ExportConfig, OutputFormat } from '../types';
 import * as placeholders from '../../lib/constant';
 import { LinkParser } from './linkParser';
 import { tagWrapperInfo, TagConfig } from '../../toggleTagWrapper';
@@ -13,15 +13,6 @@ import { debugLog } from '../../lib/debugUtils';
 import { normalizeCrossPlatformPath } from "../../lib/pathUtils";
 import { parse } from 'html-parse-string';
 
-// 支持的输出格式类型
-export type OutputFormat = 'quarto' | 'HMD' | 'typst' | 'plain'; //HMD: Hybrid/HTML Markdown
-
-export const extensionNameOfFormat: Record<OutputFormat, string> = {
-    'quarto': 'qmd',
-    'HMD': 'md',
-    'typst': 'typ',
-    'plain': 'md'
-}
 
 export type MditRule = (converter: BaseConverter|AdvancedConverter) => void;
 export type StringProcessor = (text: string, converter?: BaseConverter|AdvancedConverter) => string;

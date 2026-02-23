@@ -6,7 +6,7 @@ import { BaseConverter } from '../textConverter';
  */
 BaseConverter.registerProcessor({
     name: 'paragraphProcessor',
-    formats: ['quarto', 'HMD', 'typst'],
+    formats: ['quarto', 'HMD', 'typst', 'latex'],
     description: '处理段落格式',
     mditRuleSetup: (converter: BaseConverter) => {
         // 禁用列表规则
@@ -123,4 +123,56 @@ BaseConverter.registerProcessor({
     // postProcessor: (html: string) => {
     //     return html.replace(/<\/?[a-z][^>]*>/gi, '');
     // }
+});
+
+/**
+ * LaTeX 列表处理器
+ * 目的：将 Markdown 列表渲染为 LaTeX 的 itemize/enumerate 语法
+ */
+BaseConverter.registerProcessor({
+    name: 'listProcessor_latex',
+    formats: ['latex'],
+    description: '处理 LaTeX 列表渲染',
+    mditRuleSetup: (converter: BaseConverter) => {
+        const md = converter.md;
+        const listLevels: { ordered: boolean }[] = [];
+
+        md.renderer.rules.bullet_list_open = () => {
+            listLevels.push({ ordered: false });
+            return '\n\\begin{itemize}\n';
+        };
+
+        md.renderer.rules.bullet_list_close = () => {
+            listLevels.pop();
+            return '\\end{itemize}\n';
+        };
+
+        md.renderer.rules.ordered_list_open = () => {
+            listLevels.push({ ordered: true });
+            return '\n\\begin{enumerate}\n';
+        };
+
+        md.renderer.rules.ordered_list_close = () => {
+            listLevels.pop();
+            return '\\end{enumerate}\n';
+        };
+
+        md.renderer.rules.list_item_open = () => '\\item ';
+        md.renderer.rules.list_item_close = () => '';
+
+        // 保存默认段落规则，列表外沿用
+        const originalParagraphOpen = md.renderer.rules.paragraph_open || md.renderer.renderToken;
+        const originalParagraphClose = md.renderer.rules.paragraph_close || md.renderer.renderToken;
+
+        // 列表内不输出段落起止标记（已有 \item），仅换行；列表外保持默认
+        md.renderer.rules.paragraph_open = (tokens, idx, options, env, self) => {
+            if (listLevels.length > 0) return '';
+            return originalParagraphOpen(tokens, idx, options, env, self);
+        };
+
+        md.renderer.rules.paragraph_close = (tokens, idx, options, env, self) => {
+            if (listLevels.length > 0) return '\n';
+            return originalParagraphClose(tokens, idx, options, env, self);
+        };
+    },
 });

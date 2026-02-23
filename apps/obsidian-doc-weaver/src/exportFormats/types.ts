@@ -27,6 +27,7 @@ import typstCustomStyles from './defaultStyleConfig/typst/DW_styles.typ?raw';
 export const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
     { value: 'typst', label: 'Typst' },
     { value: 'HMD', label: 'HMD' },
+    { value: 'latex', label: 'LaTeX' },
 ];
 
 // TODO: 暂时不支持，后续待开发

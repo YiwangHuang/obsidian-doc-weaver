@@ -3,10 +3,16 @@ import Token from 'markdown-it/lib/token.mjs';
 import { BaseConverter } from '../textConverter';
 
 BaseConverter.registerProcessor({
-    name: 'codeBlockProcessor_typst',
+    name: 'codeProcessor_typst',
     formats: ['typst'],
     description: '处理代码块',
     mditRuleSetup: (converter: BaseConverter) => {
+
+        // 内联代码渲染规则
+        converter.md.renderer.rules.code_inline = (tokens, idx) => {
+            return `\`${tokens[idx].content}\``;
+        };
+
         // 自定义 fence 渲染规则
         converter.md.renderer.rules.fence = (tokens: Token[], idx: number) => {
             const token = tokens[idx];

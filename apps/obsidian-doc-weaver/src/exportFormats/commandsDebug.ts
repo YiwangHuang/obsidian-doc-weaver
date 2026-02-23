@@ -69,9 +69,8 @@ export function debugCommands(plugin: DocWeaver): void {
 
                                 const debugConfig = createDebugConfig(format);
                                 const converter = new TextConverter(plugin, file, debugConfig);
-                                const result = await converter.convert(selection, format);
-                                console.log(`[Debug Convert][${label}] result:`, result);
                                 console.log(`[Debug Convert][${label}] tokens:`, converter.md.parse(selection, {}));
+                                console.log(`[Debug Convert][${label}] result:`, await converter.convert(selection, format));
                             });
                     });
                 }

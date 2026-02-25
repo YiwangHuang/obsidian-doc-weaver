@@ -8,7 +8,7 @@ const passthrough = {
 
 BaseConverter.registerProcessor({
     name: 'mathParserRule',
-    formats: ['quarto', 'typst', 'HMD'],
+    formats: ['quarto', 'typst', 'HMD','latex'],
     description: '自定义数学公式解析规则',
     preProcessor: (text: string) => {
         const lines = text.split('\n');
@@ -68,11 +68,12 @@ BaseConverter.registerProcessor({
 
 BaseConverter.registerProcessor({
     name: 'mathRendererRule_HMD',
-    formats: ['HMD'],
+    formats: ['HMD','latex'],
     description: '自定义数学公式渲染规则',
-    mditRuleSetup: (converter: BaseConverter) => {
+    mditRuleSetup: (converter: BaseConverter) => {// TODO: 增加设置项控制是否为标号公式
         converter.md.renderer.rules.math_block = (tokens, idx) => {
-            return `\n$$\n${tokens[idx].content.trim()}\n$$\n\n`;
+            return `\n\\[\n${tokens[idx].content.trim()}\n\\]\n\n`;
+            // return `\n\\begin{equation}\n${tokens[idx].content.trim()}\n\\end{equation}\n\n`;
         };
         converter.md.renderer.rules.math_inline = (tokens, idx) => {
             return `$${tokens[idx].content.trim()}$`;

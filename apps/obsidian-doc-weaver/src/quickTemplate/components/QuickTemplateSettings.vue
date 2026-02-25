@@ -126,8 +126,8 @@
             v-model="editingTemplate.template"
             :label="getLocalizedText({ en: 'Template Content', zh: '模板内容' })"
             :placeholder="getLocalizedText({ 
-              en: 'Enter template content with placeholders...\nExample: > [!{{type}}] {{title}}\\n> {{selectedText}}',
-              zh: '输入带占位符的模板内容...\n示例：> [!{{type}}] {{title}}\\n> {{selectedText}}'
+              en: `Enter template content with placeholders...\nExample: > [!{{type}}] {{title}}\\n> ${placeholders.VAR_SELECTED_TEXT}`,
+              zh: `输入带占位符的模板内容...\n示例：> [!{{type}}] {{title}}\\n> ${placeholders.VAR_SELECTED_TEXT}`
             })"
             variant="outlined"
             rows="6"
@@ -152,6 +152,7 @@ import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import InputWithPlaceholders from '../../vue/components/InputWithPlaceholders.vue';
 import { ConfirmModal } from '../../lib/modalUtils';
+import * as placeholders from '../../lib/constant';
 
 interface QuickTemplateSettingsProps {
   plugin: DocWeaver;
@@ -169,14 +170,14 @@ const deleteTemplateIndex = ref<number | null>(null);
 
 // 模板占位符配置
 const templatePlaceholders = [
-  { value: '{{selectedText}}', description: getLocalizedText({en:'Selected text content', zh:'选中文本'}) },
-  { value: '{{date: YYYY-MM-DD}}', description: getLocalizedText({en:'Current time with format YYYY-MM-DD', zh:'当前时间，支持自定义'}) },
+  { value: placeholders.VAR_SELECTED_TEXT, description: getLocalizedText({en:'Selected text content', zh:'选中文本'}) },
+  { value: placeholders.VAR_DATE, description: getLocalizedText({en:'Current time with format YYYY-MM-DD', zh:'当前时间，支持自定义'}) },
 ];
 
 // 获取模板预览文本（简化显示） - 用于模板列表预览
 const getTemplatePreview = (template: string): string => {
   return template
-    .replace(/\{\{selectedText\}\}/g, 'Selected Text')
+    .replace(new RegExp(placeholders.VAR_SELECTED_TEXT, 'g'), 'Selected Text')
     .replace(/\{\{(\w+)\}\}/g, '$1')
     .substring(0, 50) + (template.length > 50 ? '...' : '');
 };

@@ -59,29 +59,7 @@ BaseConverter.registerProcessor({
                 .replace(/#/g, '\\#')
                 // TODO: 尝试找个更优雅的方案，比如在所有]后加/
                 .replace(/\./g, '\\.'); // 防止typst把.理解成代码
-
         };
-
-        // 添加处理iframe的规则
-        converter.md.renderer.rules.html_block = (tokens, idx) => {
-            const content = tokens[idx].content;
-            
-            // 检查是否是iframe标签
-            if (content.includes('<iframe')) {
-                // 提取src属性
-                const srcMatch = content.match(/src="([^"]+)"/);
-                if (srcMatch && srcMatch[1]) {
-                    // 返回typst格式的链接
-                    return `#link("${srcMatch[1]}")[*外部链接*] \n\n`;
-                }
-            }
-            
-            // 如果不是iframe或没有src，返回空字符串
-            return content;
-        };
-    },
-    postProcessor: (text: string) => {
-        return text.replace(/<br>/g, "#linebreak()");
     }
 });
 

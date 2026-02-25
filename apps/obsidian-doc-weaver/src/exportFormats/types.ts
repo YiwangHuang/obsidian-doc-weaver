@@ -22,6 +22,9 @@ import typstSlidesDemoZh from './defaultStyleConfig/typst/slides_demo_zh.typ?raw
 import typstSlidesDemoEn from './defaultStyleConfig/typst/slides_demo_en.typ?raw';
 import typstCustomStyles from './defaultStyleConfig/typst/DW_styles.typ?raw';
 
+import latexDemo from './defaultStyleConfig/latex/demo.tex?raw';
+import latexCustomStyles from './defaultStyleConfig/latex/DW_styles.sty?raw';
+
 // ======================== 默认值与常量 ========================
 
 export const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
@@ -124,6 +127,30 @@ const YAML_TYPST =`#import "DW_styles.typ": *
 ${placeholders.VAR_CONTENT}
 `
 
+const YAML_LATEX =`\\documentclass[11pt]{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[T1]{fontenc}
+\\usepackage{geometry}
+\\geometry{a4paper, margin=2cm}
+
+% 把 callout 的样式与图标定义集中在独立 sty 中，便于复用和维护。
+\\usepackage{DW_styles}
+\\usepackage{multicol}
+\\usepackage{paracol}
+\\usepackage{enumitem}
+\\usepackage{lipsum}
+\\usepackage{graphicx}
+\\usepackage{hyperref}
+
+% ========== 正文 ==========
+\\begin{document}
+\\title{${placeholders.VAR_NOTE_NAME}}
+\\author{anthor}
+\\maketitle
+${placeholders.VAR_CONTENT}
+\\end{document}
+`
+
 const exportConfigBase: Record<keyof ExportConfig, FieldDef> = {
     name:                   { type: 'string',  required: true },
     icon:                   { type: 'string',  required: false },
@@ -168,6 +195,16 @@ const exportConfigHMD: Record<keyof ExportConfig, FieldDef> = {
     videoLinkTemplate:      { type: 'string',  required: false, validate: (value: string) => value.includes(placeholders.VAR_ATTACHMENT_FILE_NAME), default: `![[]](${path.join('assets',placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
     audioDirAbsTemplate:    { type: 'string',  required: false, default: path.join(placeholders.VAR_OUTPUT_DIR, 'assets') },
     audioLinkTemplate:      { type: 'string',  required: false, validate: (value: string) => value.includes(placeholders.VAR_ATTACHMENT_FILE_NAME), default: `![[]](${path.join('assets',placeholders.VAR_ATTACHMENT_FILE_NAME)})` },
+}
+
+const exportConfigLatex: Record<keyof ExportConfig, FieldDef> = {
+    ...exportConfigBase,
+    icon:                   { type: 'string',  required: false, default: 'file-text' },
+    format:                 { type: 'string',  required: true,  validate: oneOf('latex'), default: 'latex' },
+    contentTemplate:        { type: 'string',  required: true,  validate: (value: string) => value.includes(placeholders.VAR_CONTENT), default: YAML_LATEX },
+    imageLinkTemplate:      { type: 'string',  required: true,  validate: (value: string) => value.includes(placeholders.VAR_ATTACHMENT_FILE_NAME), default: `\\includegraphics[width=1\\linewidth]{${path.join('assets', placeholders.VAR_ATTACHMENT_FILE_NAME)}}` },
+    processAudio:           { type: 'boolean', required: false, validate: oneOf(false), default: false },
+    processVideo:           { type: 'boolean', required: false, validate: oneOf(false), default: false },
 }
 
 
@@ -312,6 +349,26 @@ class ExportConfigHMDIO extends ExportConfigBaseIO {
     }
 }
 
+/** ExportConfig LaTeX 读写中间层 */
+class ExportConfigLatexIO extends ExportConfigBaseIO {
+    constructor() {
+        super(exportConfigLatex);
+    }
+    getPresets(): PresetDescriptor[] {
+        return [
+            {
+                name: 'LaTeX',
+                format: 'latex',
+                overrides: {},
+                themeDependencies: [
+                    { relative_path: 'DW_styles.sty', content: latexCustomStyles },
+                    { relative_path: 'demo.tex', content: latexDemo },
+                ],
+            },
+        ];
+    }
+}
+
 /** ExportManagerSettings 读写中间层，可在此扩展 Settings 特有的方法 */
 class ExportManagerSettingsIO extends ConfigIO<ExportManagerSettings> {
     constructor() {
@@ -337,6 +394,7 @@ export function getExportConfigIOByFormat(format: OutputFormat): ExportConfigBas
     switch (format) {
         case 'typst':   return exportConfigTypstIO;
         case 'HMD':     return exportConfigHMDIO;
+        case 'latex':   return exportConfigLatexIO;
         default:        return new ExportConfigBaseIO(); //TODO: 其他格式暂不支持，返回空实例
     }
 }
@@ -345,4 +403,5 @@ export function getExportConfigIOByFormat(format: OutputFormat): ExportConfigBas
 export const exportConfigTypstIO = new ExportConfigTypstIO();
 export const exportConfigHMDIO = new ExportConfigHMDIO();
 export const exportManagerSettingsIO = new ExportManagerSettingsIO();
+export const exportConfigLatexIO = new ExportConfigLatexIO();
 

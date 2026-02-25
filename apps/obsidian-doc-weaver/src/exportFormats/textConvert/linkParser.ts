@@ -4,7 +4,7 @@ import { getNoteInfo, NoteInfo } from "../../lib/noteResloveUtils";
 import * as path from 'path';
 import { generateHexId } from "../../lib/idGenerator";
 import { getHeadingText } from '../../lib/noteResloveUtils';
-import type { OutputFormat } from "./textConverter";
+import type { OutputFormat } from "../types";
 import type { Token, StateBlock } from "markdown-it";
 import { getLocalizedText } from '../../lib/textUtils';
 import { debugLog } from "../../lib/debugUtils";
@@ -437,7 +437,7 @@ LinkParser.registerRule({
     processors: [
         {
             description: "定义解析图片链接的处理器，适用所有输出格式",
-            formats: ['typst', 'HMD', 'quarto','plain'],
+            formats: ['typst', 'latex', 'HMD', 'quarto','plain'],
             processor: (linkPart, parser, mdState, linkToken) => {
                 const attachmentPath = parser.findLinkPath(linkPart);
                 if(attachmentPath === null){
@@ -500,7 +500,7 @@ function createMediaProcessors(type: 'video' | 'audio', processFlag: 'processVid
         },
         {
             description: `解析${type}链接，专用于HMD/quarto/typst格式（受开关控制）`,
-            formats: ['HMD', 'quarto', 'typst'],
+            formats: ['HMD', 'quarto', 'typst', 'latex'],
             processor: (linkPart, parser, _mdState, linkToken) => {
                 if (parser.exportConfig?.[processFlag]) {
                     const exportName = resolveAttachmentLink(linkPart, parser, type);
@@ -549,7 +549,7 @@ LinkParser.registerRule({
     processors: [
         {
             description: "定义解析嵌入笔记链接的处理器，适用所有输出格式",
-            formats: ['typst', 'HMD', 'quarto'], // 仅支持typst和quarto格式
+            formats: ['typst', 'latex', 'HMD', 'quarto'], // 仅支持typst和quarto格式
             processor: (linkPart, parser, mdState, linkToken) => {
                 
                 if(!parser.isRecursiveEmbedNote){ //TODO: 考虑深度拷贝时，拷贝excalidraw文件

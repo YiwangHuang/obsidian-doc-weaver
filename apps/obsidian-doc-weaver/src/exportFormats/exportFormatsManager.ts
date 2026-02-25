@@ -211,7 +211,7 @@ export class ExportFormatsManager {
         
         // 拷贝样式文件，过滤掉demo.typ文件
         if (fs.existsSync(style_dir_abs)) {
-            copyFilesRecursively(style_dir_abs, output_dir_abs, (fileName) => fileName !== 'demo.typ');
+            copyFilesRecursively(style_dir_abs, output_dir_abs, (fileName) => !fileName.startsWith('demo.'));
         }
         
         // converter.resetLinkParser(); // 每次导出前重置linkParser，避免重复写入链接信息

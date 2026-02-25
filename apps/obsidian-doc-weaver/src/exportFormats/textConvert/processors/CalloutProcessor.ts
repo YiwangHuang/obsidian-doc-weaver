@@ -8,7 +8,7 @@ import type { RuleBlock } from "markdown-it/lib/parser_block.mjs";
 
 BaseConverter.registerProcessor({
     name: 'calloutParseRule',
-    formats: ['quarto','typst', 'HMD'],
+    formats: ['quarto','latex','typst', 'HMD'],
     description: '解析 Callout 语法',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.use(calloutPlugin);
@@ -34,6 +34,24 @@ ${calloutTitle ? `title: [${converter.md.renderInline(calloutTitle)}],` : ''}
         converter.md.renderer.rules.callout_close = () => {
             return ']\n)\n';
         }
+    }
+});
+
+BaseConverter.registerProcessor({
+    name: 'calloutRenderRule_latex',
+    formats: ['latex'],
+    description: '自定义 callout 渲染规则',
+    mditRuleSetup: (converter: BaseConverter) => {
+        converter.md.renderer.rules.callout_open = (tokens, idx) => {
+            const token = tokens[idx];
+            const calloutType = token.attrGet('callout-type');
+            // const calloutFold = token.attrGet('callout-fold');
+            const calloutTitle = token.attrGet('callout-title');
+            return `\\begin{callout}[${calloutType}]${calloutTitle ? `[${converter.md.renderInline(calloutTitle)}]` : ''}\n`;
+        };
+        converter.md.renderer.rules.callout_close = () => {
+            return `\\end{callout}\n`;
+        };
     }
 });
 

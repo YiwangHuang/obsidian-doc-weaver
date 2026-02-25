@@ -14,7 +14,7 @@ const OBSIDIAN_LINK = 'obsidian_link';
 
 BaseConverter.registerProcessor({
     name: 'obsidianLinkParserRule',
-    formats: ['quarto', 'HMD', 'typst', 'plain'],
+    formats: ['quarto', 'latex', 'HMD', 'typst', 'plain'],
     description: '自定义双链接解析规则',
     // 确保![[...]]前后都有空行，够能被块级规则(block.ruler)识别
     preProcessor: (text: string) => {
@@ -39,7 +39,7 @@ BaseConverter.registerProcessor({
 
 BaseConverter.registerProcessor({
     name: 'obsidianLinkRendererRule',
-    formats: ['typst','HMD','quarto','plain'],
+    formats: ['typst','latex','HMD','quarto','plain'],
     description: '自定义双链接渲染规则,支持所有格式。根据附件类型(image/media)选用不同模板替换{{attachmentFileName}}占位符',
     mditRuleSetup: (converter: BaseConverter) => {
         converter.md.renderer.rules[OBSIDIAN_LINK] = (tokens, idx) => {

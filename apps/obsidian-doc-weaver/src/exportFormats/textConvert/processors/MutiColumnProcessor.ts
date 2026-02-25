@@ -5,11 +5,10 @@ import type { RuleBlock } from "markdown-it/lib/parser_block.mjs";
 
 BaseConverter.registerProcessor({
     name: 'multiColumnParserRule',
-    formats: ['quarto', 'typst', 'HMD'],
+    formats: ['quarto', 'typst', 'HMD', 'latex'],
     description: '自定义分栏格式解析规则',
     mditRuleSetup: (converter: BaseConverter) => {
-        columnsPlugin(converter.md);
-    }
+        columnsPlugin(converter.md);    }
 });
 
 
@@ -60,6 +59,33 @@ BaseConverter.registerProcessor({
       converter.md.renderer.rules.column_open = (tokens, idx, options, env, self) => {
         return self.renderToken(tokens, idx, options) + '\n';
       };
+    }
+});
+
+BaseConverter.registerProcessor({
+    name: 'multiColumnRendererRule_latex',
+    formats: ['latex'],
+    mditRuleSetup: (converter: BaseConverter) => {
+
+      converter.md.renderer.rules.columns_open = (tokens, idx) => {
+        const token = tokens[idx];
+        const widths = token.meta?.columnWidths as string[];
+        const ratios = widths.map(w => Number(w.replace(/%/g, '')) / 100).join(',');
+        return `\\columnratio{${ratios}}\n\\begin{paracol}{${widths.length}}\n`;
+      };
+
+      converter.md.renderer.rules.columns_close = () => "\\end{paracol}\n";
+
+      converter.md.renderer.rules.column_open = (tokens, idx) => {
+        // 计数方式待改进
+        for (let i = idx - 1; i >= 0; i--) {
+          if (tokens[i].type === 'columns_open') return '';
+          if (tokens[i].type === 'column_close') return '\\switchcolumn\n';
+        }
+        return '';
+      };
+
+      converter.md.renderer.rules.column_close = () => '';
     }
 });
 

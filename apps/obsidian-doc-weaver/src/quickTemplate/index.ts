@@ -42,7 +42,7 @@ const templateConfigFields: Record<keyof TemplateConfig, FieldDef> = {
     enabled:   { type: 'boolean', required: true,  default: true },
     id:        { type: 'string',  required: true },
     commandId: { type: 'string',  required: true },
-    template:  { type: 'string',  required: true,  default: '{{selectedText}}' },
+    template:  { type: 'string',  required: true,  default: placeholders.VAR_SELECTED_TEXT },
 };
 
 // ======================== ConfigIO 实例 ========================
@@ -84,7 +84,7 @@ class QuickTemplateSettingsIO extends ConfigIO<QuickTemplateSettings> {
                     id: 'quick-template-multi-column',
                     commandId: 'doc-weaver:quick-template-multi-column',
                     name: 'Multi Column (need AnyBlock plugin)',
-                    template: `:::col|width(50%, 50%)\n\n@col\n\n${placeholders.VAR_CONTENT}\n\n@col\n\n\n\n:::\n`,
+                    template: `:::col|width(50%, 50%)\n\n@col\n\n${placeholders.VAR_SELECTED_TEXT}\n\n@col\n\n\n\n:::\n`,
                     enabled: true,
                     icon: 'columns-2'
                 },
@@ -92,7 +92,7 @@ class QuickTemplateSettingsIO extends ConfigIO<QuickTemplateSettings> {
                     id: 'quick-template-callout-anyblock',
                     commandId: 'doc-weaver:quick-template-callout-anyblock',
                     name: 'Callout Tip (need AnyBlock plugin)',
-                    template: `::: tip \n\n${placeholders.VAR_CONTENT}\n\n:::`,
+                    template: `::: tip \n\n${placeholders.VAR_SELECTED_TEXT}\n\n:::`,
                     enabled: true,
                     icon: 'quote'
                 },
@@ -100,7 +100,7 @@ class QuickTemplateSettingsIO extends ConfigIO<QuickTemplateSettings> {
                     id: 'quick-template-callout',
                     commandId: 'doc-weaver:quick-template-callout',
                     name: 'Callout Tip (without AnyBlock plugin)',
-                    template: `> [!tip] \n> ${placeholders.VAR_CONTENT}`,
+                    template: `> [!tip] \n> ${placeholders.VAR_SELECTED_TEXT}`,
                     enabled: true,
                     icon: 'quote'
                 }

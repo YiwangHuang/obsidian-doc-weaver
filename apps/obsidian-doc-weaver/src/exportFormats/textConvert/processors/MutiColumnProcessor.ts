@@ -68,24 +68,18 @@ BaseConverter.registerProcessor({
     mditRuleSetup: (converter: BaseConverter) => {
 
       converter.md.renderer.rules.columns_open = (tokens, idx) => {
-        const token = tokens[idx];
-        const widths = token.meta?.columnWidths as string[];
-        const ratios = widths.map(w => Number(w.replace(/%/g, '')) / 100).join(',');
-        return `\\columnratio{${ratios}}\n\\begin{paracol}{${widths.length}}\n`;
+        return `\\begin{dwTcbraster}\n`;
       };
 
-      converter.md.renderer.rules.columns_close = () => "\\end{paracol}\n";
+      converter.md.renderer.rules.columns_close = () => "\\end{dwTcbraster}\n";
 
       converter.md.renderer.rules.column_open = (tokens, idx) => {
-        // 计数方式待改进
-        for (let i = idx - 1; i >= 0; i--) {
-          if (tokens[i].type === 'columns_open') return '';
-          if (tokens[i].type === 'column_close') return '\\switchcolumn\n';
-        }
-        return '';
+        const token = tokens[idx];
+        const width = token.meta?.columnWidth;
+        return `\\begin{tcolorbox}[raster multicolumn=${Number(width.replace(/%/g, ''))*10}]\n`;
       };
 
-      converter.md.renderer.rules.column_close = () => '';
+      converter.md.renderer.rules.column_close = () => '\\end{tcolorbox}\n';
     }
 });
 

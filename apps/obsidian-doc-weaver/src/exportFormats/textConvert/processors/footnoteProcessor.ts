@@ -4,7 +4,7 @@ import footnote from 'markdown-it-footnote';
 // 基本脚注处理器 - 注册footnote插件
 BaseConverter.registerProcessor({
     name: 'footnote',
-    formats: ['quarto', 'typst'],
+    formats: ['quarto', 'typst', 'latex'],
     description: '处理脚注语法',
     detail: '支持解析和渲染 [^1] 格式的脚注',
     mditRuleSetup: (converter: BaseConverter) => {
@@ -65,9 +65,74 @@ BaseConverter.registerProcessor({
             return '<!-- DOC_WEAVER_FOOTNOTE_END -->';
         };
     },
-    // 添加后处理函数移除脚注块
     postProcessor: (text: string) => {
-        // 移除自定义标记之间的所有内容（包括标记本身）
+        return text.replace(/<!-- DOC_WEAVER_FOOTNOTE_START -->[\s\S]*?<!-- DOC_WEAVER_FOOTNOTE_END -->/g, '');
+    }
+});
+
+// 为LaTeX格式定制脚注渲染规则
+BaseConverter.registerProcessor({
+    name: 'footnoteRenderRule_latex',
+    formats: ['latex'],
+    description: '自定义LaTeX格式的脚注渲染规则',
+    mditRuleSetup: (converter: BaseConverter) => {
+        const md = converter.md;
+        // 缓存脚注定义正文（按 footnote id 索引），供 footnote_ref 渲染时复用
+        const footnoteDict: {[id: string]: string} = {};
+
+        md.core.ruler.push('collect_footnote_info_latex', (state) => {
+            const tokens = state.tokens;
+            for (let i = 0; i < tokens.length; i++) {
+                if (tokens[i].type === 'footnote_open') {
+                    const id = String(tokens[i].meta?.id);
+                    let content = '';
+                    let j = i + 1;
+                    while (j < tokens.length && tokens[j].type !== 'footnote_close') {
+                        if (tokens[j].type === 'inline' && tokens[j].content) {
+                            content += content ? `\n${tokens[j].content}` : tokens[j].content;
+                        }
+                        j++;
+                    }
+                    if (content) {
+                        footnoteDict[id] = content;
+                    }
+                }
+            }
+            return true;
+        });
+
+        md.renderer.rules.footnote_ref = (tokens, idx, _options, env) => {
+            const meta = tokens[idx].meta ?? {};
+            const rawId = meta.id;
+            if (rawId === undefined || rawId === null) {
+                return '';
+            }
+            const id = String(rawId);
+            const subId = Number(meta.subId ?? 0);
+            const footnoteContent = footnoteDict[id] ?? '';
+            // markdown-it-footnote 会在 env 中给出每个脚注的总引用次数
+            const footnotes = (env as { footnotes?: { list?: Array<{ count?: number }> } }).footnotes;
+            const footnoteCount = footnotes?.list?.[Number(id)]?.count ?? 1;
+            const isMultiRef = footnoteCount > 1;
+
+            // subId > 0 表示同一脚注的第2次及以上引用，输出 \footref
+            if (subId > 0) {
+                return `\\footref{fn:${id}}`;
+            }
+            // 首次引用时仅在“后续还会被引用”时补 \label
+            const label = isMultiRef ? `\\label{fn:${id}}` : '';
+            return `\\footnote{${md.renderInline(footnoteContent)}${label}}`;
+        };
+
+        md.renderer.rules.footnote_block_open = () => {
+            return '<!-- DOC_WEAVER_FOOTNOTE_START -->';
+        };
+
+        md.renderer.rules.footnote_block_close = () => {
+            return '<!-- DOC_WEAVER_FOOTNOTE_END -->';
+        };
+    },
+    postProcessor: (text: string) => {
         return text.replace(/<!-- DOC_WEAVER_FOOTNOTE_START -->[\s\S]*?<!-- DOC_WEAVER_FOOTNOTE_END -->/g, '');
     }
 });

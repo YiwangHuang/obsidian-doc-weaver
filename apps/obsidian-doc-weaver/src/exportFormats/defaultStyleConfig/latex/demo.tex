@@ -14,6 +14,7 @@
 \usepackage{enumitem}
 \usepackage{lipsum}
 \usepackage{graphicx}
+% \usepackage[most]{tcolorbox}
 
 % ========== 正文 ==========
 \begin{document}
@@ -36,7 +37,7 @@ It can contain multiple paragraphs and lists.
 \begin{callout}[tip][Custom title]
 Tip with a custom title:
 use \texttt{tcolorbox} and set \texttt{title=\{\#1\}}.
-This matches Obsidian callout title behaviour.
+This matches Obsidian callout title behaviour.\footnote{Footnote inside callout should appear at page bottom.}
 \end{callout}
 
 \begin{callout}[warning]
@@ -48,6 +49,8 @@ Info box for explanatory content. Multi-column layout is in the next section.
 \end{callout}
 
 \section{Multi-column (multicol)}
+
+this is a footnote\footnote{footnote}
 
 \begin{multicols}{2}
 \subsection*{Column one}
@@ -89,5 +92,31 @@ creates a highlighted layout.
 \end{callout}
 \end{paracol}
 
+\section{tcolorbox sidebyside (ratio controllable)}
+
+% 方案1：一个 tcolorbox 内部分栏并排（70/30）
+\begin{tcolorbox}[sidebyside, sidebyside gap=5mm, righthand width=0.30\textwidth]
+Left content (about 70\%)\footnote{Footnote in sidebyside left block.}
+\tcblower
+Right content (30\%)\footnote{Footnote in sidebyside right block.}
+\end{tcolorbox}
+
+\section{tcolorbox tcbraster (ratio controllable)}
+
+% 方案2：两个独立 tcolorbox 用 tcbraster 并排（3/7）
+\begin{dwTcbraster}[raster columns=10,raster column skip=5mm]
+\begin{tcolorbox}[raster multicolumn=3]
+Left content (30\%)\footnote{Footnote in tcbraster left box.}
+\end{tcolorbox}
+\begin{tcolorbox}[raster multicolumn=3]
+Right content (30\%)\footnote{Footnote in tcbraster right box.}
+\begin{callout}[tip][title]
+123\footnote{123}
+\end{callout}
+\end{tcolorbox}
+\begin{tcolorbox}[raster multicolumn=4]
+Right content (40\%)\footnote{Footnote in tcbraster right box.}
+\end{tcolorbox}
+\end{dwTcbraster}
 
 \end{document}

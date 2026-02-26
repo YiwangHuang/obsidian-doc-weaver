@@ -1,11 +1,18 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{callout-boxes}[2026/02/21 Obsidian-like callout boxes]
+\ProvidesPackage{DW_styles}[2026/02/21 Obsidian-like callout boxes]
 
 % 统一管理 callout 相关依赖。
 \RequirePackage[most]{tcolorbox}
 \RequirePackage{xcolor}
 \RequirePackage{fontawesome5}
 \RequirePackage{xparse}
+\RequirePackage{footnote}
+\RequirePackage{etoolbox}
+\BeforeBeginEnvironment{tcolorbox}{\begin{savenotes}}
+\AfterEndEnvironment{tcolorbox}{\end{savenotes}}
+\renewcommand{\thempfootnote}{\arabic{mpfootnote}}
+% 提供 \footref 兜底，避免未加载对应宏包时报错
+\providecommand{\footref}[1]{\textsuperscript{\ref{#1}}}
 
 % ===== 颜色分组（对齐 DW_styles.typ）=====
 % 按语义分组定义主色，后续各类型复用同组颜色。
@@ -45,12 +52,80 @@
   }
 }
 
-% ===== 统一 callout 环境（推荐业务侧直接使用）=====
-% 用法：\begin{callout}[type][title] ... \end{callout}
-% - type 为空时默认 note
-% - title 省略或显式传空 [] 时，自动使用该 type 的默认标题
-% - 未预设 type 走默认样式：quote（灰色 + quote-left + Quote）
+% ===== tcbraster 脚注桥接（保证全局连续编号 + 页底输出）=====
+% 用法：\begin{dwTcbraster}[tcbraster options] ... \end{dwTcbraster}
+% - 不传参数时默认使用：raster columns=10, raster column skip=5mm
+% - 包裹的 tcolorbox 默认无边框、无底色、无内边距（全透明）
+% - 在环境内照常使用 \footnote{...}
+% - 编号按全局 footnote 计数器递增
+% - 脚注正文在环境结束后统一回放到页脚区域
 \ExplSyntaxOn
+% 使用全局栈帧管理脚注桥接，保证 callout / tcbraster 任意嵌套都安全。
+\int_new:N \g_dw_footnote_frame_int
+\seq_new:N \g_dw_footnote_frame_stack_seq
+
+\cs_new_protected:Npn \dw_footnote_frame_begin:
+  {
+    \int_gincr:N \g_dw_footnote_frame_int
+    \seq_gput_right:NV \g_dw_footnote_frame_stack_seq \g_dw_footnote_frame_int
+    \tl_set:Nx \l_tmpa_tl { \seq_item:Nn \g_dw_footnote_frame_stack_seq { -1 } }
+    \cs_gset_eq:cN { g_dw_saved_footnote_\tl_use:N \l_tmpa_tl _cs } \footnote
+    \tl_if_exist:cF { g_dw_footnote_payload_\tl_use:N \l_tmpa_tl _tl }
+      { \tl_new:c { g_dw_footnote_payload_\tl_use:N \l_tmpa_tl _tl } }
+    \tl_gclear:c { g_dw_footnote_payload_\tl_use:N \l_tmpa_tl _tl }
+  }
+
+\cs_new_protected:Npn \dw_footnote_frame_end:
+  {
+    \tl_set:Nx \l_tmpa_tl { \seq_item:Nn \g_dw_footnote_frame_stack_seq { -1 } }
+    % 嵌套场景：内层结束时不立即回放，先并入父层；
+    % 只有最外层 frame 才真正输出到页底，保证顺序与位置正确。
+    \int_compare:nNnTF { \seq_count:N \g_dw_footnote_frame_stack_seq } > { 1 }
+      {
+        \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \g_dw_footnote_frame_stack_seq { -2 } }
+        \tl_gput_right:cx { g_dw_footnote_payload_\tl_use:N \l_tmpb_tl _tl }
+          { \exp_not:v { g_dw_footnote_payload_\tl_use:N \l_tmpa_tl _tl } }
+      }
+      {
+        \tl_use:c { g_dw_footnote_payload_\tl_use:N \l_tmpa_tl _tl }
+      }
+    \cs_set_eq:Nc \footnote { g_dw_saved_footnote_\tl_use:N \l_tmpa_tl _cs }
+    \seq_gpop_right:NN \g_dw_footnote_frame_stack_seq \l_tmpb_tl
+  }
+
+\cs_new_protected:Npn \dw_bridged_footnote:n #1
+  {
+    \refstepcounter{footnote}
+    \footnotemark[\value{footnote}]
+    \tl_set:Nx \l_tmpa_tl { \seq_item:Nn \g_dw_footnote_frame_stack_seq { -1 } }
+    \tl_gput_right:cx { g_dw_footnote_payload_\tl_use:N \l_tmpa_tl _tl }
+      {
+        \exp_not:N \footnotetext[\int_eval:n { \value{footnote} }]
+          { \exp_not:n {#1} }
+      }
+  }
+
+\NewDocumentEnvironment{dwTcbraster}{ O{raster~columns=1000,~raster~column~skip=2mm} }
+  {
+    \dw_footnote_frame_begin:
+    \RenewDocumentCommand{\footnote}{m}{\dw_bridged_footnote:n{##1}}
+    \begin{tcbraster}[
+      raster~every~box/.style={
+        blanker,
+        boxsep=0pt,
+        left=0pt,
+        right=0pt,
+        top=0pt,
+        bottom=0pt
+      },
+      #1
+    ]
+  }
+  {
+    \end{tcbraster}
+    \dw_footnote_frame_end:
+  }
+
 \cs_new:Npn \dw_callout_color:n #1
   {
     \str_case:nnF {#1}
@@ -156,8 +231,15 @@
       {Quote}
   }
 
+% ===== 统一 callout 环境（推荐业务侧直接使用）=====
+% 用法：\begin{callout}[type][title] ... \end{callout}
+% - type 为空时默认 note
+% - title 省略或显式传空 [] 时，自动使用该 type 的默认标题
+% - 未预设 type 走默认样式：quote（灰色 + quote-left + Quote）
 \NewDocumentEnvironment{callout}{ O{note} O{} }
   {
+    \dw_footnote_frame_begin:
+    \RenewDocumentCommand{\footnote}{m}{\dw_bridged_footnote:n{##1}}
     \begin{tcolorbox}[
       calloutbase=\dw_callout_color:n{#1},
       title={
@@ -168,5 +250,6 @@
   }
   {
     \end{tcolorbox}
+    \dw_footnote_frame_end:
   }
 \ExplSyntaxOff

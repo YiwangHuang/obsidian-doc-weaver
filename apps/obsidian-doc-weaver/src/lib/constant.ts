@@ -28,6 +28,7 @@ export const VAR_FORMAT = "{{format}}";              // 导出格式
 export const VAR_ATTACHMENT_FILE_NAME = "{{attachmentName}}"; // 附件文件名
 export const VAR_OUTPUT_DIR = "{{outputDir}}"; // 输出目录占位符
 export const VAR_SELECTED_TEXT = "{{selectedText}}"; // 选中文本占位符
+export const VAR_TAG_CONTENT = "{{tagContent}}"; // 标签内容占位符
 // export const VAR_PARENT_DIR = "${parent}";          // 父目录
 // export const VAR_ORIGINAL_NAME = "${originalname}";  // 原始文件名
 // export const VAR_EXTENSION = "${extension}";         // 文件扩展名

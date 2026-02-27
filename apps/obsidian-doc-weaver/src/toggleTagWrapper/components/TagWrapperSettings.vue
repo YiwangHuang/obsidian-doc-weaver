@@ -123,85 +123,102 @@
       v-model:visible="modalVisible"
       :obsidian-app="props.plugin.app"
     >
-      <div v-if="editingTag">
-        <h3 class="pt-0 mt-0">
-          {{ getLocalizedText({ en: "Edit Tag Configuration", zh: "编辑标签配置" }) }}
-        </h3>
-        
-        <!-- 标签名称 -->
-        <v-text-field
-          v-model="editingTag.name"
-          :label="getLocalizedText({ en: 'Tag Name', zh: '标签名称' })"
-          variant="outlined"
-          density="compact"
-          class="mb-3"
-        />
+      <div class="tag-modal-wrapper">
+        <div v-if="editingTag" class="tag-modal-form">
+          <h3 class="pt-0 mt-0">
+            {{ getLocalizedText({ en: "Edit Tag Configuration", zh: "编辑标签配置" }) }}
+          </h3>
 
-        <!-- 标签类型和类名 -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-          <v-select
-            v-model="editingTag.tagType"
-            :label="getLocalizedText({ en: 'Tag Type', zh: '标签类型' })"
-            :items="tagTypeOptions"
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-            hide-details
-          />
-          <v-text-field
-            v-model="editingTag.tagClass"
-            :label="getLocalizedText({ en: 'CSS Class', zh: 'CSS类名' })"
-            placeholder="e.g. highlight, underline. Leave empty to match tag type only."
-            variant="outlined"
-            density="compact"
-            class="mb-3"
-          />
-        </div>
-        
-        <!-- Typst前缀 -->
-        <v-text-field
-          v-model="editingTag.typstPrefix"
-          :label="getLocalizedText({ en: 'Typst Prefix', zh: 'Typst前缀' })"
-          placeholder="e.g. #underline, #highlight"
-          :hint="getLocalizedText({ en: 'Typst function name without brackets', zh: 'Typst函数名，不包含括号' })"
-          variant="outlined"
-          density="compact"
-          class="mb-3"
-          persistent-hint
-        />
-        
-        <!-- CSS片段 -->
-        <v-textarea
-          v-model="editingTag.cssSnippet"
-          :label="getLocalizedText({ en: 'CSS Snippet', zh: 'CSS 片段' })"
-          :placeholder="getLocalizedText({ 
-            en: 'Enter CSS styles...\nExample:\n.my-tag {\n  color: red;\n  font-weight: bold;\n}',
-            zh: '输入CSS样式...\n示例：\n.my-tag {\n  color: red;\n  font-weight: bold;\n}'
-          })"
-          variant="outlined"
-          rows="6"
-          density="compact"
-          class="mb-3"
-        />
+          <RailSidebar v-model="activeSectionId" :sections="modalSectionsLocalized">
+            <template v-if="activeSectionId === 'basic'">
+              <!-- 标签名称 -->
+              <v-text-field
+                v-model="editingTag.name"
+                :label="getLocalizedText({ en: 'Tag Name', zh: '标签名称' })"
+                variant="outlined"
+                density="compact"
+                class="mb-3"
+              />
 
-        <!-- 预览 -->
-        <PreviewPanel
-          v-if="editingTag"
-          :title="getLocalizedText({ en: 'Live Preview', zh: '实时预览' })"
-          content=" "
-        >
-          <!-- 带样式的HTML预览，通过插槽覆盖显示在预览面板上方 -->
-          <!-- 标签结构预览 -->
-          <div class="d-flex align-center">
+              <!-- 标签类型和类名 -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <v-select
+                  v-model="editingTag.tagType"
+                  :label="getLocalizedText({ en: 'Tag Type', zh: '标签类型' })"
+                  :items="tagTypeOptions"
+                  variant="outlined"
+                  density="compact"
+                  class="mb-3"
+                  hide-details
+                />
+                <v-text-field
+                  v-model="editingTag.tagClass"
+                  :label="getLocalizedText({ en: 'CSS Class', zh: 'CSS类名' })"
+                  placeholder="e.g. highlight, underline. Leave empty to match tag type only."
+                  variant="outlined"
+                  density="compact"
+                  class="mb-3"
+                />
+              </div>
+
+              <!-- CSS片段 -->
+              <v-textarea
+                v-model="editingTag.cssSnippet"
+                :label="getLocalizedText({ en: 'CSS Snippet', zh: 'CSS 片段' })"
+                :placeholder="getLocalizedText({
+                  en: 'Enter CSS styles...\nExample:\n.my-tag {\n  color: red;\n  font-weight: bold;\n}',
+                  zh: '输入CSS样式...\n示例：\n.my-tag {\n  color: red;\n  font-weight: bold;\n}'
+                })"
+                variant="outlined"
+                rows="6"
+                density="compact"
+                class="mb-3"
+              />
+
+              <!-- 预览 -->
+              <PreviewPanel
+                v-if="editingTag"
+                :title="getLocalizedText({ en: 'Preview', zh: '预览' })"
+                content=" "
+              >
+                <!-- 带样式的HTML预览，通过插槽覆盖显示在预览面板上方 -->
+                <!-- 标签结构预览 -->
+                <div class="d-flex align-center">
                   <span>{{ generateStartTagFromConfig(editingTag) }}</span>
-                  <span>{{ getLocalizedText({ en: "Text", zh: "文本" }) }}</span>
+                  <span>{{ sampleText }}</span>
                   <span>{{ generateEndTagFromConfig(editingTag) }}</span>
-          </div>
-          <!-- 推导符号 -->
-          <span class="mx-2" style="font-size: 1.2em; color: var(--text-accent);">⟹</span>
-          <!-- CSS 样式渲染预览 -->
-          <div v-html="styledPreviewHtml"></div>
-        </PreviewPanel>
+                </div>
+                <!-- 推导符号 -->
+                <span class="mx-2" style="font-size: 1.2em; color: var(--text-accent);">⟹</span>
+                <!-- CSS 样式渲染预览 -->
+                <div v-html="styledPreviewHtml"></div>
+              </PreviewPanel>
+            </template>
+
+            <template v-else-if="activeSectionId === 'export-mapping'">
+              <InputWithPlaceholders :placeholders="tagTemplatePlaceholders">
+                <v-text-field
+                  v-model="editingTag.mapToTypst"
+                  :label="getLocalizedText({ en: 'Typst Template', zh: 'Typst模板' })"
+                  placeholder="e.g. #DW_underline[{{tagContent}}]"
+                  variant="outlined"
+                  density="compact"
+                  class="mb-3"
+                />
+              </InputWithPlaceholders>
+              <InputWithPlaceholders :placeholders="tagTemplatePlaceholders">
+                <v-text-field
+                  v-model="editingTag.mapToLatex"
+                  :label="getLocalizedText({ en: 'LaTeX Template', zh: 'LaTeX模板' })"
+                  placeholder="e.g. \underline{{{tagContent}}}"
+                  variant="outlined"
+                  density="compact"
+                  class="mb-3"
+                />
+              </InputWithPlaceholders>
+            </template>
+          </RailSidebar>
+        </div>
       </div>
     </ObsidianVueModal>
 
@@ -241,7 +258,10 @@ import Icon from '../../vue/components/Icon.vue';
 import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
+import RailSidebar from '../../vue/components/RailSidebar.vue';
+import InputWithPlaceholders from '../../vue/components/InputWithPlaceholders.vue';
 import { OBSIDIAN_PRIMARY_COLOR } from '../../vue/plugins/vuetify';
+import * as placeholders from '../../lib/constant';
 import { ConfirmModal } from '../../lib/modalUtils';
 
 interface TagWrapperSettingsProps {
@@ -257,6 +277,20 @@ const configs = props.plugin.settingList[tagWrapperInfo.name] as TagWrapperSetti
 const modalVisible = ref(false);
 const editingTag = ref<TagConfig | null>(null);
 const deleteTagIndex = ref<number | null>(null);
+const activeSectionId = ref('basic');
+
+const modalSections = [
+  { id: 'basic', icon: 'settings', title: { en: 'Basic', zh: '基本设置' } },
+  { id: 'export-mapping', icon: 'link', title: { en: 'Export Mapping', zh: '导出映射' } },
+];
+
+const modalSectionsLocalized = computed(() =>
+  modalSections.map(section => ({
+    id: section.id,
+    icon: section.icon,
+    title: getLocalizedText(section.title),
+  }))
+);
 
 // 标签类型选项
 const tagTypeOptions = [
@@ -265,6 +299,11 @@ const tagTypeOptions = [
   { title: 'u (underline)', value: 'u' },
   { title: 'i (italic)', value: 'i' },
   { title: 's (strikethrough)', value: 's' }
+];
+
+// 导出模板快捷占位符（Typst / LaTeX 共用）
+const tagTemplatePlaceholders = [
+  { value: placeholders.VAR_TAG_CONTENT, description: getLocalizedText({ en: 'Tag content', zh: '标签内容' }) },
 ];
 
 // 固定的示例文本
@@ -303,6 +342,7 @@ const handleTagEnabledChange = (index: number, enabled: boolean) => {
 
 const openTagModal = (index: number) => {
   editingTag.value = configs.tags[index];
+  activeSectionId.value = 'basic';
   modalVisible.value = true;
 };
 
@@ -339,6 +379,22 @@ const cancelDelete = () => {
 
 .v-card--chosen {
   cursor: grabbing !important;
+}
+
+/* 标签编辑弹窗布局容器 */
+.tag-modal-wrapper {
+  width: 820px;
+  max-width: 90vw;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* 标签编辑弹窗内容区 */
+.tag-modal-form {
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* 标签类型芯片样式 - 规定尺寸和外观，与导出格式设置保持一致 */

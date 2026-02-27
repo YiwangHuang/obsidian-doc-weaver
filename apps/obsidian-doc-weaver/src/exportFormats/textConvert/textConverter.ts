@@ -1,5 +1,5 @@
 import MarkdownIt from 'markdown-it';
-import { TFile } from 'obsidian';
+import { TFile, Notice } from 'obsidian';
 import type  DocWeaver  from '../../main';
 // import * as url from 'url';
 import * as fs from 'fs';
@@ -10,6 +10,7 @@ import * as placeholders from '../../lib/constant';
 import { LinkParser } from './linkParser';
 import { tagWrapperInfo, TagConfig } from '../../toggleTagWrapper';
 import { debugLog } from '../../lib/debugUtils';
+import { getLocalizedText } from '../../lib/textUtils';
 import { normalizeCrossPlatformPath } from "../../lib/pathUtils";
 import { parse } from 'html-parse-string';
 
@@ -304,16 +305,21 @@ export class AdvancedConverter extends BaseConverter{
         
         // 向转换器实例注册自定义处理器
         converter.registerProcessor({
-            name: 'customHtmlProcessor', // 处理器名称，避免与静态处理器冲突
-            formats: ['typst'], // 支持的输出格式
-            description: '处理HTML格式', // 处理器描述
+            name: 'customHtmlProcessor',
+            formats: ['typst', 'latex'],
+            description: '处理HTML格式',
             mditRuleSetup: (converter: BaseConverter) => {
                 // 在markdown-it的inline阶段之后添加自定义规则
                 // 此时所有HTML标签已被识别为html_inline类型的token
                 converter.md.core.ruler.after('inline', 'custom_html_processor', (state) => {
                     // 输出调试信息，显示待处理的token总数
                     console.log('自定义HTML处理器被调用，tokens数量:', state.tokens.length);
-                    
+
+                    // 根据当前导出格式选择对应的模板字段
+                    const templateKey: keyof TagConfig =
+                        converter.format === 'latex' ? 'mapToLatex' : 'mapToTypst';
+                    const formatLabel = converter.format === 'latex' ? 'LaTeX' : 'Typst';
+
                     // 遍历解析状态中的所有token
                     for (let i = 0; i < state.tokens.length; i++) {
                         const token = state.tokens[i];
@@ -361,35 +367,38 @@ export class AdvancedConverter extends BaseConverter{
                                             
                                             // 遍历排序后的配置，查找匹配的标签
                                             for (const config of sortedConfigs) {
-                                                // 检查标签名是否匹配配置中的标签类型
                                                 if (htmlNode.name === config.tagType) {
-                                                    
+                                                    const template = config[templateKey] as string;
+
+                                                    // 检查模板是否包含占位符
+                                                    if (!template.includes(placeholders.VAR_TAG_CONTENT)) {
+                                                        new Notice(getLocalizedText({
+                                                            en: `Tag "${config.name}" ${formatLabel} template is missing placeholder ${placeholders.VAR_TAG_CONTENT}`,
+                                                            zh: `标签 "${config.name}" 的 ${formatLabel} 模板缺少占位符 ${placeholders.VAR_TAG_CONTENT}`,
+                                                        }));
+                                                        break;
+                                                    }
+                                                    const [tplPrefix, tplSuffix] = template.split(placeholders.VAR_TAG_CONTENT);
+
                                                     if (isClosingTag) {
-                                                        // 结束标签处理：只需检查标签名匹配，无需检查class
-                                                        // debugLog('htmlProcessor found end tag:', childToken.content);
-                                                        // 将结束标签替换为Typst的右括号
-                                                        childToken.content = "]";
-                                                        break; // 找到匹配后跳出配置循环
+                                                        // 结束标签替换为模板后缀
+                                                        childToken.content = tplSuffix ?? "";
+                                                        break;
                                                     } else {
-                                                        // 开始标签处理：需要检查class属性是否匹配
+                                                        // 开始标签：需要检查 class 属性是否匹配
                                                         const classAttr = htmlNode.attrs.find(attr => attr.name === 'class');
-                                                        
-                                                        // 检查class属性值是否与配置匹配
+
                                                         let classMatches = false;
-                                                        
                                                         if (config.tagClass.trim() === '') {
-                                                            // 配置中class为空，只需匹配标签类型
                                                             classMatches = true;
                                                         } else {
-                                                            // 配置中class不为空，需要class属性值完全匹配
                                                             classMatches = !!(classAttr && classAttr.value === config.tagClass);
                                                         }
-                                                        
+
                                                         if (classMatches) {
-                                                            // debugLog('htmlProcessor found start tag:', childToken.content);
-                                                            // 将开始标签替换为Typst格式的前缀和左括号
-                                                            childToken.content = config.typstPrefix + "[";
-                                                            break; // 找到匹配后跳出配置循环
+                                                            // 开始标签替换为模板前缀
+                                                            childToken.content = tplPrefix;
+                                                            break;
                                                         }
                                                     }
                                                 }

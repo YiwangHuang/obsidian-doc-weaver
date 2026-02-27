@@ -2,6 +2,7 @@ import type { BaseConfig } from "../toolbar/types";
 import type { FieldDef } from "../lib/configIOUtils";
 import { ConfigIO, oneOf } from "../lib/configIOUtils";
 import {getLocalizedText} from "../lib/textUtils";
+import { VAR_TAG_CONTENT } from "../lib/constant";
 /**
  * Toggle Tag Wrapper模块的类型定义
  */
@@ -16,8 +17,10 @@ export interface TagConfig extends BaseConfig {
     tagType: 'span' | 'font' | 'u' | 'i' | 's';
     /** HTML标签的class属性值，空字符串表示只匹配标签类型 */
     tagClass: string;
-    /** Typst格式的前缀，不包含"[" */
-    typstPrefix: string;
+    /** Typst 导出模板，使用 {{tagContent}} 作为内容占位符，如 #DW_underline[{{tagContent}}] */
+    mapToTypst: string;
+    /** LaTeX 导出模板，使用 {{tagContent}} 作为内容占位符，如 \underline{{{tagContent}}} */
+    mapToLatex: string;
     /** CSS 片段，会根据启用状态热插拔到 Obsidian */
     cssSnippet: string;
 }
@@ -66,7 +69,8 @@ const tagConfigFields: Record<keyof TagConfig, FieldDef> = {
     commandId:   { type: 'string',  required: true },
     tagType:     { type: 'string',  required: true,  validate: oneOf('span', 'font', 'u', 'i', 's'), default: 'u' },
     tagClass:    { type: 'string',  required: true,  default: '' },
-    typstPrefix: { type: 'string',  required: true,  default: '' },
+    mapToTypst: { type: 'string',  required: true,  default: '' },
+    mapToLatex: { type: 'string',  required: true,  default: '' },
     cssSnippet:  { type: 'string',  required: true,  default: '' },
 };
 
@@ -112,7 +116,8 @@ class TagWrapperSettingsIO extends ConfigIO<TagWrapperSettings> {
                     commandId: 'doc-weaver:toggle-underline',
                     name: 'Underline',
                     icon: 'underline',
-                    typstPrefix: '#DW_underline',
+                    mapToTypst: `#DW_underline[${VAR_TAG_CONTENT}]`,
+                    mapToLatex: `\\underline{{{tagContent}}}`,
                     cssSnippet: getLocalizedText({
                         en: `/* Re-draw underline using border instead of text-decoration to avoid rendering issues with LaTeX math formulas */
 u {
@@ -138,7 +143,8 @@ u {
                     icon: 'type',
                     tagType: 'font',
                     tagClass: 'highlight',
-                    typstPrefix: '#text(fill: red)',
+                    mapToTypst: `#text(fill: red)[${VAR_TAG_CONTENT}]`,
+                    mapToLatex: `\\highlight{{{tagContent}}}`,
                     cssSnippet: getLocalizedText({
                         en: `/* Highlight text with red color */
     font.highlight  {

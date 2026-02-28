@@ -10,6 +10,7 @@ import { EXTENSION_MAP } from "./types";
 import { debugLog } from "../lib/debugUtils";
 import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
+import { isExcalidrawNote } from "../lib/excalidrawUtils";
 import { normalizeCrossPlatformPath, copyFilesRecursively } from "../lib/pathUtils";
 import { watch } from "vue";
 import { getLocalizedText } from "../lib/textUtils";
@@ -196,7 +197,7 @@ export class ExportFormatsManager {
      */
     async executeExport(item: ExportConfig, sourceFile: TFile): Promise<void> {
         // 预检查和实例化文本转换器
-        if (sourceFile.extension !== 'md' || sourceFile.path.endsWith('.excalidraw.md')) {
+        if (sourceFile.extension !== 'md' || isExcalidrawNote(this.plugin, sourceFile)) {
             new Notice(`${sourceFile.basename} is not markdown files, only markdown files can be parsed to export.`);
             return;
         }

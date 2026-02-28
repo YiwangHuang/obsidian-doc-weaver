@@ -80,12 +80,13 @@ export class BaseConverter {
         this.format = format;
         processors.forEach(p => {
             if (p.formats.includes(format)) {
-                // 添加前置处理器
-                p.preProcessor && this.preProcessors.push(p.preProcessor);
-                // 设置 markdown-it 规则
+                if (p.preProcessor) {
+                    this.preProcessors.push(p.preProcessor);
+                }
                 p.mditRuleSetup?.(this);
-                // 添加后置处理器
-                p.postProcessor && this.postProcessors.push(p.postProcessor);
+                if (p.postProcessor) {
+                    this.postProcessors.push(p.postProcessor);
+                }
             }
         });
     }
@@ -112,7 +113,9 @@ export class BaseConverter {
      * @returns 转换后的文本
      */
     public async convert(text: string, format?: OutputFormat): Promise<string> {
-        format && this.setFormat(format);
+        if (format) {
+            this.setFormat(format);
+        }
         // 串行处理所有前置处理器
         for (const processor of this.preProcessors) {
             text = await Promise.resolve(processor(text, this));

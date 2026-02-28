@@ -85,6 +85,16 @@ export async function exportToSvg(
 }
 
 /**
+ * 判断笔记是否属于excalidraw文件
+ * @param plugin 插件实例
+ * @param noteFile 笔记文件对象
+ * @returns 是否属于excalidraw文件
+ */
+export function isExcalidrawNote(plugin: DocWeaver, noteFile: TFile): boolean {
+    return plugin.app.metadataCache.getFileCache(noteFile)?.frontmatter?.['excalidraw-plugin'] === 'parsed';
+}
+
+/**
  * 检查Excalidraw插件是否已安装
  * @param plugin 插件实例
  * @returns boolean

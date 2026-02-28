@@ -42,7 +42,7 @@ export function debugCommands(plugin: DocWeaver): void {
     plugin.registerEvent(
         plugin.app.workspace.on("editor-menu", (menu, editor, info) => {
             menu.addItem((item) => {
-                item.setTitle("Debug: Export Preview")
+                item.setTitle("Debug: export preview")
                     .setIcon("bug");
 
                 item.setSubmenu();

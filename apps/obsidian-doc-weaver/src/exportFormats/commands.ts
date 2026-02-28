@@ -6,22 +6,26 @@ import type { ExportManagerSettings, ExportConfig } from './types';
 import { debugLog } from '../lib/debugUtils';
 import { getLocalizedText } from '../lib/textUtils';
 import { ConfirmModal } from '../lib/modalUtils';
+import { isExcalidrawNote } from '../lib/excalidrawUtils';
 
 //TODO: 新增功能：直接通过typst的WebAssembly版本导出为pdf
 
 /**
  * 递归收集所有TFile类型的文件
  * @param abstractFiles - 抽象文件或文件夹数组
+ * @param plugin - 插件实例
  * @returns 所有TFile类型的文件列表
  */
-function collectAllFiles(abstractFiles: TAbstractFile[]): TFile[] {
+function collectAllFiles(abstractFiles: TAbstractFile[], plugin: DocWeaver): TFile[] {
     const fileList: TFile[] = [];
     
     // 递归遍历处理单个抽象文件
     function processFile(file: TAbstractFile): void {
         if (file instanceof TFile) {
             // 如果是TFile，直接添加到列表
-            file.extension==='md'&&!file.path.endsWith('.excalidraw.md')&&fileList.push(file);
+            if(file.extension==='md'&&!isExcalidrawNote(plugin, file)){
+                fileList.push(file);
+            }
         } else if (file instanceof TFolder) {
             // 如果是TFolder，递归遍历其children属性
             file.children.forEach(child => processFile(child));
@@ -52,7 +56,7 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
     }
 
     // 建立待导出文件列表：递归处理文件和文件夹，收集所有TFile
-    const filesToExport = collectAllFiles(files);
+    const filesToExport = collectAllFiles(files, plugin);
     
     debugLog('filesToExport', filesToExport);
 
@@ -103,7 +107,7 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
                                 filesToExport.forEach(file => {
                                     // exportToFormats(plugin, file);
                                     for (const config of enabledConfigs) {
-                                        plugin.exportFormatsManager.executeExport(config, file);
+                                        void plugin.exportFormatsManager.executeExport(config, file);
                                     }
                                 });
                             }
@@ -113,7 +117,7 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
                         filesToExport.forEach(file => {
                             // exportToFormats(plugin, file);
                             for (const config of enabledConfigs) {
-                                plugin.exportFormatsManager.executeExport(config, file);
+                                void plugin.exportFormatsManager.executeExport(config, file);
                             }
                         });
                     }
@@ -130,7 +134,7 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
                     // 使用自定义名称或默认格式名称
                     .setTitle(config.name || config.format)
                     .setIcon(config.icon || "file-text")
-                    .onClick(async () => {
+                    .onClick(() => {
                         // 如果要导出的文件数量大于1，弹出确认窗口
                         if (filesToExport.length > 1) {
                             const formatName = config.name || config.format;
@@ -143,11 +147,11 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
                             new ConfirmModal(
                                 plugin.app,
                                 confirmMessage,
-                                async () => {
+                                () => {
                                     // 确认后执行导出
                                     for (const file of filesToExport) {
                                         // await exportToSingleFormat(plugin, file, config);
-                                        await plugin.exportFormatsManager.executeExport(config, file);
+                                        void plugin.exportFormatsManager.executeExport(config, file);
                                     }
                                 }
                             ).open();
@@ -155,7 +159,7 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
                             // 只有一个文件时直接导出，无需确认
                             for (const file of filesToExport) {
                                 // await exportToSingleFormat(plugin, file, config);
-                                await plugin.exportFormatsManager.executeExport(config, file);
+                                void plugin.exportFormatsManager.executeExport(config, file);
                             }
                         }
                     });

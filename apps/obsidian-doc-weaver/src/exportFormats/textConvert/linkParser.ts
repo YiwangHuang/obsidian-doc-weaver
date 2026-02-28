@@ -14,6 +14,7 @@ import { debugLog } from "../../lib/debugUtils";
 // 适配"moduleResolution": "bundler"
 
 import { getLinkpath } from "obsidian";
+import { isExcalidrawNote as isExcalidrawNoteUtil } from "../../lib/excalidrawUtils";
 // 定义视频、音频和图片扩展名列表
 export const videoExtensions = ['mp4', 'mkv', 'mov', 'avi', 'wmv', 'flv', 'webm', 'm4v']
 
@@ -176,8 +177,7 @@ export class LinkParser {
      * @returns 是否属于excalidraw文件
      */
     public isExcalidrawNote(noteFile: TFile): boolean {
-        // console.log(this.converter.plugin.app.metadataCache.getFileCache(noteFile)?.frontmatter?.excalidraw);
-        return this.converter.plugin.app.metadataCache.getFileCache(noteFile)?.frontmatter?.['excalidraw-plugin']==='parsed';
+        return isExcalidrawNoteUtil(this.converter.plugin, noteFile);
     }
     
     /**
@@ -566,11 +566,11 @@ LinkParser.registerRule({
                     if(parser.renameExportAttachment){
                         exportName = parser.addHexId(exportName);
                     }
-                    parser.exportConfig?.excalidrawExportType === 'svg'?
-                    exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg'):
-                    exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png'); 
-                    
-
+                    if (parser.exportConfig?.excalidrawExportType==='svg'){
+                        exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.svg');
+                    } else {
+                        exportName = exportName.replace(/\./g,'_').replace(/_md$/, '.png');
+                    }
                     parser.addLink({output_filename: exportName, source_path_rel_vault: embedNoteFile.path, type: 'excalidraw'});// 添加到链接列表中
                     linkToken.hidden = false;
                     linkToken.content = exportName;

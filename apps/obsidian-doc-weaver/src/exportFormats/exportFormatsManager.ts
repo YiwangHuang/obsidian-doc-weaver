@@ -156,7 +156,15 @@ export class ExportFormatsManager {
         const command: Command = {
             id: item.id, //此id非彼id，在plugin外调用命令所需的commandId需要再前面添加'doc-weaver:'
             name: item.name,
-            callback: async () => await this.executeExport(item, this.plugin.app.workspace.getActiveFile() as TFile)
+            callback: async () => {
+                const activeFile = this.plugin.app.workspace.getActiveFile();
+                if (activeFile instanceof TFile) {
+                    await this.executeExport(item, activeFile);
+                } else {
+                    new Notice("No active file found. Please open a markdown note first.");
+                    return;
+                }
+            }
         };
         this.plugin.addCommand(command);
     }

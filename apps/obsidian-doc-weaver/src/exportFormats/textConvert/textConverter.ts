@@ -16,7 +16,8 @@ import { parse } from 'html-parse-string';
 
 
 export type MditRule = (converter: BaseConverter|AdvancedConverter) => void;
-export type StringProcessor = (text: string, converter?: BaseConverter|AdvancedConverter) => string;
+/** 支持同步或异步的字符串处理器，便于后续扩展 I/O 等异步逻辑 */
+export type StringProcessor = (text: string, converter?: BaseConverter|AdvancedConverter) => string | Promise<string>;
 
 export interface ConverterProcessor {
     name: string;
@@ -102,13 +103,6 @@ export class BaseConverter {
         // 再加载实例级别的处理器
         this.pushProcessorsByFormat(this.instanceProcessors, format);
     }
-    // 独立出来方便在linkProcessor.ts中对嵌入笔记的文本进行前处理
-    public preProcess(text: string): string{
-        for (const processor of this.preProcessors) {
-            text = processor(text, this);
-        }
-        return text;
-    }
 
     /**
      * 将文本转换为指定格式
@@ -119,15 +113,14 @@ export class BaseConverter {
     public async convert(text: string, format?: OutputFormat): Promise<string> {
         format && this.setFormat(format);
         // 串行处理所有前置处理器
-        text = this.preProcess(text);
-        
+        for (const processor of this.preProcessors) {
+            text = await Promise.resolve(processor(text, this));
+        }
         text = this.md.render(text);
-        
         // 串行处理所有后置处理器
         for (const processor of this.postProcessors) {
-            text = processor(text, this);
+            text = await Promise.resolve(processor(text, this));
         }
-        
         return text;
     }
 }

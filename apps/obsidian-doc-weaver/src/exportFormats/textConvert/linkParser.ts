@@ -172,13 +172,10 @@ export class LinkParser {
 
     /**
      * 判断笔记是否属于excalidraw文件
-     * @param noteFile 笔记文件路径或文件对象
+     * @param noteFile 笔记文件对象
      * @returns 是否属于excalidraw文件
      */
-    public isExcalidrawNote(noteFile: TFile|string): boolean {
-        if(typeof noteFile === 'string'){
-            noteFile = this.converter.plugin.app.vault.getFileByPath(noteFile) as TFile;
-        }
+    public isExcalidrawNote(noteFile: TFile): boolean {
         // console.log(this.converter.plugin.app.metadataCache.getFileCache(noteFile)?.frontmatter?.excalidraw);
         return this.converter.plugin.app.metadataCache.getFileCache(noteFile)?.frontmatter?.['excalidraw-plugin']==='parsed';
     }

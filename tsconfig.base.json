@@ -18,6 +18,7 @@
     "noImplicitAny": true,
     // 决定如何处理模块导入，node策略按照Node.js规则解析模块
     "moduleResolution": "node", //"bundler"
+    "preserveSymlinks": true,
     // 从tslib导入辅助函数，减小生成的代码体积
     "importHelpers": true,
     // 确保每个文件可以单独编译，有利于编译性能和工具兼容性

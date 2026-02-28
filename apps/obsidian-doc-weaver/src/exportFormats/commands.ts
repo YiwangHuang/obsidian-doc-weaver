@@ -174,8 +174,14 @@ export function addExportFormatsCommands(plugin: DocWeaver): void {
                 new Notice("No enabled export formats found. Please enable at least one format in settings.");
                 return;
             }
-            for (const config of enabledConfigs) {
-                plugin.exportFormatsManager.executeExport(config, plugin.app.workspace.getActiveFile() as TFile);
+            const activeFile = plugin.app.workspace.getActiveFile();
+            if (activeFile instanceof TFile) {
+                for (const config of enabledConfigs) {
+                    await plugin.exportFormatsManager.executeExport(config, activeFile);
+                }
+            } else {
+                new Notice("No active file found. Please open a markdown file first.");
+                return;
             }
         }
     });

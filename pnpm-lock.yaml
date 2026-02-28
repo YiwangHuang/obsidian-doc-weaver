@@ -98,8 +98,8 @@ importers:
         specifier: ^2.29.4
         version: 2.29.4
       obsidian:
-        specifier: latest
-        version: 1.12.2(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
+        specifier: ^1.12.3
+        version: 1.12.3(@codemirror/state@6.5.2)(@codemirror/view@6.36.5)
       tslib:
         specifier: 2.4.0
         version: 2.4.0
@@ -1470,8 +1470,8 @@ packages:
     resolution: {integrity: sha512-ppwTtiJZq0O/ai0z7yfudtBpWIoxM8yE6nHi1X47eFR2EWORqfbu6CnPlNsjeN683eT0qG6H/Pyf9fCcvjnnnQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  obsidian@1.12.2:
-    resolution: {integrity: sha512-DGAzpt6vo+sMDET/o8Zj26Bj2hbHrFsNUU8TtnzCyerO/OHksMFQnU9QEnPHVsOMstt/WnHXfC56j2r1syObWg==}
+  obsidian@1.12.3:
+    resolution: {integrity: sha512-HxWqe763dOqzXjnNiHmAJTRERN8KILBSqxDSEqbeSr7W8R8Jxezzbca+nz1LiiqXnMpM8lV2jzAezw3CZ4xNUw==}
     peerDependencies:
       '@codemirror/state': 6.5.0
       '@codemirror/view': 6.38.6
@@ -3093,7 +3093,7 @@ snapshots:
     dependencies:
       path-key: 4.0.0
 
-  obsidian@1.12.2(@codemirror/state@6.5.2)(@codemirror/view@6.36.5):
+  obsidian@1.12.3(@codemirror/state@6.5.2)(@codemirror/view@6.36.5):
     dependencies:
       '@codemirror/state': 6.5.2
       '@codemirror/view': 6.36.5

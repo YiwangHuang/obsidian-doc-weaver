@@ -38,7 +38,7 @@ interface PreviewPanelProps {
   /** 预览标题 */
   title?: string;
   /** 预览内容（使用插槽时可省略） */
-  content?: any;
+  content?: string;
 }
 
 defineProps<PreviewPanelProps>();

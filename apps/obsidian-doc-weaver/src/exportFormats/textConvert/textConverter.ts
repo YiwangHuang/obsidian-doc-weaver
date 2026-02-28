@@ -13,6 +13,7 @@ import { debugLog } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { normalizeCrossPlatformPath } from "../../lib/pathUtils";
 import { parse } from 'html-parse-string';
+import { TagWrapperSettings } from '../../toggleTagWrapper/types';
 
 
 export type MditRule = (converter: BaseConverter|AdvancedConverter) => void;
@@ -151,7 +152,7 @@ export class AdvancedConverter extends BaseConverter{
 
     // 获取当前激活的html处理器
     public addActiveHtmlProcessor(){
-        const tagConfigs = this.plugin.settingList[tagWrapperInfo.name]?.tags as TagConfig[];
+        const tagConfigs = (this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings)?.tags;
 
         const activeTagConfigs = tagConfigs.filter(tag => tag.enabled);
         this.registerHtmlProcessor(this, activeTagConfigs);
@@ -256,7 +257,7 @@ export class AdvancedConverter extends BaseConverter{
         
         for (const link of links) {
             if(link.type === 'excalidraw'){
-                if((this.plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"]){
+                if(this.plugin.app.plugins.plugins["obsidian-excalidraw-plugin"]){
                     if(this.exportPreset.excalidrawExportType === 'svg'){
                         makeDirIfNotExists(image_dir_abs);
                         await exportToSvg(this.plugin, link.source_path_rel_vault, path.posix.join(image_dir_abs, link.output_filename));

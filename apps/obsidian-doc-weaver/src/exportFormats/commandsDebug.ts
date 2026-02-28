@@ -20,7 +20,7 @@ function createDebugConfig(format: typeof FORMAT_OPTIONS[number]['value']): Expo
  *   "<folder>"     → vault 下的指定文件夹
  */
 export function getAttachmentFolderPath(plugin: DocWeaver, file: TFile): string {
-    const raw: string = (plugin.app.vault as any).getConfig("attachmentFolderPath") ?? "/"; //getConfig 不在官方 TypeScript 类型定义中（属于内部 API），所以需要 as any 来绕过类型检查
+    const raw: string = (plugin.app.vault.getConfig("attachmentFolderPath") as string) ?? "/";
     const vaultAbsPath = plugin.VAULT_ABS_PATH;
 
     if (raw === "/") {
@@ -45,12 +45,12 @@ export function debugCommands(plugin: DocWeaver): void {
                 item.setTitle("Debug: Export Preview")
                     .setIcon("bug");
 
-                (item as any).setSubmenu();
-                const submenu = (item as any).submenu;
+                item.setSubmenu();
+                const submenu = item.submenu;
                 if (!submenu) return;
 
                 for (const { value: format, label } of FORMAT_OPTIONS) {
-                    submenu.addItem((subItem: any) => {
+                    submenu.addItem((subItem) => {
                         subItem
                             .setTitle(`Convert to ${label}`)
                             .setIcon("file-text")

@@ -275,8 +275,7 @@ export class ExportFormatsManager {
             const combinedCSS = parts.join('\n\n');
 
             // 4. 通过 Electron 原生对话框让用户选择保存路径
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const electron = (window as any).require('electron');
+            const electron = window.require('electron');
             const dialog = (electron.remote ?? electron).dialog as {
                 showSaveDialog: (options: object) => Promise<{ canceled: boolean; filePath?: string }>;
             };

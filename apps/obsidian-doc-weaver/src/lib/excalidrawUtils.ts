@@ -1,5 +1,5 @@
 import type DocWeaver from '../main';
-import type { ExcalidrawAutomate } from 'obsidian-excalidraw-plugin';
+import ExcalidrawPlugin from 'obsidian-excalidraw-plugin';
 import { Notice, TFile } from 'obsidian';
 import { debugLog } from './debugUtils';
 import * as fs from 'fs';
@@ -20,9 +20,9 @@ export async function exportToPng(
     scale?: number
 ): Promise<void> {
     try {
-        const excalidrawPlugin = (plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"];
-        const ea = excalidrawPlugin.ea as ExcalidrawAutomate;
-        const abstractFile = plugin.app.vault.getAbstractFileByPath(sourcePathRel);
+        const excalidrawPlugin = plugin.app.plugins.plugins["obsidian-excalidraw-plugin"] as ExcalidrawPlugin;
+        const ea = excalidrawPlugin.ea;
+        const abstractFile = plugin.app.vault.getAbstractFileByPath(sourcePathRel); 
         
         if (!(abstractFile instanceof TFile)) {
             throw new Error("Source file not found or is not a file");
@@ -36,13 +36,9 @@ export async function exportToPng(
         const pngBlob = await ea.createPNG(sourcePathRel,scale = scale || 2); // scale默认值为2
         const arrayBuffer = await pngBlob.arrayBuffer();
         
-        // 确保目标目录存在
-        // fs.mkdirSync(path.dirname(targetPathAbs), { recursive: true });
         // 使用fs模块保存到系统路径
         fs.writeFileSync(targetPathAbs, Buffer.from(arrayBuffer));
-        // 使用vault adapter保存到vault内
-        // await plugin.app.vault.adapter.writeBinary(targetPathAbs, arrayBuffer);
-        // new Notice('导出PNG成功');
+
     } catch (error) {
         new Notice(`export to PNG failed: ${error.message}`);
         throw error;
@@ -62,8 +58,8 @@ export async function exportToSvg(
     targetPathAbs: string
 ): Promise<void> {
     try {
-        const excalidrawPlugin = (plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"];
-        const ea = excalidrawPlugin.ea as ExcalidrawAutomate;
+        const excalidrawPlugin = plugin.app.plugins.plugins["obsidian-excalidraw-plugin"] as ExcalidrawPlugin;
+        const ea = excalidrawPlugin.ea;
         const abstractFile = plugin.app.vault.getAbstractFileByPath(sourcePathRel);
         
         if (!(abstractFile instanceof TFile)) {
@@ -94,7 +90,7 @@ export async function exportToSvg(
  * @returns boolean
  */
 export function isExcalidrawInstalled(plugin: DocWeaver): boolean {
-    return !!(plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"];
+    return !!plugin.app.plugins.plugins["obsidian-excalidraw-plugin"];
 }
 
 /**
@@ -103,6 +99,6 @@ export function isExcalidrawInstalled(plugin: DocWeaver): boolean {
  * @returns boolean
  */
 export function isExcalidrawLoaded(plugin: DocWeaver): boolean {
-    const excalidrawPlugin = (plugin.app as any).plugins.plugins["obsidian-excalidraw-plugin"];
-    return !!(excalidrawPlugin && excalidrawPlugin.ea);
+    const excalidrawPlugin = plugin.app.plugins.plugins["obsidian-excalidraw-plugin"] as ExcalidrawPlugin;
+    return !!excalidrawPlugin.ea;
 }

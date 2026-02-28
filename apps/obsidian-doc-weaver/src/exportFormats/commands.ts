@@ -1,4 +1,5 @@
-import { Notice, TFile, TAbstractFile, TFolder, Menu } from 'obsidian';
+import { Notice, TFile, TAbstractFile, TFolder } from 'obsidian';
+import type { Menu } from 'obsidian';
 import DocWeaver from '../main';
 import { exportFormatsInfo } from './index';
 import type { ExportManagerSettings, ExportConfig } from './types';
@@ -69,13 +70,13 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
             .setIcon("download");
         
         // 创建子菜单
-        (item as any).setSubmenu();
-        const submenu = (item as any).submenu;
+        item.setSubmenu();
+        const submenu = item.submenu;
         
         if (!submenu) return;
 
         // 添加"导出所有格式"选项
-        submenu.addItem((subItem: any) => {
+        submenu.addItem((subItem) => {
             subItem
                 .setTitle(getLocalizedText({en: 'Export All Presets', zh: '导出所有预设'}))
                 .setIcon("layers")
@@ -124,7 +125,7 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
 
         // 为每个启用的格式动态添加子菜单项
         enabledConfigs.forEach((config: ExportConfig) => {
-            submenu.addItem((subItem: any) => {
+            submenu.addItem((subItem) => {
                 subItem
                     // 使用自定义名称或默认格式名称
                     .setTitle(config.name || config.format)

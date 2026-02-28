@@ -1,6 +1,6 @@
 import { App, DataAdapter, FileSystemAdapter, Notice, Plugin, PluginSettingTab, TFile } from 'obsidian';
 import path from 'path';
-import { createApp, App as VueApp, reactive, watch } from 'vue';
+import { createApp, App as VueApp, reactive, watch, type Component } from 'vue';
 import SettingsApp from './vue/components/SettingsApp.vue';
 import { debugLog } from './lib/debugUtils';
 import { debounce } from 'lodash';
@@ -45,12 +45,12 @@ export interface DocWeaverInstance {
 }
 
 // 定义设置注册接口
-export interface ModuleRegistration<T = any> {
+export interface ModuleRegistration<T = object> {
     name: string;
     description: string;
     defaultConfigs: T;
     settingTabName: string; // 设置页面中显示的标签名
-    component?: any; // Vue组件，可选字段
+    component?: Component; // Vue组件，可选字段
     hideSettingTab?: boolean; // 为 true 时不渲染该模块的设置选项卡
 }
 
@@ -59,7 +59,7 @@ export default class DocWeaver extends Plugin {
 	VAULT_ABS_PATH: string;
 	PLUGIN_ABS_PATH: string;
     // 将settingList改成响应式对象，支持深度监听嵌套对象的变化
-    settingList: { [key: string]: any } = reactive({});
+    settingList: { [key: string]: object } = reactive({});
     moduleSettings: ModuleRegistration[] = [];
     commandCache: { [key: string]: object } = {};// 命令缓存
     tagWrapperManager: TagWrapperManager;
@@ -115,10 +115,6 @@ export default class DocWeaver extends Plugin {
 		// });
 		// ribbonIconEl.addClass('my-plugin-ribbon-class');
 
-		// 注册所有命令
-		// 使用新的动态命令管理系统
-        // this.tagWrapperCommandManager = DynamicCommandManager.initialize(this);
-        // this.tagWrapperCommandManager.initialize(this.settingList[tagWrapperSetting.name] as any);
         
         // 注册其他命令（保持原有方式）
         addExportFormatsCommands(this);
@@ -136,7 +132,7 @@ export default class DocWeaver extends Plugin {
      * @param moduleName 设置名称
      * @param newModuleConfig 新的设置值
      */
-    async onSettingsChange(moduleName: string, newModuleConfig: any): Promise<void> {
+    async onSettingsChange(moduleName: string, newModuleConfig: object): Promise<void> {
         // 更新内部设置 - 由于settingList是响应式对象，watch监听器会自动触发保存
         this.settingList[moduleName] = newModuleConfig;
     }
@@ -172,7 +168,7 @@ export default class DocWeaver extends Plugin {
             return '';
         }
         // 获取 Obsidian 的附件配置，"/"开头表示在库目录下，"./"开头相对于工作文件根目录下的位置，没有前两者表示相对库目录的位置
-        const defaultAttachmentSetting = (this.app.vault as any).config?.attachmentFolderPath || '/';
+        const defaultAttachmentSetting = this.app.vault.config?.attachmentFolderPath || '/';
         let defaultRelativeDir: string;
         if (defaultAttachmentSetting.startsWith('./')) {
             defaultRelativeDir = path.join(file.parent?.path || '', defaultAttachmentSetting);

@@ -1,7 +1,7 @@
 declare module 'markdown-it-texmath' {
     import MarkdownIt from 'markdown-it';
     interface Options {
-        engine?: any;
+        engine?: unknown;
         delimiters?: string;
     }
     function texmath(md: MarkdownIt, options?: Options): void;

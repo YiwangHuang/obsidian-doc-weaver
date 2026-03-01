@@ -25,9 +25,6 @@ export interface TagConfig extends BaseConfig {
     cssSnippet: string;
 }
 
-/** 支持的标签类型 */
-type SupportedTagType = TagConfig['tagType'];
-
 /**
  * 基于TagConfig生成HTML开始标签
  * @param config 标签配置对象
@@ -89,8 +86,8 @@ class TagConfigIO extends ConfigIO<TagConfig> {
      * @param overrides 可选覆盖项
      */
     createConfig(hexId: string, overrides: Partial<TagConfig> = {}): TagConfig {
-        const defaults = this.getDefaults() as Partial<TagConfig>;
-        const tagType = (overrides.tagType ?? defaults.tagType ?? 'u') as SupportedTagType;
+        const defaults = this.getDefaults();
+        const tagType = (overrides.tagType ?? defaults.tagType ?? 'u');
         return {
             ...defaults,
             ...overrides,

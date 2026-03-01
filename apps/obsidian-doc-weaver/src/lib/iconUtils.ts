@@ -1,87 +1,5 @@
-import { App, FuzzySuggestModal, FuzzyMatch, Modal, setIcon, getIconIds } from "obsidian";
-
-/**
- * 图标数组 - 从原项目复制的完整图标列表
- */
-const appIcons = getIconIds()
-
-/**
- * 图标选择器返回结果类型
- */
-export interface IconSelectResult {
-  iconName: string;
-}
-
-/**
- * 自定义SVG图标输入模态框
- */
-class CustomIconModal extends Modal {
-  private resolveCallback: ((value: string | null) => void) | null = null;
-  private currentValue = "";
-
-  constructor(app: App, initialValue?: string) {
-    super(app);
-    this.currentValue = initialValue || "";
-    this.containerEl.addClass("editingToolbar-Modal");
-    this.containerEl.addClass("customicon");
-  }
-
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.createEl("b", { text: "输入图标代码，格式为 <svg>.... </svg>" });
-    
-    const textComponent = document.createElement("textarea");
-    textComponent.className = "wideInputPromptInputEl";
-    textComponent.placeholder = "";
-    textComponent.value = this.currentValue;
-    textComponent.style.width = "100%";
-    textComponent.style.height = "200px";
-    contentEl.appendChild(textComponent);
-    
-    textComponent.addEventListener("input", () => {
-      this.currentValue = textComponent.value;
-    });
-
-    // 添加确认和取消按钮
-    const buttonContainer = contentEl.createDiv({ cls: "custom-icon-buttons" });
-    buttonContainer.style.marginTop = "10px";
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.gap = "10px";
-    buttonContainer.style.justifyContent = "flex-end";
-
-    const confirmButton = buttonContainer.createEl("button", { text: "确认" });
-    confirmButton.style.padding = "5px 15px";
-    confirmButton.addEventListener("click", () => {
-      if (this.resolveCallback) {
-        this.resolveCallback(this.currentValue);
-      }
-      this.close();
-    });
-
-    const cancelButton = buttonContainer.createEl("button", { text: "取消" });
-    cancelButton.style.padding = "5px 15px";
-    cancelButton.addEventListener("click", () => {
-      if (this.resolveCallback) {
-        this.resolveCallback(null);
-      }
-      this.close();
-    });
-
-    // 聚焦到文本框
-    textComponent.focus();
-  }
-
-  onClose() {
-    super.onClose();
-    if (this.resolveCallback) {
-      this.resolveCallback(null);
-    }
-  }
-
-  setResolveCallback(callback: (value: string | null) => void) {
-    this.resolveCallback = callback;
-  }
-}
+import { App, FuzzySuggestModal, FuzzyMatch, setIcon, getIconIds } from "obsidian";
+import { getLocalizedText } from "./textUtils";
 
 /**
  * 图标选择器模态框
@@ -92,7 +10,7 @@ class IconPickerModal extends FuzzySuggestModal<string> {
 
   constructor(app: App) {
     super(app);
-    this.setPlaceholder("选择一个图标");
+    this.setPlaceholder(getLocalizedText({ en: "Select an icon (view all icons at https://lucide.dev)", zh: "选择图标（查看全部图标：https://lucide.dev）" }));
   }
 
   /**
@@ -111,7 +29,8 @@ class IconPickerModal extends FuzzySuggestModal<string> {
    * 获取所有可用图标
    */
   getItems(): string[] {
-    return appIcons;
+    // 从原项目复制的完整图标列表
+    return getIconIds();
   }
 
   /**
@@ -141,58 +60,11 @@ class IconPickerModal extends FuzzySuggestModal<string> {
   /**
    * 当用户选择图标时触发
    */
-  async onChooseItem(item: string): Promise<void> {
-    // 如果选择了 "Custom"，打开自定义SVG输入框
-    if (item === "Custom") {
-      const customIcon = await this.openCustomIconInput();
-      if (this.resolveCallback) {
-        this.resolveCallback(customIcon);
-      }
-    } else {
-      // 选择了内置图标
-      if (this.resolveCallback) {
-        this.resolveCallback(item);
-      }
+  onChooseItem(item: string): void {
+    if (this.resolveCallback) {
+      this.resolveCallback(item);
     }
     this.close();
-  }
-
-  /**
-   * 打开自定义图标输入框
-   * 使用相同的智能resolve机制防止意外关闭导致的问题
-   */
-  private openCustomIconInput(): Promise<string | null> {
-    return new Promise((resolve) => {
-      const customModal = new CustomIconModal(this.app);
-      
-      // 创建智能resolve包装器，优先处理用户选择
-      let isResolved = false;
-      let pendingCancel = false;
-      const safeResolve = (value: string | null) => {
-        if (value === null) {
-          // 取消操作：延迟处理，给用户选择留出时间
-          if (!isResolved) {
-            pendingCancel = true;
-            setTimeout(() => {
-              if (pendingCancel && !isResolved) {
-                isResolved = true;
-                resolve(null);
-              }
-            }, 100);
-          }
-        } else {
-          // 用户选择：立即处理，优先级最高
-          if (!isResolved) {
-            isResolved = true;
-            pendingCancel = false; // 取消待处理的取消操作
-            resolve(value);
-          }
-        }
-      };
-      
-      customModal.setResolveCallback(safeResolve);
-      customModal.open();
-    });
   }
 
   /**
@@ -295,15 +167,15 @@ export function openIconSelector(app: App): Promise<string | null> {
  *   }
  * };
  */
-export function useIconSelector() {
-  // 在Vue组件中，app对象通常通过inject获取
-  const selectIcon = async (): Promise<string | null> => {
-    // 这里需要在Vue组件内部调用，通过inject获取app
-    // 示例中假设app已经通过某种方式获取到了
-    throw new Error('请在Vue组件内部使用，并传入通过inject获取的app对象');
-  };
+// export function useIconSelector() {
+//   // 在Vue组件中，app对象通常通过inject获取
+//   const selectIcon = async (): Promise<string | null> => {
+//     // 这里需要在Vue组件内部调用，通过inject获取app
+//     // 示例中假设app已经通过某种方式获取到了
+//     throw new Error('请在Vue组件内部使用，并传入通过inject获取的app对象');
+//   };
 
-  return {
-    selectIcon
-  };
-}
+//   return {
+//     selectIcon
+//   };
+// }

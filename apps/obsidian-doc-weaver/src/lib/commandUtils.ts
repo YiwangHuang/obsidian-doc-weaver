@@ -39,7 +39,7 @@ class CommandPickerModal extends FuzzySuggestModal<Command> {
   /**
    * 当用户选择命令时触发
    */
-  async onChooseItem(item: Command): Promise<void> {
+  onChooseItem(item: Command): void {
     if (this.resolveCallback) {
       // 直接返回 Obsidian 的 Command 对象
       this.resolveCallback(item);
@@ -128,34 +128,4 @@ export function openCommandSelector(app: App): Promise<Command | null> {
     modal.setResolveCallback(safeResolve);
     modal.open();
   });
-}
-
-/**
- * Vue Composition API 钩子函数
- * 提供更便捷的在Vue组件中使用的方式
- * 
- * @example
- * // 在Vue组件中使用
- * import { useCommandSelector } from './commandSelector';
- * 
- * const { selectCommand } = useCommandSelector();
- * 
- * const handleClick = async () => {
- *   const result = await selectCommand();
- *   if (result) {
- *     console.log('选择的命令:', result);
- *   }
- * };
- */
-export function useCommandSelector() {
-  // 在Vue组件中，app对象通常通过inject获取
-  const selectCommand = async (): Promise<Command | null> => {
-    // 这里需要在Vue组件内部调用，通过inject获取app
-    // 示例中假设app已经通过某种方式获取到了
-    throw new Error('请在Vue组件内部使用，并传入通过inject获取的app对象');
-  };
-
-  return {
-    selectCommand
-  };
 }

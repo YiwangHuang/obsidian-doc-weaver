@@ -1,6 +1,6 @@
 import { Notice } from "obsidian";
 
-export const DEBUG = import.meta.env.DEV;
+export const DEBUG = import.meta.env.MODE === 'development';
 export const logger = {
   debug: (...args: unknown[]) => {if (DEBUG) console.debug(...args)},
   warn: (...args: unknown[]) => console.warn(...args),

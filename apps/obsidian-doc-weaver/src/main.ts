@@ -122,21 +122,7 @@ export default class DocWeaver extends Plugin {
         
         logger.debug('Plugin loaded with dynamic command management and reactive settings');
 	}
-
-
-
-    /**
-     * 设置变更通知 - 由设置界面调用//TODO: 完全删除这个函数
-     * 完全通用的设置更新处理，不依赖具体模块
-     * 现在通过响应式对象和watch监听器自动保存，无需手动调用saveData
-     * @param moduleName 设置名称
-     * @param newModuleConfig 新的设置值
-     */
-    async onSettingsChange(moduleName: string, newModuleConfig: object): Promise<void> {
-        // 更新内部设置 - 由于settingList是响应式对象，watch监听器会自动触发保存
-        this.settingList[moduleName] = newModuleConfig;
-    }
-
+    
     /**
      * 获取指定模块的设置
      * @param settingName 设置名称

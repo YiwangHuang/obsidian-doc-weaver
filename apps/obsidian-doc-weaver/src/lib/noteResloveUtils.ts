@@ -105,7 +105,7 @@ export function findHeadingRange(headingInfo: HeadingCache[] | undefined, headin
 }
 
 export async function getNoteInfo(plugin: DocWeaver, noteFile: TFile): Promise<NoteInfo>{
-    const noteText = await plugin.app.vault.read(noteFile) as string;
+    const noteText = await plugin.app.vault.read(noteFile);
     const noteCachedMetadata = plugin.app.metadataCache.getFileCache(noteFile) as CachedMetadata;
     let noteMainContent:string;
     if (noteCachedMetadata.frontmatterPosition){

@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { moment, type MomentCallable } from 'obsidian';
 /**
  * 将形如 ${date: YYYY-MM-DD} 的占位符转换为实际日期字符串
  * @param template - 包含占位符的字符串
@@ -8,7 +8,7 @@ export function replaceDatePlaceholders(template: string): string {
     const dateRegex = /{{date:\s*([^}]+)}}/g;
 
     return template.replaceAll(dateRegex, (matchedPattern, dateFormat) => {
-        return moment().format(dateFormat.trim());
+        return (moment as unknown as MomentCallable)().format(dateFormat.trim());
     });
 }
 

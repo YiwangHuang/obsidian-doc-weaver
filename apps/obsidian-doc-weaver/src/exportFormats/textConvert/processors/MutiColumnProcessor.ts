@@ -368,7 +368,6 @@ const getColRule = (store: ColRuleStore): RuleBlock => (state, startLine, endLin
             columnWidth: width,
         };
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     // if (id) openToken.meta.id = id.trim(); // 如果有ID，添加到meta中
     openToken.map = [startLine, nextLine - (autoClosed ? 1 : 0)];
 

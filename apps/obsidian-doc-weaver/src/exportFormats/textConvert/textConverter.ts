@@ -365,7 +365,7 @@ export class AdvancedConverter extends BaseConverter{
                                             // 遍历排序后的配置，查找匹配的标签
                                             for (const config of sortedConfigs) {
                                                 if (htmlNode.name === config.tagType) {
-                                                    const template = config[templateKey] as string;
+                                                    const template = config[templateKey];
 
                                                     // 检查模板是否包含占位符
                                                     if (!template.includes(placeholders.VAR_TAG_CONTENT)) {

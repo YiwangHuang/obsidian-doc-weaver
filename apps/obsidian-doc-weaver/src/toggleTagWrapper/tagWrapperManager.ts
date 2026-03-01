@@ -328,6 +328,14 @@ export class TagWrapperManager {
         }
 
         try {
+            // @skip Dynamic style element injection is required here because each tag's CSS snippet
+            // is user-defined at runtime and frequently toggled/updated via reactive settings.
+            // Using Obsidian's CSS Snippets filesystem API (.obsidian/snippets/) would require:
+            // writing/deleting physical .css files on every settings change (debounced keystrokes),
+            // calling the undocumented app.customCss.setCssEnabledStatus() to toggle them,
+            // managing cleanup of orphaned snippet files on plugin unload/tag deletion,
+            // and risking namespace collisions with user's own snippets.
+            // Style elements are scoped to the plugin lifecycle and cleaned up in removeCSS()/cleanup().
             const styleElement = document.createElement('style');
             styleElement.id = tag.id;
             styleElement.textContent = `/* Doc Weaver CSS Snippet for: ${tag.name} */\n${tag.cssSnippet}`;

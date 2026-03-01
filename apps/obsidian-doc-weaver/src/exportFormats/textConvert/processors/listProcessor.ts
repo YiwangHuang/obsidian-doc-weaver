@@ -71,7 +71,7 @@ BaseConverter.registerProcessor({
         };
         
         // 重写段落结束的渲染规则
-        const originalParagraphClose = md.renderer.rules.paragraph_close || md.renderer.renderToken;
+        const originalParagraphClose = md.renderer.rules.paragraph_close || md.renderer.renderToken.bind(md.renderer);
         md.renderer.rules.paragraph_close = (tokens, idx, options, env, self) => {
             // 如果在列表内部，返回换行符
             if (listLevels.length > 0) {
@@ -140,8 +140,8 @@ BaseConverter.registerProcessor({
         md.renderer.rules.list_item_close = () => '';
 
         // 保存默认段落规则，列表外沿用
-        const originalParagraphOpen = md.renderer.rules.paragraph_open || md.renderer.renderToken;
-        const originalParagraphClose = md.renderer.rules.paragraph_close || md.renderer.renderToken;
+        const originalParagraphOpen = md.renderer.rules.paragraph_open || md.renderer.renderToken.bind(md.renderer);
+        const originalParagraphClose = md.renderer.rules.paragraph_close || md.renderer.renderToken.bind(md.renderer);
 
         // 列表内不输出段落起止标记（已有 \item），仅换行；列表外保持默认
         md.renderer.rules.paragraph_open = (tokens, idx, options, env, self) => {

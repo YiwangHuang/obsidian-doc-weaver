@@ -4,7 +4,7 @@ import { watch } from "vue";
 import { TagConfig, TagWrapperSettings, tagConfigIO, tagWrapperSettingsIO, generateStartTagFromConfig, generateEndTagFromConfig } from "./types";
 import { tagWrapperInfo } from "./index";
 import { generateHexId } from "../lib/idGenerator";
-import { debugLog } from "../lib/debugUtils";
+import { logger } from "../lib/debugUtils";
 import { debounce } from 'lodash';
 import { getLocalizedText } from "../lib/textUtils";
 
@@ -68,7 +68,7 @@ class SelectionTagProcessor {
      */
     public processAllSelections(): EditorSelection[] {
         const selections = this.editor.listSelections();
-        debugLog('SelectionTagProcessor.processAllSelections', 'processing', selections.length, 'selections');
+        logger.debug('SelectionTagProcessor.processAllSelections', 'processing', selections.length, 'selections');
 
         // 按位置从前往后排序，便于累积偏移量计算
         const sortedSelections = [...selections].sort((a, b) => {
@@ -86,7 +86,7 @@ class SelectionTagProcessor {
         for (const selection of sortedSelections) {
             // 跨行选区直接忽略
             if (selection.anchor.line !== selection.head.line) {
-                debugLog('SelectionTagProcessor', 'skipping cross-line selection');
+                logger.debug('SelectionTagProcessor', 'skipping cross-line selection');
                 new Notice(`Doc Weaver: \n${getLocalizedText({en: 'HTML tags cannot wrap content across multiple lines', zh: 'HTML 标签无法在多行之间包裹内容'})}`);
                 continue;
             }
@@ -113,7 +113,7 @@ class SelectionTagProcessor {
         if (this.currentLine !== line) {
             this.currentLine = line;
             this.cumulativeOffset = 0;
-            debugLog('processLineSelection', `新行 ${line}，重置累积偏移量为 0`);
+            logger.debug('processLineSelection', `新行 ${line}，重置累积偏移量为 0`);
         }
         
         // 获取选区在行内的字符位置，并应用累积偏移量
@@ -131,7 +131,7 @@ class SelectionTagProcessor {
         const beforeText = lineText.substring(Math.max(0, start - this.PL), start);
         const afterText = lineText.substring(end, Math.min(lineText.length, end + this.SL));
         
-        debugLog('processLineSelection', { line, start, end, selectedText, beforeText, afterText });
+        logger.debug('processLineSelection', { line, start, end, selectedText, beforeText, afterText });
 
         let newLineText: string;
         let newStart: number;
@@ -177,7 +177,7 @@ class SelectionTagProcessor {
         const characterChange = newLineText.length - lineText.length;
         this.cumulativeOffset += characterChange;
         
-        debugLog('processLineSelection', { 
+        logger.debug('processLineSelection', { 
             line, 
             originalStart, 
             originalEnd, 
@@ -335,9 +335,9 @@ export class TagWrapperManager {
             document.head.appendChild(styleElement);
             this.injectedStyles.set(tag.id, styleElement);
             
-            debugLog('CSS injected:', tag.name);
+            logger.debug('CSS injected:', tag.name);
         } catch (error) {
-            debugLog('Failed to inject CSS:', tag.id, error);
+            logger.debug('Failed to inject CSS:', tag.id, error);
         }
     }
 
@@ -346,7 +346,7 @@ export class TagWrapperManager {
         if (styleElement?.parentNode) {
             styleElement.parentNode.removeChild(styleElement);
             this.injectedStyles.delete(tag.id);
-            debugLog('CSS removed:', tag.id);
+            logger.debug('CSS removed:', tag.id);
         }
     }
 
@@ -435,7 +435,7 @@ export class TagWrapperManager {
         }
         this.watchConfig(newTag);
         
-        debugLog('Tag duplicated:', newTag.name);
+        logger.debug('Tag duplicated:', newTag.name);
     }
 
     cleanup(): void {
@@ -454,7 +454,7 @@ export class TagWrapperManager {
      * @param suffix 后缀标签（如 '</u>'）
      */
     private executeTagWrapper(editor: Editor, view: MarkdownView, prefix: string, suffix: string): void {
-        debugLog('executeTagWrapper', 'start processing with prefix:', prefix, 'suffix:', suffix);
+        logger.debug('executeTagWrapper', 'start processing with prefix:', prefix, 'suffix:', suffix);
 
         // 创建选区标签处理器实例
         // 该处理器负责管理所有选区相关的状态和操作
@@ -468,7 +468,7 @@ export class TagWrapperManager {
         // 如果是多选区，会尝试恢复多选状态；如果失败则降级为单选
         this.restoreSelections(editor, processedSelections);
         
-        debugLog('executeTagWrapper', 'completed processing', processedSelections.length, 'selections');
+        logger.debug('executeTagWrapper', 'completed processing', processedSelections.length, 'selections');
     }
 
 
@@ -489,7 +489,7 @@ export class TagWrapperManager {
             try {
                 editor.setSelections(selections);
             } catch (error) {
-                debugLog('restoreSelections', 'failed to restore multiple selections:', error);
+                logger.debug('restoreSelections', 'failed to restore multiple selections:', error);
                 // 如果多选恢复失败，至少保持第一个选区
                 editor.setSelection(selections[0].anchor, selections[0].head);
             }

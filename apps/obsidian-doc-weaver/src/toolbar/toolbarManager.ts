@@ -4,7 +4,7 @@ import type { Command } from "obsidian";
 
 import { createApp, App as VueApp, computed, h } from "vue";
 import { toolbarInfo, ToolbarSettings, toolbarSettingsIO } from "./index";
-import { debugLog } from "../lib/debugUtils";
+import { logger } from "../lib/debugUtils";
 
 import EditingToolbar from './components/EditingToolbar.vue';
 import { vuetify } from '../vue/plugins/vuetify';
@@ -120,7 +120,7 @@ export class ToolbarManager {
             // 检查是否已经存在容器，如果存在则不重复创建
             const existingContainer = document.getElementById('toolbar-speed-dial-container');
             if (existingContainer) {
-                debugLog('SpeedDial container already exists, skipping initialization');
+                logger.debug('SpeedDial container already exists, skipping initialization');
                 return;
             }
 
@@ -168,7 +168,7 @@ export class ToolbarManager {
             
             this.toolBarApp.mount(this.toolBarContainer);
             
-            debugLog('SpeedDial component initialized');
+            logger.debug('SpeedDial component initialized');
         } catch (error) {
             console.error('Failed to initialize SpeedDial component:', error);
         }
@@ -201,7 +201,7 @@ export class ToolbarManager {
                 this.toolBarContainer = null;
             }
             
-            debugLog('Toolbar manager destroyed');
+            logger.debug('Toolbar manager destroyed');
         } catch (error) {
             console.error('Failed to destroy toolbar manager:', error);
         }

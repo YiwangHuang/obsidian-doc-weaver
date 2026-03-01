@@ -144,7 +144,7 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import type DocWeaver from '../../main';
 import type { TemplateConfig, QuickTemplateSettings } from '../index';
-import { debugLog } from '../../lib/debugUtils';
+import { logger } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { quickTemplateInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
@@ -183,11 +183,11 @@ const getTemplatePreview = (template: string): string => {
 };
 
 const handleDragEnd = () => {
-  debugLog('Template drag ended, order saved');
+  logger.debug('Template drag ended, order saved');
 };
 
 const handleTemplateEnabledChange = (index: number, enabled: boolean) => {
-  debugLog(`Template ${index} enabled:`, enabled);
+  logger.debug(`Template ${index} enabled:`, enabled);
   configs.templates[index].enabled = enabled;
 };
 
@@ -226,7 +226,7 @@ const cancelDelete = () => {
  * @param iconName 新的图标名称
  */
 const handleIconChange = (iconName: string) => {
-  debugLog('Template icon changed:', iconName);
+  logger.debug('Template icon changed:', iconName);
   // 图标变化会自动保存，因为editingTemplate是响应式的引用
 };
 </script>

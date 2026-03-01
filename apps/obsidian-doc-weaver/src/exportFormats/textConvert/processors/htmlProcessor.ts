@@ -1,5 +1,5 @@
 import { BaseConverter } from '../textConverter';
-// import { debugLog } from '../../../lib/debugUtils';
+// import { logger } from '../../../lib/debugUtils';
 
 BaseConverter.registerProcessor({
     name: 'htmlProcessor',
@@ -97,7 +97,7 @@ BaseConverter.registerProcessor({
 //         converter.md.renderer.rules.html_inline = (tokens, idx, options, env, self) => {
 //             const token = tokens[idx];
 //             if (token.content.trim().startsWith('</iframe')) {
-//                 debugLog('htmlProcessor_HMD: html_inline: iframe close');
+//                 logger.debug('htmlProcessor_HMD: html_inline: iframe close');
 //                 return self.renderToken(tokens, idx, options) + '\n\n';
 //             }
 //             return self.renderToken(tokens, idx, options);

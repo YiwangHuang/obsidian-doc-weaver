@@ -1,7 +1,7 @@
 import type DocWeaver from '../main';
 import ExcalidrawPlugin from 'obsidian-excalidraw-plugin';
 import { Notice, TFile } from 'obsidian';
-import { debugLog } from './debugUtils';
+import { logger } from './debugUtils';
 import * as fs from 'fs';
 
 // TODO: 增加参数，控制输出的PNG或SVG的背景色，可选透明
@@ -65,7 +65,7 @@ export async function exportToSvg(
         if (!(abstractFile instanceof TFile)) {
             throw new Error("Source file not found or is not a file");
         }
-        debugLog(`sourcePath: ${sourcePathRel}`);
+        logger.debug(`sourcePath: ${sourcePathRel}`);
         // 创建SVG内容并保存到文件
         const svgElements = await ea.createSVG(sourcePathRel);
         const svgString = svgElements.outerHTML;

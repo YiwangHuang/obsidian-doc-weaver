@@ -12,11 +12,6 @@ if you want to view the source, please visit the github repository of this plugi
 */
 `;
 
-// 定义配置类型
-interface ConfigEnv {
-  mode: string;
-}
-
 // 自定义插件：复制 manifest.json 到根目录
 const copyManifestPlugin = {
   name: 'copy-manifest',
@@ -33,7 +28,7 @@ const copyManifestPlugin = {
   }
 };
 
-export default defineConfig(({ mode }: ConfigEnv) => {
+export default defineConfig(({ mode }) => {
   const isProd = mode === 'production';
   
   return {
@@ -57,7 +52,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       // 清空输出目录（关闭，因为我们希望保留其他文件）
       emptyOutDir: false,
       // 生产环境下不生成 sourcemap
-      sourcemap: isProd ? false : 'inline',
+      sourcemap: isProd ? false : 'inline' as const,
       // 压缩选项
       minify: isProd,
       // 启用 tree-shaking
@@ -107,10 +102,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           }),
         ],
       },
-    },
-    // 定义环境变量
-    define: {
-      'process.env.BUILD_ENV': JSON.stringify(process.env.BUILD_ENV || ''),
     },
   };
 }); 

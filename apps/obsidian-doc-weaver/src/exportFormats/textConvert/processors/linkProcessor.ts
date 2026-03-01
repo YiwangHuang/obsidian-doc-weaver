@@ -138,12 +138,12 @@ function obsidianLinkPlugin(converter: BaseConverter){
 //     `;
     
 //     // const tokens = converter.md.parse(text, {});
-//     // console.log('Parsed Tokens:');
+//     // console.debug('Parsed Tokens:');
 //     // tokens.forEach(token => {
-//     //     console.log(formatToken(token));
-//     //     console.log('-------------------');
+//     //     console.debug(formatToken(token));
+//     //     console.debug('-------------------');
 //     // });
-//     console.log(converter.convert(text));
-//     // console.log(converter.links);
-//     // console.log(path.posix.join(__filename))
+//     console.debug(converter.convert(text));
+//     // console.debug(converter.links);
+//     // console.debug(path.posix.join(__filename))
 // }

@@ -7,7 +7,7 @@ import { exportFormatsInfo } from "./index";
 import { TextConverter } from './textConvert/index';
 import { generateTimestamp } from "../lib/idGenerator";
 import { EXTENSION_MAP } from "./types";
-import { debugLog } from "../lib/debugUtils";
+import { logger } from "../lib/debugUtils";
 import { TFile, Notice, Command } from "obsidian";
 import { getNoteInfo } from "../lib/noteResloveUtils";
 import { isExcalidrawNote } from "../lib/excalidrawUtils";
@@ -82,7 +82,7 @@ export class ExportFormatsManager {
         // 通过 ConfigIO 写入预设指定的风格文件
         configIO.createAssetStructure(styleDirAbs, preset);
 
-        debugLog('New export config added:', newConfig.name);
+        logger.debug('New export config added:', newConfig.name);
         // 添加命令和监听仍在此方法中执行
         const configs = this.config.exportConfigs;
         configs.push(newConfig);
@@ -150,7 +150,7 @@ export class ExportFormatsManager {
         this.addExportCommand(newConfig);
         this.watchConfig(newConfig);
         
-        debugLog('Export config duplicated:', newConfig.name);
+        logger.debug('Export config duplicated:', newConfig.name);
     }
 
     addExportCommand(item: ExportConfig): void {
@@ -241,10 +241,10 @@ export class ExportFormatsManager {
 
         new Notice(converter.linkParser.formatExportSummary(output_file_path), 5000); // 打印导出信息
 
-        console.log('打印附件信息')//
-        for (const link of converter.linkParser.linkList) {
-            console.log(`Path: ${link.source_path_rel_vault}, Type: ${link.type}`);
-        }
+        logger.debug('print attachment info', converter.linkParser.linkList);
+        // for (const link of converter.linkParser.linkList) {
+        //     logger.debug(`path: ${link.source_path_rel_vault}, type: ${link.type}`);
+        // }
     }
 
     /**
@@ -293,10 +293,10 @@ export class ExportFormatsManager {
                     getLocalizedText({ en: 'CSS saved successfully', zh: 'CSS 已成功保存' }) +
                         ': ' + result.filePath
                 );
-                debugLog('CSS for HMD saved to:', result.filePath);
+                logger.debug('CSS for HMD saved to:', result.filePath);
             }
         } catch (error) {
-            debugLog('Error downloading CSS for HMD:', error);
+            logger.debug('Error downloading CSS for HMD:', error);
             new Notice(
                 getLocalizedText({ en: 'Failed to save CSS', zh: '保存 CSS 失败' }) +
                     ': ' + (error as Error).message

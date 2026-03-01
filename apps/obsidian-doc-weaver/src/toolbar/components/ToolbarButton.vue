@@ -92,7 +92,7 @@ import { computed, inject } from 'vue';
 import Icon from '../../vue/components/Icon.vue';
 import SubMenu from './SubMenu.vue';
 import type { ToolbarItemConfig } from '../types';
-import { debugLog } from '../../lib/debugUtils';
+import { logger } from '../../lib/debugUtils';
 import type { DocWeaverInstance } from '../../main';
 
 // 组件属性定义
@@ -130,7 +130,7 @@ const buttonClasses = computed(() => {
  * @param commandId 命令ID
  */
 const executeCommand = (commandId: string): void => {
-  debugLog('Executing toolbar command:', commandId);
+  logger.debug('Executing toolbar command:', commandId);
   try {
     // 执行 Obsidian 内置命令, 该命令不被包含在 Obsidian 的类型定义中, 使用 @ts-ignore 忽略类型检查
     // @ts-ignore
@@ -138,7 +138,7 @@ const executeCommand = (commandId: string): void => {
     if (!isSuccess) {
       console.error('Failed to execute command:', commandId);
     } else {
-      debugLog('Command executed successfully:', commandId);
+      logger.debug('Command executed successfully:', commandId);
     }
   } catch (error) {
     console.error('Error executing command:', commandId, error);

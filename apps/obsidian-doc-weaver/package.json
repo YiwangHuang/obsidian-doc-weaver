@@ -4,8 +4,8 @@
 	"description": "A comprehensive toolkit for note formatting, exporting and creation in Obsidian.",
 	"main": "main.js",
 	"scripts": {
-		"dev": "cross-env BUILD_ENV=development vite build --watch",
-		"build": "cross-env BUILD_ENV=production tsc -noEmit -skipLibCheck && cross-env BUILD_ENV=production vite build",
+		"dev": "vite build --watch --mode development",
+		"build": "tsc -noEmit -skipLibCheck && vite build",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"keywords": [],

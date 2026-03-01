@@ -9,7 +9,7 @@ import { ExportConfig, OutputFormat } from '../types';
 import * as placeholders from '../../lib/constant';
 import { LinkParser } from './linkParser';
 import { tagWrapperInfo, TagConfig } from '../../toggleTagWrapper';
-import { debugLog } from '../../lib/debugUtils';
+import { logger } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { normalizeCrossPlatformPath } from "../../lib/pathUtils";
 import { parse } from 'html-parse-string';
@@ -298,7 +298,7 @@ export class AdvancedConverter extends BaseConverter{
      */
     registerHtmlProcessor(converter: BaseConverter, configs: TagConfig[]) {
         // 输出调试信息，显示注册的配置数量
-        debugLog('注册自定义HTML处理器，配置数量:', configs.length);
+        logger.debug('注册自定义HTML处理器，配置数量:', configs.length);
         
         // 向转换器实例注册自定义处理器
         converter.registerProcessor({

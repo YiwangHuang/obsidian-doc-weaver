@@ -79,9 +79,9 @@ print("Hello, World!")
 > 测试引用<br>
 
 `;
-    console.log(md.render(text));  // 应该输出原始文本，只保留基本的段落分隔
+    console.debug(md.render(text));  // 应该输出原始文本，只保留基本的段落分隔
 
     const originText = `example.tar.gz`;
     const newText = addHexId(originText);
-    console.log(newText);
+    console.debug(newText);
 }

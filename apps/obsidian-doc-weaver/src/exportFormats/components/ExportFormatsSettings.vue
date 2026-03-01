@@ -541,7 +541,7 @@ import IconSelectButton from '../../vue/components/IconSelectButton.vue';
 import ObsidianVueModal from '../../vue/components/ObsidianVueModal.vue';
 import Icon from '../../vue/components/Icon.vue';
 import PreviewPanel from '../../vue/components/PreviewPanel.vue';
-import { debugLog } from '../../lib/debugUtils';
+import { logger } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 // 路径预览功能
 import { TextConverter } from '../textConvert';
@@ -627,7 +627,7 @@ const getPreviewOutputDir = (config: ExportConfig): string => {
     const converter = new TextConverter(props.plugin, activeFile, config);
     return converter.replacePlaceholders(config.outputDirAbsTemplate);
   } catch (error) {
-    debugLog('Error replacing placeholders in preview output directory:', error);
+    logger.debug('Error replacing placeholders in preview output directory:', error);
     return config.outputDirAbsTemplate;
   }
 };
@@ -636,14 +636,14 @@ const getPreviewOutputDir = (config: ExportConfig): string => {
  * 保存设置并处理拖拽结束
  */
 const handleDragEnd = () => {
-  debugLog('Drag ended, order saved');
+  logger.debug('Drag ended, order saved');
 };
 
 /**
  * 处理批量导出确认功能启用状态变更
  */
 const handleBatchExportEnabledChange = (enabled: boolean) => {
-  debugLog(`Batch export confirmation enabled:`, enabled);
+  logger.debug(`Batch export confirmation enabled:`, enabled);
   settings.batchExportEnabled = enabled;
 };
 
@@ -651,7 +651,7 @@ const handleBatchExportEnabledChange = (enabled: boolean) => {
  * 处理导出格式启用状态变更
  */
 const handleExportEnabledChange = (index: number, enabled: boolean) => {
-  debugLog(`Export format ${index} enabled:`, enabled);
+  logger.debug(`Export format ${index} enabled:`, enabled);
   settings.exportConfigs[index].enabled = enabled;
 };
 
@@ -691,7 +691,7 @@ const openAssetsFolder = (config: ExportConfig) => {
     command = `xdg-open "${formatStylesPath}"`;
   }
   
-  debugLog('Opening folder with command:', command);
+  logger.debug('Opening folder with command:', command);
   child_process.exec(command);
 };
 
@@ -791,7 +791,7 @@ const getAttachmentDirPreview = (config: ExportConfig): string => {
     const attachmentDirPreview = converter.replacePlaceholders(attachmentDirTemplate);
     return path.posix.resolve(attachmentDirPreview);
   } catch (error) {
-    debugLog('Error replacing placeholders in attachment directory preview:', error);
+    logger.debug('Error replacing placeholders in attachment directory preview:', error);
     return attachmentDirTemplate;
   }
 };
@@ -819,7 +819,7 @@ const getMediaDirPreview = (config: ExportConfig, dirTemplate?: string): string 
     const mediaDirPreview = converter.replacePlaceholders(mediaDirTemplate);
     return path.posix.resolve(mediaDirPreview);
   } catch (error) {
-    debugLog('Error replacing placeholders in media directory preview:', error);
+    logger.debug('Error replacing placeholders in media directory preview:', error);
     return mediaDirTemplate;
   }
 };

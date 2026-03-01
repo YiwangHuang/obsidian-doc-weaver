@@ -1,10 +1,9 @@
 import { TFile } from 'obsidian';
 import * as path from 'path';
 import type DocWeaver from "../main";
-import { DEBUG } from "../lib/debugUtils";
-import { FORMAT_OPTIONS, getExportConfigIOByFormat } from './types';
+import { DEBUG, logger } from "../lib/debugUtils";
 import { TextConverter } from './textConvert/index';
-import type { ExportConfig } from './types';
+import { type ExportConfig, FORMAT_OPTIONS, getExportConfigIOByFormat } from './types';
 
 function createDebugConfig(format: typeof FORMAT_OPTIONS[number]['value']): ExportConfig {
     return getExportConfigIOByFormat(format).createConfig('debug');
@@ -57,20 +56,20 @@ export function debugCommands(plugin: DocWeaver): void {
                             .onClick(async () => {
                                 const selection = editor.getSelection();
                                 if (!selection) {
-                                    console.warn('[Debug Convert] No text selected');
+                                    logger.debug('[Debug Convert] No text selected');
                                     return;
                                 }
 
                                 const file = plugin.app.workspace.getActiveFile();
                                 if (!file || !(file instanceof TFile)) {
-                                    console.warn('[Debug Convert] No active file');
+                                    logger.debug('[Debug Convert] No active file');
                                     return;
                                 }
 
                                 const debugConfig = createDebugConfig(format);
                                 const converter = new TextConverter(plugin, file, debugConfig);
-                                console.log(`[Debug Convert][${label}] tokens:`, converter.md.parse(selection, {}));
-                                console.log(`[Debug Convert][${label}] result:`, await converter.convert(selection, format));
+                                logger.debug(`[Debug Convert][${label}] tokens:`, converter.md.parse(selection, {}));
+                                logger.debug(`[Debug Convert][${label}] result:`, await converter.convert(selection, format));
                             });
                     });
                 }

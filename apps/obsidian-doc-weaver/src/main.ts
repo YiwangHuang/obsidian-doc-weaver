@@ -2,7 +2,7 @@ import { App, DataAdapter, FileSystemAdapter, Notice, Plugin, PluginSettingTab, 
 import path from 'path';
 import { createApp, App as VueApp, reactive, watch, type Component } from 'vue';
 import SettingsApp from './vue/components/SettingsApp.vue';
-import { debugLog } from './lib/debugUtils';
+import { logger } from './lib/debugUtils';
 import { debounce } from 'lodash';
 
 // Vuetify
@@ -83,7 +83,7 @@ export default class DocWeaver extends Plugin {
         // 修复BUG：当data.json不存在时，loadData()返回null，需要提供默认的空对象
         this.settingList = reactive(savedData || {});
         
-        debugLog('settingList', savedData);
+        logger.debug('settingList', savedData);
 
         // 初始化管理器（每个管理器会在构造函数中自动注册自己的设置）
         this.baseManager = new BaseManager(this);
@@ -98,7 +98,7 @@ export default class DocWeaver extends Plugin {
         // TODO: 考虑自己实现的防抖函数，避免lodash的依赖，减小包体积
         watch(() => this.settingList, debounce(async (newVal, oldVal) => {
             if (this.enableAutoSave) {
-                debugLog('Settings changed, auto-saving...');
+                logger.debug('Settings changed, auto-saving...');
                 await this.saveData(this.settingList);
             }
         }, 500), { deep: true }); // 深度监听，能够监听嵌套对象的变化
@@ -120,7 +120,7 @@ export default class DocWeaver extends Plugin {
         addExportFormatsCommands(this);
         debugCommands(this);
         
-        console.log('Plugin loaded with dynamic command management and reactive settings');
+        logger.debug('Plugin loaded with dynamic command management and reactive settings');
 	}
 
 
@@ -158,7 +158,7 @@ export default class DocWeaver extends Plugin {
         if (this.baseManager) {
             this.baseManager.destroy();
         }
-        console.log('Plugin unloaded, commands cleaned up');
+        logger.debug('Plugin unloaded, commands cleaned up');
 	}
 
     // 获取文件file的附件的默认存储位置，备用

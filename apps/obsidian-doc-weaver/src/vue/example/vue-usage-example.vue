@@ -44,6 +44,7 @@ import { ref, inject, nextTick } from 'vue';
 import { App, Command, setIcon } from 'obsidian';
 import { openCommandSelector, findCommand } from '../../lib/commandUtils';
 import { openIconSelector } from '../../lib/iconUtils';
+import { logger } from '../../lib/debugUtils';
 import type { DocWeaverInstance } from '../../main';
 
 // 通过inject获取Obsidian App实例
@@ -65,7 +66,7 @@ const findTried = ref(false);
  */
 const handleSelectCommand = async () => {
   if (!app) {
-    console.error('Obsidian app 实例未找到');
+    logger.error('Obsidian app instance not found');
     return;
   }
 
@@ -73,19 +74,19 @@ const handleSelectCommand = async () => {
     const result = await openCommandSelector(app);
     if (result) {
       selectedCommand.value = result;
-      console.log('选择的命令:', result);
+      logger.debug('selected command:', result);
     } else {
-      console.log('用户取消了命令选择');
+      logger.debug('user cancelled command selection');
     }
   } catch (error) {
-    console.error('命令选择出错:', error);
+    logger.error('command selector error:', error);
   }
 };
 
 // 测试：根据输入的命令ID查找命令
 const handleFindCommand = () => {
   if (!app) {
-    console.error('Obsidian app 实例未找到');
+    logger.error('Obsidian app instance not found');
     return;
   }
   findTried.value = true;
@@ -97,7 +98,7 @@ const handleFindCommand = () => {
  */
 const handleSelectIcon = async () => {
   if (!app) {
-    console.error('Obsidian app 实例未找到');
+    logger.error('Obsidian app instance not found');
     return;
   }
 
@@ -105,7 +106,7 @@ const handleSelectIcon = async () => {
     const iconName = await openIconSelector(app);
     if (iconName) {
       selectedIcon.value = iconName;
-      console.log('选择的图标:', iconName);
+      logger.debug('selected icon:', iconName);
       
       // 使用 Obsidian 的 setIcon 渲染图标预览
       await nextTick();
@@ -120,10 +121,10 @@ const handleSelectIcon = async () => {
         }
       }
     } else {
-      console.log('用户取消了图标选择');
+      logger.debug('user cancelled icon selection');
     }
   } catch (error) {
-    console.error('图标选择出错:', error);
+    logger.error('icon selector error:', error);
   }
 };
 </script>

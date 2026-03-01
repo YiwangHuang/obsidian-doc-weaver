@@ -7,7 +7,7 @@ import { getHeadingText } from '../../lib/noteResloveUtils';
 import type { OutputFormat } from "../types";
 import type { Token, StateBlock } from "markdown-it";
 import { getLocalizedText } from '../../lib/textUtils';
-import { debugLog } from "../../lib/debugUtils";
+import { logger } from "../../lib/debugUtils";
 
 // import type StateBlock from 'markdown-it/lib/rules_block/state_block.mjs';
 // import type Token from 'markdown-it/lib/token.mjs';
@@ -245,7 +245,7 @@ export class LinkParser {
             
             // 记录未处理的部分
             if (!result.processed) {
-                debugLog(`Link part not processed: ${part}`);
+                logger.debug(`Link part not processed: ${part}`);
             }
         }
     }

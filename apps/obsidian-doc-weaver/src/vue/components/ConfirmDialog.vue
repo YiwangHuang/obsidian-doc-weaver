@@ -52,7 +52,7 @@ import ObsidianVueModal from './ObsidianVueModal.vue';
 import Button from './Button.vue';
 import { getLocalizedText } from '../../lib/textUtils';
 import '../shared-styles.css';
-import { debugLog } from '../../lib/debugUtils';
+import { logger } from '../../lib/debugUtils';
 
 // Props定义
 interface ConfirmDialogProps {
@@ -98,7 +98,7 @@ const safeEmit = (event: 'update:visible', value: boolean) => {
     try {
       emit(event, value);
     } catch (error) {
-      debugLog('Failed to emit event:', error);
+      logger.debug('Failed to emit event:', error);
     }
   }
 };
@@ -129,7 +129,7 @@ const handleConfirm = () => {
       safeEmit('update:visible', false);
     });
   } catch (error) {
-    debugLog('Error in confirm handler:', error);
+    logger.debug('Error in confirm handler:', error);
   }
 };
 
@@ -146,7 +146,7 @@ const handleCancel = () => {
       safeEmit('update:visible', false);
     });
   } catch (error) {
-    debugLog('Error in cancel handler:', error);
+    logger.debug('Error in cancel handler:', error);
   }
 };
 </script>

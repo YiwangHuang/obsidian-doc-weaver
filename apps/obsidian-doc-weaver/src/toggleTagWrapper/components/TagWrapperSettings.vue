@@ -251,7 +251,7 @@ import draggable from 'vuedraggable';
 import type DocWeaver from '../../main';
 import type { TagConfig, TagWrapperSettings } from '../types';
 import { generateStartTagFromConfig, generateEndTagFromConfig } from '../types';
-import { debugLog } from '../../lib/debugUtils';
+import { logger } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { tagWrapperInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
@@ -332,11 +332,11 @@ const styledPreviewHtml = computed(() => {
 });
 
 const handleDragEnd = () => {
-  debugLog('Drag ended, order saved');
+  logger.debug('Drag ended, order saved');
 };
 
 const handleTagEnabledChange = (index: number, enabled: boolean) => {
-  debugLog(`Tag ${index} enabled:`, enabled);
+  logger.debug(`Tag ${index} enabled:`, enabled);
   configs.tags[index].enabled = enabled;
 };
 

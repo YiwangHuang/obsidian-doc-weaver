@@ -114,7 +114,7 @@ import { ref } from 'vue';
 import draggable from 'vuedraggable';
 import type DocWeaver from '../../main';
 import type { ExtraCommandConfig, ToolbarSettings } from '../index';
-import { debugLog } from '../../lib/debugUtils';
+import { logger } from '../../lib/debugUtils';
 import { getLocalizedText } from '../../lib/textUtils';
 import { toolbarInfo } from '../index';
 import Icon from '../../vue/components/Icon.vue';
@@ -144,7 +144,7 @@ const deleteCommandIndex = ref<number | null>(null);
  * 拖拽结束处理函数 - 预留空实现
  */
 const handleDragEnd = () => {
-    debugLog('Command drag ended, order saved');
+    logger.debug('Command drag ended, order saved');
   // TODO: 实现拖拽保存逻辑
 };
 
@@ -152,7 +152,7 @@ const handleDragEnd = () => {
  * 命令启用状态变化处理函数 - 预留空实现
  */
 const handleCommandEnabledChange = (index: number, enabled: boolean) => {
-    debugLog(`Command ${index} enabled:`, enabled);
+    logger.debug(`Command ${index} enabled:`, enabled);
     configs.extraCommands[index].enabled = enabled;
   // TODO: 实现启用状态变化保存逻辑
 };
@@ -176,7 +176,7 @@ const openCommandModal = (index: number) => {
     if (result) {
       props.plugin.toolbarManager.addExtraCommand(result);
     } else {
-      console.log('用户取消了命令选择');
+      logger.debug('user cancelled command selection');
     }
 };
 
@@ -185,7 +185,7 @@ const openCommandModal = (index: number) => {
  */
 const selectObsidianCommand = async () => {
   // TODO: 调用 openCommandSelector 函数
-  debugLog('Select Obsidian command clicked');
+  logger.debug('Select Obsidian command clicked');
 };
 
 /**
@@ -194,7 +194,7 @@ const selectObsidianCommand = async () => {
 const saveCommand = () => {
   // TODO: 实现保存命令配置逻辑
   modalVisible.value = false;
-  debugLog('Save command clicked');
+  logger.debug('Save command clicked');
 };
 
 /**
@@ -218,7 +218,7 @@ const confirmDelete = () => {
   if (deleteCommandIndex.value === null) return;
   configs.extraCommands.splice(deleteCommandIndex.value, 1);
   // TODO: 实现删除命令逻辑
-  debugLog('Delete command confirmed for index:', deleteCommandIndex.value);
+  logger.debug('Delete command confirmed for index:', deleteCommandIndex.value);
   deleteCommandIndex.value = null;
 };
 
@@ -234,7 +234,7 @@ const cancelDelete = () => {
  * 处理图标变化 - 预留空实现
  */
 const handleIconChange = (iconName: string) => {
-  debugLog('Command icon changed:', iconName);
+  logger.debug('Command icon changed:', iconName);
   // TODO: 实现图标变化保存逻辑
 };
 </script>

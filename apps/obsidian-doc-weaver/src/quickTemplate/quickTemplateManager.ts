@@ -3,7 +3,7 @@ import { Editor, MarkdownView, Command } from "obsidian";
 import { watch } from "vue";
 import { quickTemplateInfo, TemplateConfig, QuickTemplateSettings, quickTemplateSettingsIO, templateConfigIO } from "./index";
 import { generateTimestamp } from "../lib/idGenerator";
-import { debugLog } from "../lib/debugUtils";
+import { logger } from "../lib/debugUtils";
 import { replaceDatePlaceholders } from "../lib/constant";
 import { debounce } from 'lodash';
 
@@ -73,7 +73,7 @@ export class QuickTemplateManager {
             }
         };
         this.plugin.addCommand(command);
-        debugLog(`Template command added: ${template.name} (${template.id})`);
+        logger.debug(`Template command added: ${template.name} (${template.id})`);
     }
 
     /**
@@ -82,7 +82,7 @@ export class QuickTemplateManager {
      */
     removeTemplateCommand(template: TemplateConfig): void {
         this.plugin.removeCommand(template.id);
-        debugLog(`Template command removed: ${template.name} (${template.id})`);
+        logger.debug(`Template command removed: ${template.name} (${template.id})`);
     }
 
     /**
@@ -109,7 +109,7 @@ export class QuickTemplateManager {
 
         // 监听模板内容变化（不需要重新注册命令）
         watch(() => template.template, debounce((newVal, oldVal) => {
-            debugLog(`Template content updated: ${template.name}`);
+            logger.debug(`Template content updated: ${template.name}`);
         }, 500));
     }
 
@@ -124,11 +124,11 @@ export class QuickTemplateManager {
             // 获取选中的文本
             const selectedText = editor.somethingSelected() ? editor.getSelection() : "";
 
-            debugLog('executeTemplateInsertion', {selectedText});
+            logger.debug('executeTemplateInsertion', {selectedText});
 
             // 处理模板内容，替换占位符
             const processedTemplate = this.replacePlaceholders(template.template, selectedText);
-            debugLog('processedTemplate', {processedTemplate});
+            logger.debug('processedTemplate', {processedTemplate});
             // 插入处理后的模板内容
             if (editor.somethingSelected()) {
                 // 如果有选中文本，替换选中文本
@@ -139,10 +139,10 @@ export class QuickTemplateManager {
                 editor.replaceRange(processedTemplate, editor.getCursor());
             }
             
-            debugLog(`Template inserted: ${template.name}`, processedTemplate);
+            logger.debug(`Template inserted: ${template.name}`, processedTemplate);
             
         } catch (error) {
-            debugLog(`Error executing template: ${template.name}`, error);
+            logger.debug(`Error executing template: ${template.name}`, error);
         }
     }
 
@@ -157,7 +157,7 @@ export class QuickTemplateManager {
         // 在JavaScript的replace方法中，$$ 会被解释为单个$，$& 表示匹配的文本等
         const escapedSelectedText = selectedText.replace(/\$/g, '$$$$');
         
-        debugLog('replacePlaceholders escape', {
+        logger.debug('replacePlaceholders escape', {
             original: selectedText,
             escaped: escapedSelectedText
         });
@@ -184,7 +184,7 @@ export class QuickTemplateManager {
         }
         this.watchConfig(newTemplate);
         
-        debugLog('New template added:', newTemplate);
+        logger.debug('New template added:', newTemplate);
     }
 
     /**
@@ -198,7 +198,7 @@ export class QuickTemplateManager {
             this.removeTemplateCommand(template);
             // 从配置中删除
             this.config.templates.splice(templateIndex, 1);
-            debugLog('Template deleted:', template);
+            logger.debug('Template deleted:', template);
         }
     }
 
@@ -229,7 +229,7 @@ export class QuickTemplateManager {
         }
         this.watchConfig(newTemplate);
         
-        debugLog('Template duplicated:', newTemplate.name);
+        logger.debug('Template duplicated:', newTemplate.name);
     }
 
     /**
@@ -240,6 +240,6 @@ export class QuickTemplateManager {
         this.config.templates.forEach(template => {
             this.removeTemplateCommand(template);
         });
-        debugLog('QuickTemplateManager cleanup completed');
+        logger.debug('QuickTemplateManager cleanup completed');
     }
 } 

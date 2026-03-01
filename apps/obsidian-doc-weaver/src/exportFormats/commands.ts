@@ -3,7 +3,7 @@ import type { Menu } from 'obsidian';
 import DocWeaver from '../main';
 import { exportFormatsInfo } from './index';
 import type { ExportManagerSettings, ExportConfig } from './types';
-import { debugLog } from '../lib/debugUtils';
+import { logger } from '../lib/debugUtils';
 import { getLocalizedText } from '../lib/textUtils';
 import { ConfirmModal } from '../lib/modalUtils';
 import { isExcalidrawNote } from '../lib/excalidrawUtils';
@@ -58,7 +58,7 @@ function registerFileContextMenu(menu: Menu, files: TAbstractFile[], plugin: Doc
     // 建立待导出文件列表：递归处理文件和文件夹，收集所有TFile
     const filesToExport = collectAllFiles(files, plugin);
     
-    debugLog('filesToExport', filesToExport);
+    logger.debug('filesToExport', filesToExport);
 
     // 如果没有可导出的文件，不显示菜单
     if (filesToExport.length === 0 || !settings.batchExportEnabled) {

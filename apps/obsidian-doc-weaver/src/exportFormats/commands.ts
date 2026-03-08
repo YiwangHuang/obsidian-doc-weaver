@@ -185,7 +185,7 @@ export function addExportFormatsCommands(plugin: DocWeaver): void {
                     await plugin.exportFormatsManager.executeExport(config, activeFile);
                 }
             } else {
-                new Notice("No active file found. Please open a markdown file first.");
+                new Notice("No active file found, open a markdown note first.");
                 return;
             }
         }

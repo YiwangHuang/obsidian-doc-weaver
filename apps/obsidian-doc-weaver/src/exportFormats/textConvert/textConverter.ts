@@ -298,7 +298,7 @@ export class AdvancedConverter extends BaseConverter{
      */
     registerHtmlProcessor(converter: BaseConverter, configs: TagConfig[]) {
         // 输出调试信息，显示注册的配置数量
-        logger.debug('注册自定义HTML处理器，配置数量:', configs.length);
+        logger.debug('Registering custom HTML processor, config count:', configs.length);
         
         // 向转换器实例注册自定义处理器
         converter.registerProcessor({
@@ -310,7 +310,7 @@ export class AdvancedConverter extends BaseConverter{
                 // 此时所有HTML标签已被识别为html_inline类型的token
                 converter.md.core.ruler.after('inline', 'custom_html_processor', (state) => {
                     // 输出调试信息，显示待处理的token总数
-                    console.log('自定义HTML处理器被调用，tokens数量:', state.tokens.length);
+                    logger.debug('Custom HTML processor invoked, token count:', state.tokens.length);
 
                     // 根据当前导出格式选择对应的模板字段
                     const templateKey: keyof TagConfig =
@@ -403,7 +403,7 @@ export class AdvancedConverter extends BaseConverter{
                                         }
                                     } catch (error) {
                                         // HTML解析失败时保持原内容不变，避免破坏文档
-                                        console.warn('HTML解析失败:', error);
+                                        logger.warn('HTML parsing failed:', error);
                                     }
                                 }
                             }

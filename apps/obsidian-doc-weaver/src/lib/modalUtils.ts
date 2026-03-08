@@ -24,10 +24,12 @@ export class ConfirmModal extends Modal {
         
         // 创建按钮容器
         const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
-        buttonContainer.style.display = 'flex';
-        buttonContainer.style.justifyContent = 'flex-end';
-        buttonContainer.style.gap = '10px';
-        buttonContainer.style.marginTop = '20px';
+        buttonContainer.setCssProps({
+            'display': 'flex',
+            'justify-content': 'flex-end',
+            'gap': '10px',
+            'margin-top': '20px',
+        });
         
         // 创建确认按钮
         const confirmBtn = buttonContainer.createEl('button', { 

@@ -12,6 +12,15 @@ declare module 'obsidian' {
         plugins: {
             plugins: Record<string, Plugin>;
         };
+        customCss: {
+            snippets: string[];
+            enabledSnippets: Set<string>;
+            getSnippetsFolder(): string;
+            getSnippetPath(name: string): string;
+            setCssEnabledStatus(name: string, enabled: boolean): void;
+            requestLoadSnippets(): void;
+        };
+        openWithDefaultApp(path: string): void;
     }
 
     interface Vault {

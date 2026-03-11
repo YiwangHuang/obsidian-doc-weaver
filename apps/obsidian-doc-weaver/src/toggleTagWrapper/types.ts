@@ -21,8 +21,8 @@ export interface TagConfig extends BaseConfig {
     mapToTypst: string;
     /** LaTeX 导出模板，使用 {{tagContent}} 作为内容占位符，如 \underline{{{tagContent}}} */
     mapToLatex: string;
-    /** CSS 片段，会根据启用状态热插拔到 Obsidian */
-    cssSnippet: string;
+    /** CSS snippet 文件名（含 .css 后缀），位于 .obsidian/snippets/ 下 */
+    cssFileName: string;
 }
 
 /**
@@ -68,7 +68,7 @@ const tagConfigFields: Record<keyof TagConfig, FieldDef> = {
     tagClass:    { type: 'string',  required: true,  default: '' },
     mapToTypst: { type: 'string',  required: true,  default: '' },
     mapToLatex: { type: 'string',  required: true,  default: '' },
-    cssSnippet:  { type: 'string',  required: true,  default: '' },
+    cssFileName: { type: 'string',  required: true,  default: '' },
 };
 
 /**
@@ -95,6 +95,7 @@ class TagConfigIO extends ConfigIO<TagConfig> {
             commandId: `doc-weaver:tag-${hexId}`,
             name: `tag-${overrides.name ?? hexId}`,
             tagType: tagType,
+            cssFileName: overrides.cssFileName ?? `doc-weaver-${hexId}.css`,
         } as TagConfig;
     }
 }
@@ -103,6 +104,39 @@ class TagConfigIO extends ConfigIO<TagConfig> {
  * TagWrapperSettings 读写中间层
  * 集中维护模块默认配置，替代原 DEFAULT 常量
  */
+/**
+ * 内置标签的默认 CSS 内容，按 cssFileName 索引。
+ * 仅在对应 snippet 文件不存在时写入，之后由用户通过外部编辑器维护。
+ */
+export const DEFAULT_CSS_CONTENT: Record<string, string> = {
+    'dw-toggle-underline.css': getLocalizedText({
+        en: `/* Re-draw underline using border instead of text-decoration to avoid rendering issues with LaTeX math formulas */
+u {
+    color: blue;
+    text-decoration: none; /* disable native underline */
+    border-bottom: 1px solid black; /* custom underline */
+    position: relative; /* base for pseudo-element if needed */
+}`,
+        zh: `/* 使用 border 重绘下划线，而不是 text-decoration 以避免与 LaTeX 数学公式产生渲染冲突 */
+u {
+    color: blue;
+    text-decoration: none; /* 禁用原生下划线 */
+    border-bottom: 1px solid black; /* 自定义下划线效果 */
+    position: relative; /* 为伪元素或扩展样式提供定位基准 */
+}`,
+    }),
+    'dw-toggle-highlight.css': getLocalizedText({
+        en: `/* Highlight text with red color */
+font.highlight {
+    color: red;
+}`,
+        zh: `/* 高亮文本为红色 */
+font.highlight {
+    color: red;
+}`,
+    }),
+};
+
 class TagWrapperSettingsIO extends ConfigIO<TagWrapperSettings> {
     constructor() {
         super({
@@ -115,22 +149,7 @@ class TagWrapperSettingsIO extends ConfigIO<TagWrapperSettings> {
                     icon: 'underline',
                     mapToTypst: `#DW_underline[${VAR_TAG_CONTENT}]`,
                     mapToLatex: `\\underline{{{tagContent}}}`,
-                    cssSnippet: getLocalizedText({
-                        en: `/* Re-draw underline using border instead of text-decoration to avoid rendering issues with LaTeX math formulas */
-u {
-    color: blue;
-    text-decoration: none; /* disable native underline */
-    border-bottom: 1px solid black; /* custom underline */
-    position: relative; /* base for pseudo-element if needed */
-}`,
-                        zh: `/* 使用 border 重绘下划线，而不是 text-decoration 以避免与 LaTeX 数学公式产生渲染冲突 */
-u {
-    color: blue;
-    text-decoration: none; /* 禁用原生下划线 */
-    border-bottom: 1px solid black; /* 自定义下划线效果 */
-    position: relative; /* 为伪元素或扩展样式提供定位基准 */
-}`,
-                    }),
+                    cssFileName: 'dw-toggle-underline.css',
                 },
                 {
                     ...tagConfigIO.getDefaults(),
@@ -142,16 +161,7 @@ u {
                     tagClass: 'highlight',
                     mapToTypst: `#text(fill: red)[${VAR_TAG_CONTENT}]`,
                     mapToLatex: `\\highlight{{{tagContent}}}`,
-                    cssSnippet: getLocalizedText({
-                        en: `/* Highlight text with red color */
-    font.highlight  {
-    color: red;
-}`,
-                        zh: `/* 高亮文本为红色 */
-    font.highlight  {
-    color: red;
-}`,
-                    }),
+                    cssFileName: 'dw-toggle-highlight.css',
                 },
             ] },
         });

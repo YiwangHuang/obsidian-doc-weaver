@@ -161,19 +161,38 @@
                 />
               </div>
 
-              <!-- CSS片段 -->
-              <v-textarea
-                v-model="editingTag.cssSnippet"
-                :label="getLocalizedText({ en: 'CSS Snippet', zh: 'CSS 片段' })"
-                :placeholder="getLocalizedText({
-                  en: 'Enter CSS styles...\nExample:\n.my-tag {\n  color: red;\n  font-weight: bold;\n}',
-                  zh: '输入CSS样式...\n示例：\n.my-tag {\n  color: red;\n  font-weight: bold;\n}'
-                })"
-                variant="outlined"
-                rows="6"
-                density="compact"
-                class="mb-3"
-              />
+              <!-- 分割线 -->
+              <v-divider class="border-opacity-100 my-2" />
+
+              <!-- CSS 片段（文件管理） -->
+              <div class="d-flex align-center my-2">
+                <div class="flex-grow-1">
+                  <div class="text-subtitle-2 font-weight-medium">
+                    {{ getLocalizedText({ en: 'CSS Snippet', zh: 'CSS 片段' }) }}:
+                    <span class="mx-1" style="font-size: 1.2em; color: var(--text-accent);">{{ snippetFileName }}</span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ getLocalizedText({
+                      en: 'CSS is automatically loaded when the tag is enabled and unloaded when disabled.',
+                      zh: 'CSS 会随标签的启用与否自动加载或停用。'
+                    }) }}
+                  </div>
+                </div>
+                <v-tooltip :text="getLocalizedText({ en: 'Open CSS file in default editor', zh: '用默认编辑器打开 CSS 文件' })" location="top" :open-delay="200">
+                  <template #activator="{ props: tp }">
+                    <v-btn v-bind="tp" size="small" class="icon-btn-square mx-1" @click="handleOpenSnippetFile">
+                      <Icon name="file-code"/>
+                    </v-btn>
+                  </template>
+                </v-tooltip>
+                <v-tooltip :text="getLocalizedText({ en: 'Reveal in file explorer and select file', zh: '在文件管理器中打开并选中对应文件' })" location="top" :open-delay="200">
+                  <template #activator="{ props: tp }">
+                    <v-btn v-bind="tp" size="small" class="icon-btn-square mx-1" @click="handleOpenSnippetsFolder">
+                      <Icon name="folder-open"/>
+                    </v-btn>
+                  </template>
+                </v-tooltip>
+              </div>
 
               <!-- 预览 -->
               <PreviewPanel
@@ -181,16 +200,12 @@
                 :title="getLocalizedText({ en: 'Preview', zh: '预览' })"
                 content=" "
               >
-                <!-- 带样式的HTML预览，通过插槽覆盖显示在预览面板上方 -->
-                <!-- 标签结构预览 -->
                 <div class="d-flex align-center">
                   <span>{{ generateStartTagFromConfig(editingTag) }}</span>
                   <span>{{ sampleText }}</span>
                   <span>{{ generateEndTagFromConfig(editingTag) }}</span>
                 </div>
-                <!-- 推导符号 -->
                 <span class="mx-2" style="font-size: 1.2em; color: var(--text-accent);">⟹</span>
-                <!-- CSS 样式渲染预览 -->
                 <div v-html="styledPreviewHtml"></div>
               </PreviewPanel>
             </template>
@@ -309,27 +324,52 @@ const tagTemplatePlaceholders = [
 // 固定的示例文本
 const sampleText = getLocalizedText({ en: "Sample text", zh: "示例文本" });
 
-// 计算带样式的预览HTML内容
+// 当前编辑标签对应的 snippet 文件名
+const snippetFileName = computed(() => {
+  if (!editingTag.value) return '';
+  return editingTag.value.cssFileName;
+});
+
+// 从 snippet 文件中读取的 CSS 内容（响应式）
+const snippetCssContent = ref('');
+
+// 读取 snippet 文件内容，供预览使用
+const loadSnippetCss = async () => {
+  if (!editingTag.value) {
+    snippetCssContent.value = '';
+    return;
+  }
+  snippetCssContent.value = await props.plugin.tagWrapperManager.readSnippetContent(editingTag.value);
+};
+
+// 计算带样式的预览 HTML 内容
 const styledPreviewHtml = computed(() => {
   if (!editingTag.value) return '';
-  
-  // 根据tagType和tagClass生成HTML标签
+
   const startTag = generateStartTagFromConfig(editingTag.value);
   const endTag = generateEndTagFromConfig(editingTag.value);
   const wrappedHtml = `${startTag}${sampleText}${endTag}`;
-  
-  // 如果有CSS片段，将其作为内联样式应用
-  if (editingTag.value.cssSnippet) {
+
+  if (snippetCssContent.value) {
     return `
       <style scoped>
-        ${editingTag.value.cssSnippet}
+        ${snippetCssContent.value}
       </style>
       ${wrappedHtml}
     `;
   }
-  
+
   return wrappedHtml;
 });
+
+const handleOpenSnippetFile = () => {
+  if (!editingTag.value) return;
+  props.plugin.tagWrapperManager.openSnippetFile(editingTag.value);
+};
+
+const handleOpenSnippetsFolder = () => {
+  props.plugin.tagWrapperManager.openSnippetsFolder(editingTag.value ?? undefined);
+};
 
 const handleDragEnd = () => {
   logger.debug('Drag ended, order saved');
@@ -340,10 +380,11 @@ const handleTagEnabledChange = (index: number, enabled: boolean) => {
   configs.tags[index].enabled = enabled;
 };
 
-const openTagModal = (index: number) => {
+const openTagModal = async (index: number) => {
   editingTag.value = configs.tags[index];
   activeSectionId.value = 'basic';
   modalVisible.value = true;
+  await loadSnippetCss();
 };
 
 const showDeleteConfirm = (index: number) => {
@@ -398,7 +439,7 @@ const cancelDelete = () => {
 }
 
 /* 标签类型芯片样式 - 规定尺寸和外观，与导出格式设置保持一致 */
-.v-chip {
+.v-chip:not(.snippet-filename-chip) {
   width: 39px !important;
   height: 25px !important;
   font-size: 0.75rem !important;
@@ -407,5 +448,12 @@ const cancelDelete = () => {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+
+.snippet-filename-chip {
+  font-family: var(--font-monospace);
+  font-size: 0.8rem !important;
+  width: auto !important;
+  height: auto !important;
 }
 </style> 

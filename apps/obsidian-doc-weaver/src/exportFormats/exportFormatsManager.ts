@@ -251,7 +251,7 @@ export class ExportFormatsManager {
      * 下载 HMD 格式所需的 CSS 文件
      * 合并来源：
      *   1. packages/sass-components/dist/index.css（组件库基础样式，构建时通过 ?raw 静态内联）
-     *   2. toggleTagWrapper 中所有已启用 Tag 的 cssSnippet（标签自定义样式）
+     *   2. toggleTagWrapper 中所有已启用 Tag 的 CSS snippet 文件内容
      * 通过 Electron 原生 Save 对话框保存到用户指定路径
      */
     async downloadCSSForHMD(): Promise<void> {
@@ -259,11 +259,16 @@ export class ExportFormatsManager {
             // 1. sass-components CSS 已通过 ?raw 导入，直接使用内联字符串
             const sassCSS = sassComponentsCSS;
 
-            // 2. 收集所有已启用 Tag 的 cssSnippet
-            const enabledTagsCSS = this.plugin.tagWrapperManager.config.tags
-                .filter((tag) => tag.enabled && tag.cssSnippet?.trim())
-                .map((tag) => `/* Tag: ${tag.name} */\n${tag.cssSnippet.trim()}`)
-                .join('\n\n');
+            // 2. 从 snippet 文件中读取所有已启用 Tag 的 CSS
+            const enabledTags = this.plugin.tagWrapperManager.config.tags
+                .filter((tag) => tag.enabled && tag.cssFileName);
+            const cssFragments = await Promise.all(
+                enabledTags.map(async (tag) => {
+                    const content = await this.plugin.tagWrapperManager.readSnippetContent(tag);
+                    return content?.trim() ? `/* Tag: ${tag.name} */\n${content.trim()}` : '';
+                })
+            );
+            const enabledTagsCSS = cssFragments.filter(Boolean).join('\n\n');
 
             // 3. 拼合最终 CSS（保留各部分的注释分隔标记，便于阅读和维护）
             const parts: string[] = [];

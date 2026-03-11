@@ -1,7 +1,8 @@
 import type DocWeaver from "../main";
-import { Editor, MarkdownView, Command, EditorPosition, Notice } from "obsidian";
+import { Editor, MarkdownView, Command, EditorPosition, Notice, FileSystemAdapter } from "obsidian";
+import path from "path";
 import { watch } from "vue";
-import { TagConfig, TagWrapperSettings, tagConfigIO, tagWrapperSettingsIO, generateStartTagFromConfig, generateEndTagFromConfig } from "./types";
+import { TagConfig, TagWrapperSettings, tagConfigIO, tagWrapperSettingsIO, generateStartTagFromConfig, generateEndTagFromConfig, DEFAULT_CSS_CONTENT } from "./types";
 import { tagWrapperInfo } from "./index";
 import { generateHexId } from "../lib/idGenerator";
 import { logger } from "../lib/debugUtils";
@@ -257,13 +258,27 @@ class SelectionTagProcessor {
 
 export class TagWrapperManager {
     private plugin: DocWeaver;
-    private injectedStyles = new Map<string, HTMLStyleElement>();
-
     constructor(plugin: DocWeaver) {
         this.plugin = plugin;
-        // 第一步：注册模块设置
         this.registerSettings();
-        this.initialize();
+        this.initialize().catch(e => logger.debug('TagWrapperManager initialize error:', e));
+    }
+
+    /** snippet 名称（不含 .css），用于 customCss API */
+    private getSnippetName(tag: TagConfig): string {
+        return tag.cssFileName.replace(/\.css$/, '');
+    }
+
+    /** snippet 完整路径 */
+    private getSnippetFilePath(tag: TagConfig): string {
+        return `${this.plugin.app.vault.configDir}/snippets/${tag.cssFileName}`;
+    }
+
+    private async ensureSnippetsFolderExists(): Promise<void> {
+        const snippetsFolder = `${this.plugin.app.vault.configDir}/snippets`;
+        if (!await this.plugin.app.vault.adapter.exists(snippetsFolder)) {
+            await this.plugin.app.vault.adapter.mkdir(snippetsFolder);
+        }
     }
 
     /**
@@ -287,13 +302,12 @@ export class TagWrapperManager {
         return this.plugin.settingList[tagWrapperInfo.name] as TagWrapperSettings;
     }
 
-    initialize(): void {
-        // 配置现在通过getter动态获取，无需检查空值
+    async initialize(): Promise<void> {
         const enabledTags = this.config.tags.filter(tag => tag.enabled);
-        enabledTags.forEach(tag => {
+        for (const tag of enabledTags) {
             this.addTagCommand(tag);
-            this.injectCSS(tag);
-        });
+            await this.injectCSS(tag);
+        }
         this.config.tags.forEach(tag => {
             this.watchConfig(tag);
         });
@@ -319,77 +333,135 @@ export class TagWrapperManager {
 
 
     /**
-     * 注入 CSS 片段到 Obsidian
-     * @param tag 标签配置
+     * 确保 snippet 文件存在，然后通过 customCss API 启用。
+     * 若文件不存在，写入 DEFAULT_CSS_CONTENT 中的默认内容（或空模板）。
      */
-    private injectCSS(tag: TagConfig): void {
-        if (!tag.cssSnippet?.trim()) {
-            return;
-        }
+    private async injectCSS(tag: TagConfig): Promise<void> {
+        if (!tag.cssFileName) return;
 
         try {
-            // @skip Dynamic style element injection is required here because each tag's CSS snippet
-            // is user-defined at runtime and frequently toggled/updated via reactive settings.
-            // Using Obsidian's CSS Snippets filesystem API (.obsidian/snippets/) would require:
-            // writing/deleting physical .css files on every settings change (debounced keystrokes),
-            // calling the undocumented app.customCss.setCssEnabledStatus() to toggle them,
-            // managing cleanup of orphaned snippet files on plugin unload/tag deletion,
-            // and risking namespace collisions with user's own snippets.
-            // Style elements are scoped to the plugin lifecycle and cleaned up in removeCSS()/cleanup().
-            const styleElement = document.createElement('style');
-            styleElement.id = tag.id;
-            styleElement.textContent = `/* Doc Weaver CSS Snippet for: ${tag.name} */\n${tag.cssSnippet}`;
-            
-            document.head.appendChild(styleElement);
-            this.injectedStyles.set(tag.id, styleElement);
-            
-            logger.debug('CSS injected:', tag.name);
+            await this.ensureSnippetsFolderExists();
+            const filePath = this.getSnippetFilePath(tag);
+            if (!await this.plugin.app.vault.adapter.exists(filePath)) {
+                const fallback = DEFAULT_CSS_CONTENT[tag.cssFileName] ?? `/* Doc Weaver: ${tag.name} */\n`;
+                await this.plugin.app.vault.adapter.write(filePath, fallback);
+            }
+
+            const { customCss } = this.plugin.app;
+            customCss.setCssEnabledStatus(this.getSnippetName(tag), true);
+            customCss.requestLoadSnippets();
+            logger.debug('CSS snippet enabled:', tag.name);
         } catch (error) {
-            logger.debug('Failed to inject CSS:', tag.id, error);
+            logger.debug('Failed to inject CSS snippet:', tag.id, error);
         }
     }
 
     private removeCSS(tag: TagConfig): void {
-        const styleElement = this.injectedStyles.get(tag.id);
-        if (styleElement?.parentNode) {
-            styleElement.parentNode.removeChild(styleElement);
-            this.injectedStyles.delete(tag.id);
-            logger.debug('CSS removed:', tag.id);
-        }
+        this.plugin.app.customCss.setCssEnabledStatus(this.getSnippetName(tag), false);
+        logger.debug('CSS snippet disabled:', tag.id);
     }
 
-    // TODO: 需要增加防抖机制，避免频繁触发
+    /**
+     * 确保 snippet 文件存在后用系统默认程序打开
+     */
+    async openSnippetFile(tag: TagConfig): Promise<void> {
+        await this.ensureSnippetsFolderExists();
+        const filePath = this.getSnippetFilePath(tag);
+        if (!await this.plugin.app.vault.adapter.exists(filePath)) {
+            const fallback = DEFAULT_CSS_CONTENT[tag.cssFileName] ?? `/* Doc Weaver: ${tag.name} */\n`;
+            await this.plugin.app.vault.adapter.write(filePath, fallback);
+            this.plugin.app.customCss.requestLoadSnippets();
+        }
+        this.plugin.app.openWithDefaultApp(filePath);
+    }
+
+    /**
+     * 读取标签对应的 CSS snippet 文件内容，文件不存在时返回空字符串
+     */
+    async readSnippetContent(tag: TagConfig): Promise<string> {
+        if (!tag.cssFileName) return '';
+        const filePath = this.getSnippetFilePath(tag);
+        if (await this.plugin.app.vault.adapter.exists(filePath)) {
+            return await this.plugin.app.vault.adapter.read(filePath);
+        }
+        return '';
+    }
+
+    /**
+     * 在文件管理器中打开 snippets 文件夹；若传入 tag，则同时选中对应的 CSS 文件
+     */
+    async openSnippetsFolder(tag?: TagConfig): Promise<void> {
+        await this.ensureSnippetsFolderExists();
+        if (tag?.cssFileName) {
+            const filePath = this.getSnippetFilePath(tag);
+            if (!(await this.plugin.app.vault.adapter.exists(filePath))) {
+                const fallback = DEFAULT_CSS_CONTENT[tag.cssFileName] ?? `/* Doc Weaver: ${tag.name} */\n`;
+                await this.plugin.app.vault.adapter.write(filePath, fallback);
+                this.plugin.app.customCss.requestLoadSnippets();
+            }
+            const absPath = this.getSnippetAbsolutePath(tag);
+            if (absPath) {
+                try {
+                    const electron = (window as unknown as { require: (id: string) => { shell: { showItemInFolder: (p: string) => void } } }).require("electron");
+                    electron.shell.showItemInFolder(absPath);
+                    return;
+                } catch {
+                    this.plugin.app.openWithDefaultApp(filePath);
+                    return;
+                }
+            }
+        }
+        this.plugin.app.openWithDefaultApp(
+            `${this.plugin.app.vault.configDir}/snippets`
+        );
+    }
+
+    /** 获取 snippet 文件的绝对路径，用于 shell.showItemInFolder */
+    private getSnippetAbsolutePath(tag: TagConfig): string | null {
+        const adapter = this.plugin.app.vault.adapter;
+        if (!(adapter instanceof FileSystemAdapter)) return null;
+        const basePath = adapter.getBasePath();
+        return path.join(basePath, this.plugin.app.vault.configDir, "snippets", tag.cssFileName);
+    }
+
+    /**
+     * 永久删除标签对应的 CSS snippet 文件（用于标签被删除时）
+     */
+    private async deleteSnippetFile(tag: TagConfig): Promise<void> {
+        const { customCss } = this.plugin.app;
+        customCss.setCssEnabledStatus(this.getSnippetName(tag), false);
+
+        const filePath = this.getSnippetFilePath(tag);
+        if (await this.plugin.app.vault.adapter.exists(filePath)) {
+            await this.plugin.app.vault.adapter.remove(filePath);
+        }
+        customCss.requestLoadSnippets();
+        logger.debug('CSS snippet file deleted:', tag.id);
+    }
+
     watchConfig(tag: TagConfig): void {
-        watch(() => tag.enabled, (newVal, oldVal) => {
+        watch(() => tag.enabled, async (newVal) => {
             if (newVal) {
                 this.addTagCommand(tag);
-                this.injectCSS(tag);
+                await this.injectCSS(tag);
             } else {
                 this.removeTagCommand(tag);
                 this.removeCSS(tag);
             }
         });           
-        watch(() => tag.name, debounce((newVal, oldVal) => {
+        watch(() => tag.name, debounce((newVal: string, oldVal: string) => {
             if (tag.enabled) {
                 this.removeTagCommand(tag);
                 this.addTagCommand(tag);
             }
         }, 500));
-        watch(() => tag.cssSnippet, debounce((newVal, oldVal) => {
-            if (tag.enabled) {
-                this.removeCSS(tag);
-                this.injectCSS(tag);
-            }
-        }, 500));
-        // 监听标签类型变化，需要重新注册命令
-        watch(() => tag.tagType, debounce((newVal, oldVal) => {
+        watch(() => tag.tagType, debounce((newVal: string, oldVal: string) => {
             if (tag.enabled) {
                 this.removeTagCommand(tag);
                 this.addTagCommand(tag);
             }
         }, 500));
-        // 监听类名变化，需要重新注册命令
-        watch(() => tag.tagClass, debounce((newVal, oldVal) => {
+        watch(() => tag.tagClass, debounce((newVal: string, oldVal: string) => {
             if (tag.enabled) {
                 this.removeTagCommand(tag);
                 this.addTagCommand(tag);
@@ -397,21 +469,27 @@ export class TagWrapperManager {
         }, 500));
     }
     
-    addTagItem(): void {
+    async addTagItem(): Promise<void> {
         const tags = this.config.tags;
         const hexId = generateHexId();
-        // 使用 ConfigIO 创建新标签配置（默认值 + 动态 id/commandId）
         const newTag = tagConfigIO.createConfig(hexId);
         tags.push(newTag);
+
+        await this.ensureSnippetsFolderExists();
+        await this.plugin.app.vault.adapter.write(
+            this.getSnippetFilePath(newTag),
+            `/* Doc Weaver: ${newTag.name} */\n`
+        );
+
         this.addTagCommand(newTag);
-        this.injectCSS(newTag);
+        await this.injectCSS(newTag);
         this.watchConfig(newTag);
     }
 
     deleteTagItem(tagIndex: number): void {
         const tag = this.config.tags[tagIndex];
         this.removeTagCommand(tag);
-        this.removeCSS(tag);
+        this.deleteSnippetFile(tag).catch(e => logger.debug('deleteSnippetFile error:', e));
         this.config.tags.splice(tagIndex, 1);
     }
 
@@ -420,29 +498,32 @@ export class TagWrapperManager {
      * 创建指定标签配置的副本，包括CSS片段
      * @param tagIndex 要复制的标签配置索引
      */
-    duplicateTagItem(tagIndex: number): void {
+    async duplicateTagItem(tagIndex: number): Promise<void> {
         const originalTag = this.config.tags[tagIndex];
         const hexId = generateHexId();
-        
-        // 创建标签配置的深拷贝并生成新的ID
+        // const newCssFileName = `dw-tag-${hexId}.css`;
+
         const newTag: TagConfig = {
-            ...originalTag,
-            id: `tag-${hexId}`,
-            commandId: `doc-weaver:tag-${hexId}`,
+            ...tagConfigIO.createConfig(hexId),
             name: `${originalTag.name} - Copy`,
         };
 
-        // 将新配置插入到原配置后面
+        // 复制源 CSS 文件内容到新文件
+        await this.ensureSnippetsFolderExists();
+        const originalContent = await this.readSnippetContent(originalTag);
+        await this.plugin.app.vault.adapter.write(
+            this.getSnippetFilePath(newTag),
+            originalContent || `/* Doc Weaver: ${newTag.name} */\n`
+        );
+
         const tags = this.config.tags;
         tags.splice(tagIndex + 1, 0, newTag);
-        
-        // 为新配置添加命令、注入CSS和监听
+
         if (newTag.enabled) {
             this.addTagCommand(newTag);
-            this.injectCSS(newTag);
+            await this.injectCSS(newTag);
         }
         this.watchConfig(newTag);
-        
         logger.debug('Tag duplicated:', newTag.name);
     }
 
@@ -451,7 +532,6 @@ export class TagWrapperManager {
             this.removeTagCommand(tag);
             this.removeCSS(tag);
         });
-        this.injectedStyles.clear();
     }
 
     /**

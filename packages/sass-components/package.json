@@ -9,9 +9,10 @@
     "src"
   ],
   "scripts": {
-    "build": "sass src/styles/index.scss:dist/index.css --style=compressed && sass src/styles/index.scss:dist/index.min.css --style=compressed",
-    "build:expanded": "sass src/styles/index.scss:dist/index.css --style=expanded",
-    "watch": "sass src/styles/index.scss:dist/index.css --watch",
+    "build": "pnpm run build:expanded",
+    "build:expanded": "sass src/styles/index.scss:dist/index.css --style=expanded && sass src/styles/index.scss:dist/index.min.css --style=compressed",
+    "build:compressed": "sass src/styles/index.scss:dist/index.css --style=compressed && sass src/styles/index.scss:dist/index.min.css --style=compressed",
+    "watch": "sass src/styles/index.scss:dist/index.css --style=expanded --watch",
     "dev": "pnpm run watch",
     "clean": "rimraf dist",
     "lint": "stylelint \"src/**/*.scss\"",

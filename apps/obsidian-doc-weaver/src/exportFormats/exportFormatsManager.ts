@@ -162,7 +162,7 @@ export class ExportFormatsManager {
                 if (activeFile instanceof TFile) {
                     await this.executeExport(item, activeFile);
                 } else {
-                    new Notice("No active file found, open a markdown note first.");
+                    new Notice("No active note. Please open a Markdown note first.");
                     return;
                 }
             }

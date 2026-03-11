@@ -1,7 +1,7 @@
 {
 	"id": "doc-weaver",
 	"name": "Doc Weaver",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"minAppVersion": "1.9.12",
 	"description": "Export Markdown notes and attachments as structured documents: Typst, LaTeX, HMD (Markdown for downstream processing and publishing, with lots of HTML), and more.",
 	"author": "Huang Yifan",

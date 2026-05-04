@@ -19,6 +19,7 @@ Doc Weaver 是一个 Obsidian 插件，用于将 **Markdown 笔记及其附件**
 ## 支持的导出格式
 
 - **Typst**：适合排版与生成 PDF。
+  > **`\ce{}` → `#ch()`** — LaTeX 化学式（`\ce{H2O}`、`\ce{^{235}U}` 等）会自动转换为 Typst 的 `#ch()` 函数（基于 [chemformula](https://typst.app/universe/package/chemformula) 包）。此为**暂时解决方案**，期待 [mitex](https://typst.app/universe/package/mitex) 能够原生支持 `mhchem` 等 TeX 宏包。
 - **HMD（Hybrid Markdown）**：面向二次处理与发布的 Markdown 文档（通常包含大量 HTML），用于对接 VuePress / VitePress / Reveal.js 等下游流程。
 - Latex（开发中）
 - Pandoc（待开发）

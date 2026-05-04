@@ -1,4 +1,5 @@
 #import "@preview/mitex:0.2.5": * // LaTeX math support / 支持 LaTeX 公式
+#import "@preview/chemformula:0.1.2": ch // 支持 tex 公式中的 mhchem 宏包
 #import "@preview/tablem:0.3.0": tablem // Markdown-style tables / 支持 Markdown 表格
 #import "DW_styles.typ": *
 

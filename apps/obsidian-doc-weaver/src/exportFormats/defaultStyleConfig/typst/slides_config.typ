@@ -18,13 +18,21 @@
 // 支持 LaTeX 公式
 #import "@preview/mitex:0.2.5": *
 
+
+// 支持 tex 公式中的 mhchem 宏包
+#import "@preview/chemformula:0.1.2": ch
+
 // Markdown-style tables
 // 支持 Markdown 风格表格
 #import "@preview/tablem:0.3.0": tablem
 
+
 // Toggle whether underline shows content (true = show; false = blank/fill-in)
 // 切换下划线是否显示内容（true 显示，false 为填空）
 #let DW_underline = DW_underline.with(show_content: true)
+
+// Customize hidden callout types via hidden_types / 通过 hidden_types 参数自定义需要隐藏的 callout 类型
+// #let callout = callout.with(hidden_types: ("todo", "info", "done"))
 
 // Default gutter for grid layout
 // 分栏（grid）默认间距

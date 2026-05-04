@@ -19,6 +19,7 @@ Doc Weaver is an Obsidian plugin that exports **Markdown notes and their attachm
 ## Supported export formats
 
 - **Typst**: great for typesetting and generating PDF.
+  > **`\ce{}` → `#ch()`** — LaTeX chemical formulas (`\ce{H2O}`, `\ce{^{235}U}`, etc.) are automatically converted to Typst's `#ch()` function from the [chemformula](https://typst.app/universe/package/chemformula) package. This is a **temporary solution**; the long-term hope is for [mitex](https://typst.app/universe/package/mitex) to natively support TeX packages like `mhchem`.
 - **HMD (Hybrid Markdown)**: Markdown for downstream processing/publishing (often contains lots of HTML), designed for VuePress / VitePress / Reveal.js, etc.
 - **LaTeX** (in development)
 - **Pandoc** (planned)

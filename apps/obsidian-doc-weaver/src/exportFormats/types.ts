@@ -253,7 +253,7 @@ class ExportConfigBaseIO extends ConfigIO<ExportConfig> {
      * @param basePath 样式目录的绝对路径
      * @param preset 可选预设模板，提供时使用其 themeDependencies
      */
-    createAssetStructure(basePath: string, preset?: PresetDescriptor): void {
+    createAssetStructure(basePath: string, preset?: PresetDescriptor): void { // TODO: preset这个参数似乎没有必要独立出来，直接调用类属性即可
         const dependencies = preset?.themeDependencies ?? [];
         if (dependencies.length === 0) return;
 

@@ -21,20 +21,22 @@ function extractCeContent(content: string): string | null {
  * 4. 反应式 + 号前添加空格：Th +_2 → Th + _2
  */
 function convertCeToCh(ceContent: string): string {
-    // 1. 删除上下标包裹的 {}
-    let result = ceContent.replace(/\^\{([^}]*)\}/g, '^$1');
-    result = result.replace(/_\{([^}]*)\}/g, '_$1');
+    // 1. 删除上下标包裹的 {}，除非后接的也是上下标，否则在其后加入空格
+    let result = ceContent.replace(/\^\{([^}]*)\}(?=[_^])/g, '^$1');
+    result = result.replace(/\^\{([^}]*)\}/g, '^$1 ');
+    result = result.replace(/_\{([^}]*)\}(?=[_^])/g, '_$1');
+    result = result.replace(/_\{([^}]*)\}/g, '_$1 ');
 
     // 2. 同位素前缀后紧跟元素/粒子字母时插入空格
     //    匹配：^num / _num / ^num_num / _num^num 后紧跟字母（含粒子符号 n/p/e/d/t）
-    result = result.replace(/([\^_][\d]+(?:[\^_][\d]+)?)([A-Za-z])/g, '$1 $2');
+    result = result.replace(/([_^][\d]+(?:[_^][\d]+)?)([A-Za-z])/g, '$1 $2');
 
     // 3. 箭头运算符周围添加空格
     const arrows = /(->|<-|<->|<=>|<=>>|<<=>)/g;
     result = result.replace(arrows, ' $1 ');
 
     // 4. 反应式中的 + 号后添加空格（当后跟 _ ^ 或字母时，即公式/粒子片段开头）
-    result = result.replace(/\+(?=[_\^A-Za-z])/g, ' + ');
+    result = result.replace(/\+(?=[_^A-Za-z])/g, ' + ');
 
     // 5. 箭头后面的 [text] 括号标注属于箭头本身，移除中间的多余空格
     result = result.replace(/(->|<-|<->|<=>|<=>>|<<=>)\s+\[/g, '$1[');
